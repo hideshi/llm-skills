@@ -2,13 +2,12 @@
 
 ## 1. 3つの意思決定プリミティブと公式SDK仕様 (JS/TS & Python)
 
-TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリミティブを提供します。**各プリミティブによって確信度の意味や返却構造が異なります。**
-
-公式SDKでは、大文字の `new Choice()` ではなく、小文字の builder 関数（`choice()`, `score()`, `noul()`）を使用します。
+TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリミティブを提供します。
+**JavaScript SDK は小文字の builder 関数（`choice`, `score`, `noul`）**、**Python SDK は大文字クラス（`Choice`, `Score`, `Noul`）** を使用します。
 
 ### ① `choice`（多肢選択・排他分類）
 - **用途**: カテゴリ分類、ルーティング、担当部署決定。
-- **TypeScript 定義**:
+- **TypeScript**:
   ```typescript
   import { choice } from '@typesafe-ai/sdk';
 
@@ -20,39 +19,80 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
     }),
   };
   ```
+- **Python**:
+  ```python
+  from typesafe_sdk import Choice
+
+  questions = {
+      "department": Choice(
+          instructions="Which team should handle this inquiry?",
+          criteria={
+              "billing": "Payment, invoices, and subscription questions",
+              "technical": "API errors, bugs, and integration problems",
+              "sales": "Enterprise plans, demo requests, and pricing",
+          }
+      )
+  }
+  ```
 - **応答形式**: `response.answers.department`
   - `choice: string` (選ばれたキー)
   - `probabilities: Record<string, number>` (各選択肢の確率分布)
   - `confidence: number` (選択肢間の「分布の集中度」)
 
 ### ② `score`（順序尺度・レベル評価）
-- **用途**: 緊急度（Low/Med/High）、深刻度レベル（1〜5）、品質評価。
-- **TypeScript 定義**:
+- **用途**: 緊急度（Low/Med/High）、深刻度レベル（0〜N）、品質評価。
+- **TypeScript (※ 0始まりの順序付き配列を渡す)**:
   ```typescript
   import { score } from '@typesafe-ai/sdk';
 
   const questions = {
-    urgency: score('Rate the urgency of this request', {
-      low: 'General question, no immediate deadline',
-      medium: 'Needs response within 24 hours',
-      critical: 'Production outage or data breach',
-    }),
+    urgency: score('Rate the urgency of this request', [
+      'Low: General question, no immediate deadline',
+      'Medium: Needs response within 24 hours',
+      'Critical: Production outage or data breach',
+    ]),
   };
   ```
+- **Python**:
+  ```python
+  from typesafe_sdk import Score
+
+  questions = {
+      "urgency": Score(
+          instructions="Rate the urgency of this request",
+          levels=[
+              "Low: General question, no immediate deadline",
+              "Medium: Needs response within 24 hours",
+              "Critical: Production outage or data breach",
+          ]
+      )
+  }
+  ```
 - **応答形式**: `response.answers.urgency`
-  - `score: string` (選ばれたレベル)
-  - `probabilities: Record<string, number>`
+  - **`score: number` (確率加重された期待値。整数とは限らない)**
   - `confidence: number` (分布の集中度)
+  - `legend: string[]`
+  - `probabilities: number[]` (各スコアインデックスの確率分布)
 
 ### ③ `noul`（Yes/No の命題確率判定）
 - **用途**: スパム判定、ポリシー違反チェック、エスカレーション要否。
-- **TypeScript 定義**:
+- **TypeScript**:
   ```typescript
   import { noul } from '@typesafe-ai/sdk';
 
   const questions = {
     isViolation: noul('Does this input violate our safety guidelines?'),
   };
+  ```
+- **Python**:
+  ```python
+  from typesafe_sdk import Noul
+
+  questions = {
+      "is_violation": Noul(
+          instructions="Does this input violate our safety guidelines?"
+      )
+  }
   ```
 - **応答形式**: `response.answers.isViolation`
   - **`noul: number` (Yes である確率: 0.0 〜 1.0)**。※ 独立した confidence フィールドは存在しない。
@@ -75,35 +115,58 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
 
 ---
 
-## 2. 実証的な閾値（Threshold）選定プロセス
+## 2. タイムアウト・リトライ・締め切り制約（Deadline Hierarchy）
 
-固定の経験則（0.95, 0.80等）は**初期仮説に過ぎず、プロダクションでそのまま使用してはならない**。
+プロジェクトのSLOを満たすため、固定値を決め打ちせず、以下のパラメータ関係式に基づいて時間予算（Time Budget）を設計します。
 
-1. **評価データセットの準備**:
-   - 固定の100件ではなく、**「クラス別発生率（Prevalence）」「求めるPrecision/Recallの信頼区間」「重要な境界ケースのカバレッジ」** を満たすサンプル数を設計する。
-2. **コスト行列（Cost Matrix）の定義**:
-   - 誤検知（False Positive）の損害 vs 見逃し（False Negative）の損害を数値化。
-3. **ROC曲線 / Precision-Recall 曲線の分析**:
-   - 閾値を変化させたときの「自動化率（Coverage）」と「エラー率」のトレードオフを算出し、閾値を決定。
-4. **本番ドリフト監視とロールバック**:
-   - 運用中の平均確信度やレビュー率（中間帯の比率）を監視。質問文変更時やモデル更新時は必ず再評価を実施する。
+### パラメータ関係式:
+$$\text{requestDeadlineMs} \ge \text{jevTotalBudgetMs} + \text{fallbackBudgetMs}$$
+$$\text{jevTotalBudgetMs} \ge (\text{attemptTimeoutMs} \times (\text{maxRetries} + 1)) + \text{backoffBudgetMs}$$
+
+### 設定例（レイテンシSLOが厳しいオンライン対話の場合）:
+- `requestDeadlineMs`: 800ms (ユーザー要求全体の打ち切り)
+- `jevTotalBudgetMs`: 350ms (Jev判定全体の絶対締め切り)
+- `attemptTimeoutMs`: 150ms (SDKの1回呼出タイムアウト)
+- `maxRetries`: 1回 (リトライ最大1回)
+- `backoffInitialMs`: 20ms
+- `fallbackBudgetMs`: 450ms (超過時のSafe Defaultまたは軽量LLMエスカレーション用)
+
+### 外側絶対Deadlineの実装パターン (AbortController):
+```typescript
+const controller = new AbortController();
+const deadline = setTimeout(() => controller.abort(), JEV_TOTAL_BUDGET_MS);
+
+try {
+  const response = await client.systemOne(request, {
+    timeout: ATTEMPT_TIMEOUT_MS,
+    retry: {
+      maxRetries: MAX_RETRIES,
+      backoffInitialMs: BACKOFF_MS,
+    },
+    signal: controller.signal,
+  });
+  return handleResponse(response);
+} catch (error) {
+  // タイムアウトまたは障害時は即座に Safe Default へ縮退
+  return getSafeDefault();
+} finally {
+  clearTimeout(deadline);
+}
+```
 
 ---
 
-## 3. タイムアウト・リトライ・締め切り制約（Deadline Hierarchy）
+## 3. 実証的な閾値（Threshold）選定プロセス
 
-「p95 < 200ms」などの低遅延要件を満たすため、時間予算（Time Budget）を明確に階層化して設計します。
+固定の経験則（0.95, 0.05等）は**初期仮説に過ぎず、プロダクション投入前に検証が必須**です。
 
-```text
-[ユーザー要求全体のDeadline: 例 800ms]
-  │
-  ├── [Jev呼出全体のDeadline: 例 250ms]
-  │     ├── 1試行のタイムアウト: 150ms
-  │     ├── リトライ間隔 (Backoff): 30ms
-  │     └── 最大試行回数: 2回 (初回 + リトライ1回)
-  │
-  └── [超過時のフォールバック処理 (Safe Default または LLM): 残り時間予算内]
-```
-
-- **Safe Default（安全側の既定値）**:
-  - Jev の Deadline（250ms）を超過した場合、または 5xx / 429 発生時は、即座に Safe Default（セキュリティ判定なら「要確認」、レコメンドなら「デフォルト表示」）へ倒し、ユーザー要求全体のタイムアウトを防ぐ。
+1. **評価データセットの準備**:
+   - クラス別発生率（Prevalence）、求めるPrecision/Recallの信頼区間、重要な境界ケースのカバレッジを満たすサンプルを用意。
+2. **コスト行列（Cost Matrix）と目標値の定義**:
+   - 目標: FP率 $\le X\%$ (評価セット上、95%信頼上限)
+   - 目標: FN率 $\le Y\%$ (評価セット上、95%信頼上限)
+   - 状態: `未検証` → `検証済み` へ昇格。
+3. **ROC / Precision-Recall 分析**:
+   - 閾値を変化させたときの自動化率（Coverage）とエラー率のトレードオフを算出し、`blockThreshold` と `allowThreshold` を確定。
+4. **本番ドリフト監視とロールバック**:
+   - レビュー率（中間帯比率）を常時監視し、質問文やモデル更新時は再評価を実施。
