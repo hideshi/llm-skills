@@ -130,17 +130,16 @@ safety_questions = {
 
 > **⚠️ 注意**: 以下の閾値は初期設計仮説です。本番運用前に必ず評価データセット（Ground Truth）上で目標指標をクリアしていることを実証してください。
 
-### 目標評価指標 & 状態
-- **目標 FP率 (False Positive)**: $\le 1.0\%$ (評価セット上、95%信頼上限)
-- **目標 FN率 (False Negative)**: $\le 0.5\%$ (評価セット上、95%信頼上限)
-- **検証ステータス**: `未検証 (初期仮説)`
+### ハンドリングマトリクス (検証ステータス連動)
 
-### ハンドリングマトリクス
-| 判定区分 | 確率条件 ($p = \text{noul}$) | 実行アクション | 理由・縮退先 |
+| ポリシー状態 (`validationStatus`) | 確率条件 ($p = \text{noul}$) | 判定結果 (`status`) | 実行アクション / 理由 |
 | :--- | :--- | :--- | :--- |
-| **① BLOCK 判定** | $p \ge 0.95$ (blockThreshold) | 即時ブロック・遮断を実行 | 目標FP率をクリアした高確信領域。 |
-| **② ALLOW 判定** | $p \le 0.05$ (allowThreshold) | 即時通過・後続処理を実行 | 目標FN率をクリアした高確信領域。 |
-| **③ REVIEW 判定 (中間帯)** | $0.05 < p < 0.95$ | 人手キューまたは生成LLMへ移送 | 不確実領域のため安全側に倒して確認・縮退。 |
+| **`UNVALIDATED` (未検証・初期設計時)** | **全確率領域 ($0.0 \le p \le 1.0$)** | **`REVIEW_REQUIRED`** | **自動化禁止。実証前は全件レビューまたは安全側縮退。** |
+| **`VALIDATED` (実証検証完了後)** | $p \ge \text{blockThreshold}$<br>*(例: 0.95)* | **`BLOCK`** | 即時ブロック。目標FP率をクリアした高確信領域。 |
+| **`VALIDATED` (実証検証完了後)** | $p \le \text{allowThreshold}$<br>*(例: 0.05)* | **`ALLOW`** | 即時通過。目標FN率をクリアした高確信領域。 |
+| **`VALIDATED` (実証検証完了後)** | $\text{allowThreshold} < p < \text{blockThreshold}$ | **`REVIEW_REQUIRED`** | 不確実領域のため安全側に倒して確認・エスカレーション。 |
+
+*※ 上記の 0.95 / 0.05 は説明用の仮説値です。本番運用値は評価データセット検証を経て `DecisionPolicy` に注入されます。*
 
 ---
 
@@ -163,6 +162,20 @@ export interface DecisionPolicy {
   validationStatus: 'UNVALIDATED' | 'VALIDATED';
 }
 
+/**
+ * ポリシーの健全性を検証 (範囲、逆転、NaN、未検証状態の防御)
+ */
+export function isValidPolicy(policy: DecisionPolicy): boolean {
+  return (
+    policy.validationStatus === 'VALIDATED' &&
+    Number.isFinite(policy.allowThreshold) &&
+    Number.isFinite(policy.blockThreshold) &&
+    0 <= policy.allowThreshold &&
+    policy.allowThreshold < policy.blockThreshold &&
+    policy.blockThreshold <= 1
+  );
+}
+
 export interface DecisionResult {
   status: 'ALLOW' | 'BLOCK' | 'REVIEW_REQUIRED';
   reason: string;
@@ -182,11 +195,11 @@ export async function executeSafetyDecision(
 ): Promise<DecisionResult> {
   const start = Date.now();
 
-  // 1. 安全性ガード: 実証データによる検証が完了していない場合は自動化を禁止
-  if (policy.validationStatus !== 'VALIDATED') {
+  // 1. 安全性ガード: 実証未検証、または不正な閾値設定（逆転・NaN・範囲外）の場合は自動化を禁止
+  if (!isValidPolicy(policy)) {
     return {
       status: 'REVIEW_REQUIRED',
-      reason: 'THRESHOLDS_NOT_VALIDATED_SAFE_DEFAULT',
+      reason: 'POLICY_NOT_VALIDATED_OR_INVALID_THRESHOLDS',
       source: 'SAFE_DEFAULT',
       latencyMs: Date.now() - start,
     };

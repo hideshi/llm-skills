@@ -68,7 +68,7 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
       )
   }
   ```
-- **応答形式**: `response.answers.urgency`
+- **応答形式 (TypeScript: `response.answers.urgency`, Python: `response.answers["urgency"]`)**:
   - **`score: number` (確率加重された期待値。整数とは限らない)**
   - `confidence: number` (分布の集中度)
   - `legend: Record<string, string>` (スコア番号をキーとする辞書: `{"0": "Low...", "1": "Medium...", "2": "Critical..."}`)
