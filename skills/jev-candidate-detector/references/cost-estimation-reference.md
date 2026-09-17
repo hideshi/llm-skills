@@ -19,20 +19,20 @@
 
 単位（月間総額 $）を厳密に揃えたTCO計算式です。
 
-$$\text{Expected Monthly Cost} = N \times C_{\text{jev\_req}} + N \times P(\text{review}) \times C_{\text{review\_case}} + N \times P(\text{fallback}) \times C_{\text{fallback\_case}} + C_{\text{retry\_overhead}} + C_{\text{fixed\_ops}}$$
+$$\text{Expected Monthly Cost} = N \times C_{\text{jev}} + N \times P(\text{review}) \times C_{\text{review}} + N \times P(\text{fallback}) \times C_{\text{fallback}} + C_{\text{retry}} + C_{\text{ops}}$$
 
 ### 各項の定義と次元:
 - **$N$**: 月間リクエスト総数 (requests/month)
-- **$C_{\text{jev\_req}}$ (Jev 1回あたり呼出単価 [$])**:
-  $$C_{\text{jev\_req}} = \frac{(T_{\text{state}} + T_{\text{instructions}} + T_{\text{criteria}}) \times \$0.042}{1,000,000}$$
+- **$C_{\text{jev}}$ (Jev 1回あたり呼出単価 [$])**:
+  $$C_{\text{jev}} = \frac{(T_{\text{state}} + T_{\text{instructions}} + T_{\text{criteria}}) \times \$0.042}{1,000,000}$$
 - **$P(\text{review})$**: 人手確認・レビュー経路へ回る確率 ($0.0 \le P \le 1.0$)
-- **$C_{\text{review\_case}}$**: 人手レビュー1件あたりの人件費コスト ($/case, 例: $0.10)
+- **$C_{\text{review}}$**: 人手レビュー1件あたりの人件費コスト ($/case, 例: $0.10)
 - **$P(\text{fallback})$**: 生成型LLMによるエスカレーションまたはAPI障害時フォールバックへ回る確率 ($0.0 \le P \le 1.0$)
   *※ レビューとフォールバックは原則排他的な経路としてモデル化（$P(\text{auto}) + P(\text{review}) + P(\text{fallback}) = 1.0$）*
-- **$C_{\text{fallback\_case}}$**: 代替LLM（GPT-4o-mini等）の1回あたり呼出コスト ($/case)
-  $$C_{\text{fallback\_case}} = \frac{T_{\text{in}} \times P_{\text{in}} + T_{\text{out}} \times P_{\text{out}}}{1,000,000}$$
-- **$C_{\text{retry\_overhead}}$**: 429/タイムアウト再試行に伴う追加コスト (通常は $N \times C_{\text{jev\_req}} \times 0.01\sim 0.03$)
-- **$C_{\text{fixed\_ops}}$**: 監視、ログ保管、定期評価データセット保守等の固定運用費 ($/month)
+- **$C_{\text{fallback}}$**: 代替LLM（GPT-4o-mini等）の1回あたり呼出コスト ($/case)
+  $$C_{\text{fallback}} = \frac{T_{\text{in}} \times P_{\text{in}} + T_{\text{out}} \times P_{\text{out}}}{1,000,000}$$
+- **$C_{\text{retry}}$**: 429/タイムアウト再試行に伴う追加コスト (通常は $N \times C_{\text{jev}} \times 0.01\sim 0.03$)
+- **$C_{\text{ops}}$**: 監視、ログ保管、定期評価データセット保守等の固定運用費 ($/month)
 
 ---
 

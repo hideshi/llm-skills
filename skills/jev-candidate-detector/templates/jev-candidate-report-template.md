@@ -36,7 +36,7 @@
 #### 💰 期待TCO試算マトリクス（月間リクエスト規模別）
 
 > **試算パラメータ**:
-> - Jev 呼出単価 $C_{\text{jev\_req}}$: $0.042 / 1M tokens (出力無料)
+> - Jev 呼出単価 $C_{\text{jev}}$: $0.042 / 1M tokens (出力無料)
 > - フォールバック先: GPT-4o-mini ($0.15 in / $0.60 out per 1M)
 > - 想定経路分岐率: $P(\text{auto}) = 93\%$, $P(\text{fallback}) = 5\%$, $P(\text{review}) = 2\%$
 
