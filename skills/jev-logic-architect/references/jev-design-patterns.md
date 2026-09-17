@@ -53,26 +53,26 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
     ]),
   };
   ```
-- **Python**:
+- **Python (※ criteria にリストを渡す)**:
   ```python
   from typesafe_sdk import Score
 
   questions = {
       "urgency": Score(
           instructions="Rate the urgency of this request",
-          levels=[
+          criteria=[
               "Low: General question, no immediate deadline",
               "Medium: Needs response within 24 hours",
               "Critical: Production outage or data breach",
-          ]
+          ],
       )
   }
   ```
 - **応答形式**: `response.answers.urgency`
   - **`score: number` (確率加重された期待値。整数とは限らない)**
   - `confidence: number` (分布の集中度)
-  - `legend: string[]`
-  - `probabilities: number[]` (各スコアインデックスの確率分布)
+  - `legend: Record<string, string>` (スコア番号をキーとする辞書: `{"0": "Low...", "1": "Medium...", "2": "Critical..."}`)
+  - `probabilities: Record<string, number>` (スコア番号をキーとする辞書: `{"0": 0.02, "1": 0.11, "2": 0.87}`)
 
 ### ③ `noul`（Yes/No の命題確率判定）
 - **用途**: スパム判定、ポリシー違反チェック、エスカレーション要否。

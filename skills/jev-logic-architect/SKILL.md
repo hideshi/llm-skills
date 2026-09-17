@@ -42,9 +42,9 @@ description: Transforms identified business decisions into concrete, type-safe J
    - 設計書の表とコード例の分岐ロジックが**完全に一致**していることを担保する。
 
 4. **耐障害性（Production Resilience）の組み込み**
-   - タイムアウト（通常 500ms 設定）
+   - タイムアウト・外側絶対Deadline（プロジェクトSLOから導出）
    - 429/5xx の限定リトライ
-   - 外部障害時の Safe Default（安全側への縮退）
+   - 外部障害・Deadline超過時の Safe Default（安全側への縮退）
 
 5. **成果物の出力**
    - `templates/jev-logic-spec-template.md` に従い、`design.md` / ADR 用の設計ブロック、および `tasks.md` 向けの実装・評価・監視タスクを出力する。

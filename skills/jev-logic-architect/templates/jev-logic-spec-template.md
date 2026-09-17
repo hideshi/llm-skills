@@ -55,11 +55,11 @@ safety_questions = {
     ),
     "severity": Score(
         instructions="Rate the severity of this issue",
-        levels=[
+        criteria=[
             "Low: Minor nuisance, no harm",
             "Medium: Disruptive behavior",
             "Critical: Severe threat or illegal content",
-        ]
+        ],
     ),
 }
 ```
@@ -89,7 +89,7 @@ safety_questions = {
       "severity": {
         "type": "score",
         "instructions": "Rate the severity",
-        "levels": ["Low...", "Medium...", "Critical..."]
+        "criteria": ["Low...", "Medium...", "Critical..."]
       }
     }
   }
@@ -97,10 +97,29 @@ safety_questions = {
 - **Response Body**:
   ```json
   {
+    "model": "jev-2026-09",
     "answers": {
-      "isViolation": { "noul": 0.982 },
-      "category": { "choice": "hate_speech", "confidence": 0.94, "probabilities": { "hate_speech": 0.94, "spam": 0.06 } },
-      "severity": { "score": 2.85, "confidence": 0.91, "probabilities": [0.02, 0.11, 0.87], "legend": ["Low...", "Medium...", "Critical..."] }
+      "isViolation": {
+        "type": "noul",
+        "noul": 0.982
+      },
+      "category": {
+        "type": "choice",
+        "choice": "hate_speech",
+        "confidence": 0.94,
+        "probabilities": { "hate_speech": 0.94, "spam": 0.06 }
+      },
+      "severity": {
+        "type": "score",
+        "score": 1.85,
+        "confidence": 0.91,
+        "legend": { "0": "Low...", "1": "Medium...", "2": "Critical..." },
+        "probabilities": { "0": 0.02, "1": 0.11, "2": 0.87 }
+      }
+    },
+    "usage": {
+      "input_tokens": 142,
+      "output_tokens": 0
     }
   }
   ```
@@ -138,6 +157,12 @@ export const safetyQuestions = {
   isViolation: noul('Does this input violate our safety guidelines?'),
 };
 
+export interface DecisionPolicy {
+  blockThreshold: number;      // 例: 0.95 (評価データセット実証値)
+  allowThreshold: number;      // 例: 0.05 (評価データセット実証値)
+  validationStatus: 'UNVALIDATED' | 'VALIDATED';
+}
+
 export interface DecisionResult {
   status: 'ALLOW' | 'BLOCK' | 'REVIEW_REQUIRED';
   reason: string;
@@ -151,13 +176,27 @@ const ATTEMPT_TIMEOUT_MS = 150;  // 1試行あたりのタイムアウト
 const MAX_RETRIES = 1;           // 最大リトライ回数
 const BACKOFF_MS = 20;
 
-export async function executeSafetyDecision(stateText: string): Promise<DecisionResult> {
+export async function executeSafetyDecision(
+  stateText: string,
+  policy: DecisionPolicy,
+): Promise<DecisionResult> {
   const start = Date.now();
+
+  // 1. 安全性ガード: 実証データによる検証が完了していない場合は自動化を禁止
+  if (policy.validationStatus !== 'VALIDATED') {
+    return {
+      status: 'REVIEW_REQUIRED',
+      reason: 'THRESHOLDS_NOT_VALIDATED_SAFE_DEFAULT',
+      source: 'SAFE_DEFAULT',
+      latencyMs: Date.now() - start,
+    };
+  }
+
   const controller = new AbortController();
   const deadlineTimer = setTimeout(() => controller.abort(), JEV_TOTAL_BUDGET_MS);
 
   try {
-    // 1. 外側絶対Deadline + SDK内試行制限による呼出
+    // 2. 外側絶対Deadline + SDK内試行制限による呼出
     const response = await client.systemOne({
       state: stateText,
       questions: safetyQuestions,
@@ -173,19 +212,19 @@ export async function executeSafetyDecision(stateText: string): Promise<Decision
 
     const pViolation = response.answers.isViolation.noul;
 
-    // 2. 表と完全に一致した3段階ハンドリング
-    if (pViolation >= 0.95) {
-      return { status: 'BLOCK', reason: 'CONFIRMED_VIOLATION', source: 'JEV_AUTOMATED', latencyMs: Date.now() - start };
+    // 3. 実証済みポリシーに基づく3段階ハンドリング
+    if (pViolation >= policy.blockThreshold) {
+      return { status: 'BLOCK', reason: `VIOLATION_CONFIRMED (p=${pViolation})`, source: 'JEV_AUTOMATED', latencyMs: Date.now() - start };
     }
-    if (pViolation <= 0.05) {
-      return { status: 'ALLOW', reason: 'CONFIRMED_SAFE', source: 'JEV_AUTOMATED', latencyMs: Date.now() - start };
+    if (pViolation <= policy.allowThreshold) {
+      return { status: 'ALLOW', reason: `SAFE_CONFIRMED (p=${pViolation})`, source: 'JEV_AUTOMATED', latencyMs: Date.now() - start };
     }
 
-    // 中間帯 (0.05 < p < 0.95): 不確実なためレビュー/エスカレーションへ
+    // 中間帯 (allowThreshold < p < blockThreshold): 不確実なためレビュー/エスカレーションへ
     return { status: 'REVIEW_REQUIRED', reason: `UNCERTAIN_PROBABILITY (p=${pViolation})`, source: 'FALLBACK_REVIEW', latencyMs: Date.now() - start };
 
   } catch (error) {
-    // 3. API障害・Deadline超過時の Safe Default (安全側に倒す)
+    // 4. API障害・Deadline超過時の Safe Default (安全側に倒す)
     console.error('TypeSafe API failed or deadline exceeded:', error);
     return {
       status: 'REVIEW_REQUIRED',
