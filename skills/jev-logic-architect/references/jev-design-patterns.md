@@ -1,47 +1,75 @@
 # TypeSafe AI Jev 3大プリミティブ & 確信度・閾値設計リファレンス
 
-## 1. 3つの意思決定プリミティブと応答モデル
+## 1. 3つの意思決定プリミティブと公式SDK仕様 (JS/TS & Python)
 
 TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリミティブを提供します。**各プリミティブによって確信度の意味や返却構造が異なります。**
 
-### ① `Choice`（多肢選択・排他分類）
+公式SDKでは、大文字の `new Choice()` ではなく、小文字の builder 関数（`choice()`, `score()`, `noul()`）を使用します。
+
+### ① `choice`（多肢選択・排他分類）
 - **用途**: カテゴリ分類、ルーティング、担当部署決定。
-- **応答形式**: 選択された選択肢、各選択肢の確率分布、および `confidence`。
-- **Confidenceの意味**: 選択肢間の「分布の集中度」（最有力候補がどれだけ突出しているか）。
-- **判定ロジック例**:
+- **TypeScript 定義**:
   ```typescript
-  const { decision, probabilities, confidence } = result.department;
-  // confidence が高い場合のみ自動ルーティング
-  if (confidence >= threshold) {
-    routeTo(decision);
-  } else {
-    // 競合している選択肢を提示して確認
-    askUserConfirmation(probabilities);
-  }
+  import { choice } from '@typesafe-ai/sdk';
+
+  const questions = {
+    department: choice('Which team should handle this inquiry?', {
+      billing: 'Payment, invoices, and subscription questions',
+      technical: 'API errors, bugs, and integration problems',
+      sales: 'Enterprise plans, demo requests, and pricing',
+    }),
+  };
   ```
+- **応答形式**: `response.answers.department`
+  - `choice: string` (選ばれたキー)
+  - `probabilities: Record<string, number>` (各選択肢の確率分布)
+  - `confidence: number` (選択肢間の「分布の集中度」)
 
-### ② `Score`（順序尺度・レベル評価）
+### ② `score`（順序尺度・レベル評価）
 - **用途**: 緊急度（Low/Med/High）、深刻度レベル（1〜5）、品質評価。
-- **応答形式**: 決定されたスコア、スコアごとの確率分布、および `confidence`。
-- **Confidenceの意味**: レベル分布の集中度。
-
-### ③ `Noul`（Yes/No の命題確率判定）
-- **用途**: スパム判定、ポリシー違反チェック、エスカレーション要否。
-- **応答形式**: **`yes` である確率（0.0 〜 1.0）**。※ 独立した confidence は存在しない（0.5 が最も不確実）。
-- **閾値設計の重要性**:
-  単一の `confidence >= 0.95` で判断してはならない。**「誤検知（False Positive）コスト」** と **「見逃し（False Negative）コスト」** を考慮したデュアル閾値（Dual Threshold）で判定する。
+- **TypeScript 定義**:
   ```typescript
-  const pViolation = result.isViolation.probability; // 0.0〜1.0
+  import { score } from '@typesafe-ai/sdk';
+
+  const questions = {
+    urgency: score('Rate the urgency of this request', {
+      low: 'General question, no immediate deadline',
+      medium: 'Needs response within 24 hours',
+      critical: 'Production outage or data breach',
+    }),
+  };
+  ```
+- **応答形式**: `response.answers.urgency`
+  - `score: string` (選ばれたレベル)
+  - `probabilities: Record<string, number>`
+  - `confidence: number` (分布の集中度)
+
+### ③ `noul`（Yes/No の命題確率判定）
+- **用途**: スパム判定、ポリシー違反チェック、エスカレーション要否。
+- **TypeScript 定義**:
+  ```typescript
+  import { noul } from '@typesafe-ai/sdk';
+
+  const questions = {
+    isViolation: noul('Does this input violate our safety guidelines?'),
+  };
+  ```
+- **応答形式**: `response.answers.isViolation`
+  - **`noul: number` (Yes である確率: 0.0 〜 1.0)**。※ 独立した confidence フィールドは存在しない。
+- **デュアル閾値（Dual Threshold）のハンドリング**:
+  誤検知（FP）コストと見逃し（FN）コストに基づき、明確に3分岐を実装する。
+  ```typescript
+  const pViolation = response.answers.isViolation.noul; // 0.0 〜 1.0
 
   if (pViolation >= BLOCK_THRESHOLD) {
-    // 確信を持って違反と判定 (即ブロック)
-    return { status: 'BLOCK' };
+    // 確信を持ってブロック (例: p >= 0.95)
+    return { status: 'BLOCK', reason: 'CONFIRMED_VIOLATION' };
   } else if (pViolation <= ALLOW_THRESHOLD) {
-    // 確信を持って安全と判定 (即通過)
-    return { status: 'ALLOW' };
+    // 確信を持って通過 (例: p <= 0.05)
+    return { status: 'ALLOW', reason: 'CONFIRMED_SAFE' };
   } else {
-    // 中間帯: 不確実（0.5付近）のため人間または生成LLMへエスカレーション
-    return { status: 'REVIEW_REQUIRED' };
+    // 中間帯: 不確実（0.05 < p < 0.95）→ レビューまたは生成型LLMへエスカレーション
+    return { status: 'REVIEW_REQUIRED', reason: 'UNCERTAIN_PROBABILITY' };
   }
   ```
 
@@ -49,26 +77,33 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
 
 ## 2. 実証的な閾値（Threshold）選定プロセス
 
-固定の経験則（0.95, 0.80等）は**初期仮説に過ぎず、プロダクションでそのまま使用してはならない**。以下の手順で決定する。
+固定の経験則（0.95, 0.80等）は**初期仮説に過ぎず、プロダクションでそのまま使用してはならない**。
 
-1. **評価データセットの準備**: ドメインのラベル付きデータ（最低 100〜500 件）を用意。
+1. **評価データセットの準備**:
+   - 固定の100件ではなく、**「クラス別発生率（Prevalence）」「求めるPrecision/Recallの信頼区間」「重要な境界ケースのカバレッジ」** を満たすサンプル数を設計する。
 2. **コスト行列（Cost Matrix）の定義**:
-   - 誤検知（FP）の損害 vs 見逃し（FN）の損害を数値化。
+   - 誤検知（False Positive）の損害 vs 見逃し（False Negative）の損害を数値化。
 3. **ROC曲線 / Precision-Recall 曲線の分析**:
-   - 閾値を変化させたときの「自動化率（Coverage）」と「エラー率」のトレードオフを算出。
-4. **本番ドリフト監視**:
-   - 運用中の平均確信度や中間帯（Review率）の推移をモニタリングし、モデルやプロンプト変更時に再評価を実施する。
+   - 閾値を変化させたときの「自動化率（Coverage）」と「エラー率」のトレードオフを算出し、閾値を決定。
+4. **本番ドリフト監視とロールバック**:
+   - 運用中の平均確信度やレビュー率（中間帯の比率）を監視。質問文変更時やモデル更新時は必ず再評価を実施する。
 
 ---
 
-## 3. 障害耐性・堅牢性設計（Production Resilience）
+## 3. タイムアウト・リトライ・締め切り制約（Deadline Hierarchy）
 
-外部AI API障害時にもシステムを停止させないための必須パターン：
+「p95 < 200ms」などの低遅延要件を満たすため、時間予算（Time Budget）を明確に階層化して設計します。
 
-- **タイムアウト設定**: 通常 150ms 応答のため、`timeout: 500ms` 等で打ち切る。
-- **限定リトライ**: 429（Rate Limit）や 503 のみ、Exponential Backoff で最大 2 回リトライ。
-- **Circuit Breaker**: 障害検知時は Jev 呼出をバイパスし、即時 Fallback へ切り替える。
+```text
+[ユーザー要求全体のDeadline: 例 800ms]
+  │
+  ├── [Jev呼出全体のDeadline: 例 250ms]
+  │     ├── 1試行のタイムアウト: 150ms
+  │     ├── リトライ間隔 (Backoff): 30ms
+  │     └── 最大試行回数: 2回 (初回 + リトライ1回)
+  │
+  └── [超過時のフォールバック処理 (Safe Default または LLM): 残り時間予算内]
+```
+
 - **Safe Default（安全側の既定値）**:
-  - セキュリティ判定の障害時 → デフォルト「要確認（Review）」として通さない。
-  - レコメンド/非重要UIの障害時 → デフォルト「通常表示」としてユーザー体験を止めない。
-- **PII / プライバシー配慮**: State に個人情報（メールアドレス、クレジットカード番号等）を含めない、またはマスキングして送信する。
+  - Jev の Deadline（250ms）を超過した場合、または 5xx / 429 発生時は、即座に Safe Default（セキュリティ判定なら「要確認」、レコメンドなら「デフォルト表示」）へ倒し、ユーザー要求全体のタイムアウトを防ぐ。

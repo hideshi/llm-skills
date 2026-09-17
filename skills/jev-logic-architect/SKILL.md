@@ -1,6 +1,6 @@
 ---
 name: jev-logic-architect
-description: Transforms identified business decisions into concrete, type-safe Jev schemas, confidence-based fallback flows, and TypeScript code designs ready for SDD design.md and tasks.md.
+description: Transforms identified business decisions into concrete, type-safe Jev schemas, confidence-based fallback flows, and stack-adaptive code designs (TS/Python/HTTP) ready for SDD design.md and tasks.md.
 ---
 
 # Jev Logic Architect
@@ -19,7 +19,7 @@ description: Transforms identified business decisions into concrete, type-safe J
 2. **プロジェクト技術スタック**:
    - 言語・ランタイム（TypeScript, Python, Go 等）
    - フレームワークおよび既存の外部APIクライアント・エラー処理慣習
-   - 公式SDK（`@typesafe-ai/sdk` または `typesafe-python`）の利用可否
+   - 公式SDK（JS/TS: `@typesafe-ai/sdk`、Python: `typesafe-sdk`、その他: HTTP API契約）の利用可否
 3. **リスク区分 & ADR方針**:
    - 不可逆・高リスク（決済・BAN・権限）か、中低リスク（UI・トリアージ）か
    - ADR の作成要否
