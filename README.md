@@ -25,6 +25,14 @@ llm-skills/
 │   └── llm-selection-advisor/                 # 4. 比較レポート & 導入手順の生成
 │       ├── SKILL.md
 │       └── templates/evaluation-report-template.md
+│   ├── jev-candidate-detector/                # 5. [Jev] ドメイン/要件からの候補抽出 & コスト試算
+│   │   ├── SKILL.md
+│   │   ├── references/cost-estimation-reference.md
+│   │   └── templates/jev-candidate-report-template.md
+│   └── jev-logic-architect/                   # 6. [Jev] 詳細設計(design.md)向けスキーマ & フォールバック設計
+│       ├── SKILL.md
+│       ├── references/jev-design-patterns.md
+│       └── templates/jev-logic-spec-template.md
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
 ├── .claude/skills/                            # Claude Code 向け (symlink)
@@ -36,12 +44,19 @@ llm-skills/
 
 ## スキル一覧 & 責務
 
+### 1. LLM 選定 & 外部裏取りスキル群
 | スキル名 | 責務・役割 | 主な参照・裏取りリソース |
 | :--- | :--- | :--- |
 | **`model-requirements-analyzer`** | システム要件、タスク分類（コーディング/RAG/エージェント）、言語要件、ライセンス、レイテンシ、ハードウェア前提のヒアリングと定義 | システム要求仕様、コンプライアンス要件 |
 | **`local-llm-researcher`** | 最新のモデル候補抽出、客観的ベンチマーク値（Leaderboard、実測値）の調査、既知の課題等の裏取り | Hugging Face (Model Cards), LMSYS Arena, BFCL, LiveCodeBench |
 | **`hardware-compatibility-checker`** | パラメータ規模、コンテキスト長、KV Cache、量子化（GGUF, AWQ等）のメモリ計算と推論エンジン選定 | VRAM計算式、vLLM / Ollama / llama.cpp の仕様 |
 | **`llm-selection-advisor`** | 上記を統合し、本命案・軽量案・拡張案の比較マトリクスと起動コマンドを含む提案レポートを作成 | 総合評価レポートテンプレート |
+
+### 2. Jev (System One Model) アーキテクチャ設計スキル群
+| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+| :--- | :--- | :--- |
+| **`jev-candidate-detector`** | ドメインモデル（`domain-model.md`）や要件定義書（`requirements.md`）をスキャンし、Jev適用候補をアタリ付け＆月間コスト/速度比較を試算 | Jev価格仕様（出力$0）、GPT-4o-mini等との比較テーブル |
+| **`jev-logic-architect`** | 選定された候補を詳細設計（`design.md`）やタスク（`tasks.md`）に落とし込み、TypeScript型定義、Jevスキーマ、確信度（Confidence）別フォールバックコードを設計 | RLCD（校正済み確信度）アーキテクチャパターン |
 
 ---
 
