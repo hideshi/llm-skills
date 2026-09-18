@@ -6,7 +6,7 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
 **JavaScript SDK は小文字の builder 関数（`choice`, `score`, `noul`）**、**Python SDK は大文字クラス（`Choice`, `Score`, `Noul`）** を使用します。
 
 ### ① `choice`（多肢選択・排他分類）
-- **用途**: 問い合わせ種別などの排他分類（例: 請求 / 技術 / 営業）。
+- **用途**: カテゴリ分類、問い合わせ種別（例: 請求 / 技術 / 営業）、コンテンツモデレーション種別（例: スパム / ヘイト / 規約違反）などの排他分類。
 - **TypeScript**:
   ```typescript
   import { choice } from '@typesafe-ai/sdk';
