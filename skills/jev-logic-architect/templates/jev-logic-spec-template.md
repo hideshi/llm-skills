@@ -13,7 +13,7 @@
 
 ## 2. 判定スキーマ & プリミティブ定義
 
-> **💡 構成の注意**: SDK（TS/Python）例は**質問スキーマの定義のみ**を示します。`state`（判定対象の入力データ）は呼出時に渡します（§4 の実装例を参照）。HTTP 例はリクエスト全体の契約を示すため `state` を含みます。
+> **💡 構成の注意**: SDK（TS/Python）例は**質問スキーマの定義のみ**を示します。`state`（判定対象の入力データ。文字列・オブジェクト・配列を受け付ける）は呼出時に渡します（§4 の実装例を参照）。HTTP 例はリクエスト全体の契約を示すため `state` を含みます。
 >
 > **💡 問いの設計**: 以下のコード例は構文サンプルです。instructions / criteria / state の中身の設計原則（1プリミティブ1問、MECE、脱出選択肢、行動アンカー、state の必要十分性等）は `references/jev-design-patterns.md` §2 を参照し、要件原文（Requirement ID 紐付け）から導出してください。
 
@@ -23,7 +23,7 @@ import { choice, noul, score } from '@typesafe-ai/sdk';
 
 // 質問スキーマの定義。state（判定対象データ）は呼出時に渡す（§4 参照）
 export const safetyQuestions = {
-  // Noul: Yes/No 確率判定
+  // Noul: Yes/No 確率判定（任意: criteria で Yes/No 各側の定義を明示可能。HTTP 例を参照）
   isViolation: noul('Does this input violate our safety guidelines?'),
 
   // Choice: 排他選択肢 (オブジェクト形式)
@@ -49,6 +49,7 @@ from typesafe_sdk import Choice, Noul, Score
 
 # 質問スキーマの定義。state（判定対象データ）は呼出時に渡す（§4 参照）
 safety_questions = {
+    # 任意: criteria で Yes/No 各側の定義を明示可能（HTTP 例を参照）
     "is_violation": Noul(
         instructions="Does this input violate our safety guidelines?"
     ),
@@ -84,7 +85,11 @@ safety_questions = {
     "questions": {
       "isViolation": {
         "type": "noul",
-        "instructions": "Does this input violate our safety guidelines?"
+        "instructions": "Does this input violate our safety guidelines?",
+        "criteria": {
+          "true": "The input violates the safety guidelines",
+          "false": "The input does not violate the safety guidelines"
+        }
       },
       "category": {
         "type": "choice",
