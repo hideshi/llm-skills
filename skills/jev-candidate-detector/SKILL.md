@@ -45,6 +45,9 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 1. **ドキュメントの静的スキャン & Requirement ID特定**
    - 要件定義書・ドメインモデルから判断ポイントを抽出。必ず **Requirement ID**（またはドキュメント内の見出し・行番号）と原文フレーズを記録する。
+   - **対象ドキュメントの特定（フォールバック手順）**:
+     1. まず Kiro/cc-sdd の慣例パス（`.kiro/specs/**/requirements.md` 等）を探索する。
+     2. 見つからない場合は、推測で他のファイルを読まず、ユーザーに分析対象ドキュメントのパスを確認する。
 
 2. **3プリミティブの適合分類**
    - **`Choice`**: 定義された選択肢からの排他分類（カテゴリ、担当部署、アクション種別）
