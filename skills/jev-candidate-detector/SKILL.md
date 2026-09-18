@@ -73,6 +73,7 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 6. **フェーズ間契約レポートの出力**
    - `templates/jev-candidate-report-template.md` に従い出力。
    - 各候補のステータスは `decision: proposed` として出力し、人間の承認（`decision: approved`）を待つ状態にする。業務変更を伴う候補の承認は、技術承認に加えて**業務側ステークホルダーの承認**を含む。
+   - 個人情報・機密データを外部APIへ送信する候補には**セキュリティ・プライバシー審査の要否**を記録する（審査自体はセキュリティレビュー・法務等の専門プロセスへ委譲）。
    - **ADR要否の判定基準**:
      - **全社基盤ADR**: Jev基盤の導入自体が複数チーム・全社横断の意思決定に相当する場合。
      - **機能別ADR**: 高リスク（決済・BAN等の不可逆性の高い判定）にJevを適用する場合。
