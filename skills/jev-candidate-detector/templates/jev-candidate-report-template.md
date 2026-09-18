@@ -1,7 +1,9 @@
 # Jev 適用候補 & 期待TCO試算レポート
 
 ## 1. エグゼクティブサマリー
-- **分析対象ドキュメント**: [例: requirements.md, docs/domain/domain-model.md]
+- **主資料**: [例: `.kiro/specs/example/requirements.md`, `design.md`, `tasks.md`]
+- **業務補完資料**: [例: ドメインモデル、ユースケース、業務フロー]
+- **実装補助資料**: [例: 画面設計書、API仕様書、テーブル定義書]
 - **調査日 / 価格基準日**: [YYYY-MM-DD]（価格は変動するため、レポート作成時に一次情報を再確認すること）
 - **検出候補サマリー**: 検出 X 件（うち Eligible ★4以上: Y 件）
 - **ADR要否判定**: [全社基盤ADRが必要 / 機能別ADRが必要 / design.md内の記録で十分]（判定基準は SKILL.md ワークフロー Step 6 を参照）
@@ -23,6 +25,8 @@
 
 ### 候補 #1: [候補名]
 - **Requirement ID & 原文**: `[REQ-ID]` 「...」
+- **根拠資料区分**: [primary / business-supporting / supplementary-only]
+  - `supplementary-only` の場合は業務要件との整合をドメインエキスパートへ確認し、確認完了まで確定候補として扱わない。
 - **現在の判定手段**: [例: 正規表現ルール / 生成LLM (GPT-4o-mini) / 人手]（**人手の場合は §4「業務・上位成果物への影響」の記録が必須**）
 - **採用プリミティブ**: [choice / score / noul]
 - **リスク区分**: [高リスク(決済/BAN) / 中リスク(トリアージ) / 低リスク(UI表示)]

@@ -58,7 +58,7 @@ llm-skills/
 ### 2. Jev (System One Model) アーキテクチャ設計スキル群
 | スキル名 | 責務・役割 | 主な参照・裏取りリソース |
 | :--- | :--- | :--- |
-| **`jev-candidate-detector`** | ドメインモデル（`domain-model.md`）や要件定義書（`requirements.md`）をスキャンし、Jev適用候補をアタリ付け＆月間コスト/速度比較を試算 | Jev価格仕様（出力$0）、GPT-4o-mini等との比較テーブル |
+| **`jev-candidate-detector`** | Kiro/cc-sddの仕様書（`requirements.md` / `design.md` / `tasks.md`）を主資料とし、ドメインモデル・ユースケース・画面/API/テーブル設計等で補完してJev適用候補を検出、期待TCOとレイテンシを試算 | 最新の公式価格、実測レイテンシ、業務・上位成果物への影響 |
 | **`jev-logic-architect`** | 選定された候補を詳細設計（`design.md`）やタスク（`tasks.md`）に落とし込み、TypeScript型定義、Jevスキーマ、確信度（Confidence）別フォールバックコードを設計 | RLCD（校正済み確信度）アーキテクチャパターン |
 
 ---
