@@ -35,7 +35,7 @@ $$
 - **C_jev** (Jev 1回あたり呼出単価 [USD])。0.042 は入力 1M tokens あたりの単価（出力は無料）:
 
 $$
-C_{\mathrm{jev}} = \frac{((T_{\mathrm{state}} + T_{\mathrm{instructions}} + T_{\mathrm{criteria}}) \times 0.042)}{1000000}
+C_{\mathrm{jev}} = \frac{(T_{\mathrm{state}} + T_{\mathrm{instructions}} + T_{\mathrm{criteria}}) \times 0.042}{1000000}
 $$
 
 - **P(review)**: 人手確認・レビュー経路へ回る確率 (0.0 ≦ P ≦ 1.0)
