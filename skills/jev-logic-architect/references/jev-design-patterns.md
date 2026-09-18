@@ -125,6 +125,8 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
 
 プロジェクトのSLOを満たすため、固定値を決め打ちせず、以下のパラメータ関係式に基づいて時間予算（Time Budget）を設計します。
 
+> **📖 用語注**: 「外側絶対Deadline」は本スキル固有の表現で、リトライを含む処理全体にかける壁時計上の絶対締め切りを指します。標準的には gRPC の **deadline**（呼出が超過してはならない絶対時刻。timeout が相対時間であるのに対する概念）や "overall timeout" / "total time budget" に相当します。
+
 ### パラメータ関係式:
 $$\text{requestDeadlineMs} \ge \text{jevTotalBudgetMs} + \text{fallbackBudgetMs}$$
 $$\text{jevTotalBudgetMs} \ge (\text{attemptTimeoutMs} \times (\text{maxRetries} + 1)) + \text{backoffBudgetMs}$$
