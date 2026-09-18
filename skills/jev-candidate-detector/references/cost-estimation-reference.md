@@ -34,9 +34,22 @@ $$\text{Expected Monthly Cost} = N \times C_{\text{jev}} + N \times P(\text{revi
 - **$C_{\text{retry}}$**: 429/タイムアウト再試行に伴う追加コスト (通常は $N \times C_{\text{jev}} \times 0.01\sim 0.03$)
 - **$C_{\text{ops}}$**: 監視、ログ保管、定期評価データセット保守等の固定運用費 ($/month)
 
+### ベースライン（従来の生成LLMのみ）の比較式:
+
+$$\text{Baseline Monthly Cost} = N \times \frac{T_{\text{in}} \times P_{\text{in}} + T_{\text{out}} \times P_{\text{out}}}{1,000,000}$$
+
+（現行利用中のLLMの単価を使用。$C_{\text{fallback}}$ と同形だが、全リクエストに適用する点が異なる）
+
+### 経路分岐率 ($P(\text{auto})$ / $P(\text{review})$ / $P(\text{fallback})$) の設定ガイドライン:
+- 評価データセットによる実測値がある場合はそれを使用する。
+- **実測値がない場合は楽観値を推測で置かず、保守的デフォルト（例: $P(\text{auto}) = 80\%$, $P(\text{fallback}) = 15\%$, $P(\text{review}) = 5\%$）を使用**し、レポートに「仮定値」である旨を明記する。
+- 可能であれば分岐率を変えた感度分析（楽観 / 標準 / 悲観）を併記する。
+
 ---
 
-## 3. 入力トークン長 ($T_{\text{state}}$) 推定ガイドライン
+## 3. 入力トークン長の推定ガイドライン
+
+> **⚠️ 二重計上の防止**: 以下のレンジは **$T_{\text{state}} + T_{\text{instructions}} + T_{\text{criteria}}$ の合計値** に対応する。$C_{\text{jev}}$ 計算時に instructions / criteria を別途加算しないこと。
 
 - **短文・UI入力・インテント判定**: 150 〜 300 tokens (State本文 + instructions + criteria)
 - **中長文・コメント・レビュー・問い合わせ**: 600 〜 1,200 tokens
