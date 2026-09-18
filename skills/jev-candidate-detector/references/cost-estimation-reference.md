@@ -59,6 +59,25 @@ $$
 
 （現行利用中のLLMの単価を使用。C_fallback と同形だが、全リクエストに適用する点が異なる）
 
+### 人手業務ベースライン（現行が人の確認・承認作業の場合）
+
+現在の判定手段が人手の場合、比較対象はLLM呼出コストではなく人件費ベースラインになります。
+
+$$
+\text{Human Baseline Monthly Cost} = N \times t_{\mathrm{human}} \times R_{\mathrm{hourly}}
+$$
+
+- **t_human**: 1件あたりの処理時間 (hours/case)
+- **R_hourly**: 人件費単価 (USD/hour)
+
+### 一時移行コスト (C_migration) と投資回収
+
+既存機能の廃止・変更（承認画面・レビューキューの削除、運用マニュアル改訂等）に伴う一時コストは月間TCOには含めず、投資回収期間（payback）の計算で別途扱います。
+
+$$
+\text{Payback Months} = \frac{C_{\mathrm{migration}}}{\text{Baseline Monthly Cost} - \text{Expected Monthly Cost}}
+$$
+
 ### 経路分岐率 (P(auto) / P(review) / P(fallback)) の設定ガイドライン
 
 - 評価データセットによる実測値がある場合はそれを使用する。

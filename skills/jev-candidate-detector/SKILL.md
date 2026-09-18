@@ -63,10 +63,14 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 4. **💰 期待TCO & レイテンシ試算**
    - `references/cost-estimation-reference.md` に基づき、単なる呼出費だけでなくフォールバック（LLM・人手）を含めた期待コストを試算する。
+   - 現在の判定手段が**人手**の場合は、生成LLMベースラインではなく**人手業務ベースライン**（N × 1件あたり処理時間 × 人件費単価）と比較し、既存機能の廃止・変更に伴う一時移行コスト (C_migration) と投資回収期間も記録する。
 
-5. **フェーズ間契約レポートの出力**
+5. **業務・上位成果物への影響分析**
+   - 人の確認・承認業務を代替する候補は、実装（design.md / tasks.md）だけでなく業務プロセスと上流成果物が変わる。影響を受ける **ドメインモデル・ユースケース・画面設計・requirements.md** を特定し、レポートの「業務・上位成果物への影響」セクションに Requirement ID 紐付けで記録する。
+
+6. **フェーズ間契約レポートの出力**
    - `templates/jev-candidate-report-template.md` に従い出力。
-   - 各候補のステータスは `decision: proposed` として出力し、人間の承認（`decision: approved`）を待つ状態にする。
+   - 各候補のステータスは `decision: proposed` として出力し、人間の承認（`decision: approved`）を待つ状態にする。業務変更を伴う候補の承認は、技術承認に加えて**業務側ステークホルダーの承認**を含む。
    - **ADR要否の判定基準**:
      - **全社基盤ADR**: Jev基盤の導入自体が複数チーム・全社横断の意思決定に相当する場合。
      - **機能別ADR**: 高リスク（決済・BAN等の不可逆性の高い判定）にJevを適用する場合。
