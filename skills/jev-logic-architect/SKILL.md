@@ -11,6 +11,18 @@ description: Transforms identified business decisions into concrete, type-safe J
 
 ---
 
+## スコープ境界（委譲事項）
+
+本スキルがカバーするのは **Jev 固有の設計**（3プリミティブのスキーマ、確信度・閾値設計、フォールバック・耐障害設計）までです。以下は本スキルの対象外とし、プロジェクトの規約・専用スキルへ委譲します。
+
+- **プロジェクト全体のエラーハンドリング方針**（エラー分類・例外階層・ログフォーマット等）
+- **コーディング規約**（命名・lint・フォーマッタ・ディレクトリ構成等）
+- **テスト規約**（テストピラミッド・命名・カバレッジ要件・E2E方針等）
+
+これらはプロジェクトの steering ドキュメント（Kiro steering / cc-sdd / AGENTS.md / .cursor/rules 等）を参照し、未整備の場合は推測で作成せず**未決事項として報告**した上で、専用スキル（コーディング規約・テスト設計等）での整備を促してください。
+
+---
+
 ## 入力契約（Input Contract）
 
 エージェントは以下の情報が揃っていることを確認してから設計を開始します。不足している場合は勝手に推測せず、未決事項として報告します。
@@ -23,6 +35,7 @@ description: Transforms identified business decisions into concrete, type-safe J
 3. **リスク区分 & ADR方針**:
    - 不可逆・高リスク（決済・BAN・権限）か、中低リスク（UI・トリアージ）か
    - ADR の作成要否
+4. **プロジェクト規約の所在**: エラーハンドリング方針・コーディング規約・テスト規約を定めた steering ドキュメント（Kiro steering / cc-sdd / AGENTS.md / .cursor/rules 等）。未整備の場合は未決事項として報告する（スコープ境界参照）。
 
 ---
 
@@ -30,6 +43,7 @@ description: Transforms identified business decisions into concrete, type-safe J
 
 1. **プロジェクト環境 & 技術スタックの検出**
    - `package.json`, `pyproject.toml`, `tsconfig.json` などを確認し、プロジェクトの規約に合わせた実装形式を選択する（TypeScript非採用プロジェクトの場合は勝手にTSコードにせず、対象スタックまたは言語非依存のAPI契約を提示する）。
+   - エラーハンドリング・コーディング・テスト規約は steering ドキュメントを参照し、未整備の場合は推測で作成せず未決事項として報告する（スコープ境界参照）。
 
 2. **適切なプリミティブの選定 & スキーマ設計**
    - **`Choice`**: 排他選択肢（Instructions + 各Criteria）
