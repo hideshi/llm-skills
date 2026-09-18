@@ -15,7 +15,7 @@ description: Transforms identified business decisions into concrete, type-safe J
 
 エージェントは以下の情報が揃っていることを確認してから設計を開始します。不足している場合は勝手に推測せず、未決事項として報告します。
 
-1. **承認済み候補**: `decision: approved` となっている候補（Requirement ID、対象ドキュメント位置）
+1. **承認済み候補**: `decision: approved` となっている候補（Requirement ID、なければ安定した見出し。行番号は用いない）
 2. **プロジェクト技術スタック**:
    - 言語・ランタイム（TypeScript, Python, Go 等）
    - フレームワークおよび既存の外部APIクライアント・エラー処理慣習

@@ -14,8 +14,8 @@
 
 | 候補ID | Requirement ID / 原文位置 | 業務判断の責務 | 採用プリミティブ | 適格性 & 適合度 | 承認ステータス (decision) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **#1** | `REQ-SEC-01` (`docs/design/kid-safe.md#L7`) | 入力テキストのKid-Safe判定 | **noul** (Yes/No確率) | Eligible ★★★★★ | `proposed` (承認待ち) |
-| **#2** | `REQ-ROUTE-03` (`requirements.md#L45`) | 問い合わせの担当部署トリアージ | **choice** (5択) | Eligible ★★★★☆ | `proposed` (承認待ち) |
+| **#1** | `REQ-SEC-01` (`docs/design/kid-safe.md` §Kid-Safe判定) | 入力テキストのKid-Safe判定 | **noul** (Yes/No確率) | Eligible ★★★★★ | `proposed` (承認待ち) |
+| **#2** | `REQ-ROUTE-03` (`requirements.md` §問い合わせトリアージ) | 問い合わせの担当部署トリアージ | **choice** (5択) | Eligible ★★★★☆ | `proposed` (承認待ち) |
 
 ---
 
