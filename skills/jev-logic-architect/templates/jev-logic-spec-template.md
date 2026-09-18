@@ -13,10 +13,13 @@
 
 ## 2. 判定スキーマ & プリミティブ定義
 
+> **💡 構成の注意**: SDK（TS/Python）例は**質問スキーマの定義のみ**を示します。`state`（判定対象の入力データ）は呼出時に渡します（§4 の実装例を参照）。HTTP 例はリクエスト全体の契約を示すため `state` を含みます。
+
 ### 【TypeScript / JavaScript の場合】(小文字 builder 関数)
 ```typescript
-import { choice, noul, score, TypeSafeClient } from '@typesafe-ai/sdk';
+import { choice, noul, score } from '@typesafe-ai/sdk';
 
+// 質問スキーマの定義。state（判定対象データ）は呼出時に渡す（§4 参照）
 export const safetyQuestions = {
   // Noul: Yes/No 確率判定
   isViolation: noul('Does this input violate our safety guidelines?'),
@@ -39,8 +42,9 @@ export const safetyQuestions = {
 
 ### 【Python の場合】(大文字 クラス)
 ```python
-from typesafe_sdk import TypeSafeClient, Choice, Noul, Score
+from typesafe_sdk import Choice, Noul, Score
 
+# 質問スキーマの定義。state（判定対象データ）は呼出時に渡す（§4 参照）
 safety_questions = {
     "is_violation": Noul(
         instructions="Does this input violate our safety guidelines?"
