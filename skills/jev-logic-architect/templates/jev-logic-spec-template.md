@@ -29,6 +29,7 @@ export const safetyQuestions = {
     hate_speech: 'Hate speech or discriminatory language',
     harassment: 'Personal attacks or threats',
     spam: 'Commercial spam or unsolicited promotion',
+    none: 'The input does not match any violation category',
   }),
 
   // Score: 順序尺度 (0始まりの順序付き配列)
@@ -55,6 +56,7 @@ safety_questions = {
             "hate_speech": "Hate speech or discriminatory language",
             "harassment": "Personal attacks or threats",
             "spam": "Commercial spam or unsolicited promotion",
+            "none": "The input does not match any violation category",
         }
     ),
     "severity": Score(
@@ -88,7 +90,8 @@ safety_questions = {
         "criteria": {
           "hate_speech": "Hate speech...",
           "harassment": "Personal attacks or threats",
-          "spam": "Commercial spam..."
+          "spam": "Commercial spam...",
+          "none": "The input does not match any violation category"
         }
       },
       "severity": {
@@ -111,8 +114,8 @@ safety_questions = {
       "category": {
         "type": "choice",
         "choice": "hate_speech",
-        "confidence": 0.91,
-        "probabilities": { "hate_speech": 0.91, "harassment": 0.06, "spam": 0.03 }
+        "confidence": 0.88,
+        "probabilities": { "hate_speech": 0.91, "harassment": 0.04, "spam": 0.03, "none": 0.02 }
       },
       "severity": {
         "type": "score",
@@ -124,7 +127,7 @@ safety_questions = {
     },
     "usage": {
       "input_tokens": 142,
-      "output_tokens": 0
+      "output_tokens": 48
     }
   }
   ```
@@ -153,9 +156,8 @@ safety_questions = {
 ```typescript
 import { TypeSafeClient, noul } from '@typesafe-ai/sdk';
 
-const client = new TypeSafeClient({
-  apiKey: process.env.TYPESAFE_API_KEY,
-});
+// SDKが TYPESAFE_API_KEY 環境変数を自動的に読み込む。
+const client = new TypeSafeClient();
 
 export const safetyQuestions = {
   isViolation: noul('Does this input violate our safety guidelines?'),
