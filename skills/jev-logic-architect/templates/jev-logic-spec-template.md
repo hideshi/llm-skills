@@ -14,6 +14,8 @@
 ## 2. 判定スキーマ & プリミティブ定義
 
 > **💡 構成の注意**: SDK（TS/Python）例は**質問スキーマの定義のみ**を示します。`state`（判定対象の入力データ）は呼出時に渡します（§4 の実装例を参照）。HTTP 例はリクエスト全体の契約を示すため `state` を含みます。
+>
+> **💡 問いの設計**: 以下のコード例は構文サンプルです。instructions / criteria / state の中身の設計原則（1プリミティブ1問、MECE、脱出選択肢、行動アンカー、state の必要十分性等）は `references/jev-design-patterns.md` §2 を参照し、要件原文（Requirement ID 紐付け）から導出してください。
 
 ### 【TypeScript / JavaScript の場合】(小文字 builder 関数)
 ```typescript
@@ -273,8 +275,8 @@ export async function executeSafetyDecision(
   - [ ] 誤判定コスト・リスク・法的要件・レビュー可能件数から目標FP率（偽陽性率: $\le X\%$）および目標FN率（偽陰性率: $\le Y\%$）を定義
   - [ ] 評価データセット上でFP率・FN率の95%信頼上限が各目標以下となる `blockThreshold` と `allowThreshold` の確定（検証ステータス更新）
 - [ ] **サービス実装 & 耐障害性**:
-  - [ ] 質問定義（`choice` / `score` / `noul`）の実装
-  - [ ] 3段階分岐ロジックと、業務側ステークホルダーが承認した Safe Default の実装（定義・選定原則は `references/jev-design-patterns.md` §2 を参照）
+  - [ ] 質問定義（`choice` / `score` / `noul`）の実装（instructions / criteria / state の設計原則は `references/jev-design-patterns.md` §2 を参照。質問文は版管理し、変更時は閾値を再較正する）
+  - [ ] 3段階分岐ロジックと、業務側ステークホルダーが承認した Safe Default の実装（定義・選定原則は `references/jev-design-patterns.md` §3 を参照）
   - [ ] 外側絶対Deadline（`JEV_TOTAL_BUDGET_MS`）とAbortControllerの実装
 - [ ] **テスト実装**:
   - [ ] 閾値境界値テスト（閾値直下・一致・直上の挙動確認）

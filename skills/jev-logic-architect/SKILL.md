@@ -55,6 +55,7 @@ description: Transforms identified business decisions into concrete, typed Jev s
    - **`Choice`**: 排他選択肢（Instructions + 各Criteria）
    - **`Score`**: 順序尺度（レベル定義）
    - **`Noul`**: Yes/No 命題確率
+   - 問い（instructions / criteria / state）の中身の設計は `references/jev-design-patterns.md` §2 の設計原則（1プリミティブ1問、MECE、脱出選択肢、行動アンカー、state の必要十分性等）に従い、要件原文とのトレーサビリティを確保する。サンプルコードの問い文をそのまま転用しない。
 
 3. **閾値設計 & 3段階ハンドリングの実装**
    - 固定の決め打ち（0.95等）を排し、評価データセットに基づく閾値決定プロセスを前提とする。
