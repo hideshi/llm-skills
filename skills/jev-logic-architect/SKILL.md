@@ -1,6 +1,6 @@
 ---
 name: jev-logic-architect
-description: Transforms identified business decisions into concrete, type-safe Jev schemas, confidence-based fallback flows, and stack-adaptive code designs (TS/Python/HTTP) ready for SDD design.md and tasks.md.
+description: Transforms identified business decisions into concrete, typed Jev schemas, confidence-based fallback flows, and stack-adaptive code designs (TS/Python/HTTP) ready for SDD design.md and tasks.md.
 ---
 
 # Jev Logic Architect
