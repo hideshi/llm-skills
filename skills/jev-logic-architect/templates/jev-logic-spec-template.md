@@ -135,8 +135,8 @@ safety_questions = {
 | ポリシー状態 (`validationStatus`) | 確率条件 ($p = \text{noul}$) | 判定結果 (`status`) | 実行アクション / 理由 |
 | :--- | :--- | :--- | :--- |
 | **`UNVALIDATED` (未検証・初期設計時)** | **全確率領域 ($0.0 \le p \le 1.0$)** | **`REVIEW_REQUIRED`** | **自動化禁止。実証前は全件レビューまたは安全側縮退。** |
-| **`VALIDATED` (実証検証完了後)** | $p \ge \text{blockThreshold}$<br>*(例: 0.95)* | **`BLOCK`** | 即時ブロック。目標FP率をクリアした高確信領域。 |
-| **`VALIDATED` (実証検証完了後)** | $p \le \text{allowThreshold}$<br>*(例: 0.05)* | **`ALLOW`** | 即時通過。目標FN率をクリアした高確信領域。 |
+| **`VALIDATED` (実証検証完了後)** | $p \ge \text{blockThreshold}$<br>*(例: 0.95)* | **`BLOCK`** | 即時ブロック。目標FP率（偽陽性率）をクリアした高確信領域。 |
+| **`VALIDATED` (実証検証完了後)** | $p \le \text{allowThreshold}$<br>*(例: 0.05)* | **`ALLOW`** | 即時通過。目標FN率（偽陰性率）をクリアした高確信領域。 |
 | **`VALIDATED` (実証検証完了後)** | $\text{allowThreshold} < p < \text{blockThreshold}$ | **`REVIEW_REQUIRED`** | 不確実領域のため安全側に倒して確認・エスカレーション。 |
 
 *※ 上記の 0.95 / 0.05 は説明用の仮説値です。本番運用値は評価データセット検証を経て `DecisionPolicy` に注入されます。*
@@ -260,7 +260,7 @@ export async function executeSafetyDecision(
   - [ ] プロジェクトのスタックに応じたSDK導入（JS/TS: `@typesafe-ai/sdk`, Python: `typesafe-sdk`, その他: HTTP API契約）
 - [ ] **評価データセット構築 & 実証的閾値決定**:
   - [ ] 発生頻度・クラス別カバレッジ・境界ケースを満たす評価データセットの作成
-  - [ ] 目標FP率（$\le 1\%$）およびFN率（$\le 0.5\%$）を達成する `blockThreshold` と `allowThreshold` の確定（検証ステータス更新）
+  - [ ] 目標FP率（偽陽性率: $\le 1\%$）およびFN率（偽陰性率: $\le 0.5\%$）を達成する `blockThreshold` と `allowThreshold` の確定（検証ステータス更新）
 - [ ] **サービス実装 & 耐障害性**:
   - [ ] 質問定義（`choice` / `score` / `noul`）の実装
   - [ ] 3段階分岐ロジックと Safe Default の実装
