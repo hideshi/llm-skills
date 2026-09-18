@@ -6,13 +6,13 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
 **JavaScript SDK は小文字の builder 関数（`choice`, `score`, `noul`）**、**Python SDK は大文字クラス（`Choice`, `Score`, `Noul`）** を使用します。
 
 ### ① `choice`（多肢選択・排他分類）
-- **用途**: カテゴリ分類、ルーティング、担当部署決定。
+- **用途**: 問い合わせ種別などの排他分類（例: 請求 / 技術 / 営業）。
 - **TypeScript**:
   ```typescript
   import { choice } from '@typesafe-ai/sdk';
 
   const questions = {
-    department: choice('Which team should handle this inquiry?', {
+    inquiry_type: choice('What type of inquiry is this?', {
       billing: 'Payment, invoices, and subscription questions',
       technical: 'API errors, bugs, and integration problems',
       sales: 'Enterprise plans, demo requests, and pricing',
@@ -24,8 +24,8 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
   from typesafe_sdk import Choice
 
   questions = {
-      "department": Choice(
-          instructions="Which team should handle this inquiry?",
+      "inquiry_type": Choice(
+          instructions="What type of inquiry is this?",
           criteria={
               "billing": "Payment, invoices, and subscription questions",
               "technical": "API errors, bugs, and integration problems",
@@ -34,7 +34,7 @@ TypeSafe AI（Jev）は単一の汎用型ではなく、3つの明確なプリ�
       )
   }
   ```
-- **応答形式**: `response.answers.department`
+- **応答形式**: `response.answers.inquiry_type`
   - `choice: string` (選ばれたキー)
   - `probabilities: Record<string, number>` (各選択肢の確率分布)
   - `confidence: number` (選択肢間の「分布の集中度」)
