@@ -87,6 +87,7 @@ safety_questions = {
         "instructions": "What category does this belong to?",
         "criteria": {
           "hate_speech": "Hate speech...",
+          "harassment": "Personal attacks or threats",
           "spam": "Commercial spam..."
         }
       },
@@ -110,8 +111,8 @@ safety_questions = {
       "category": {
         "type": "choice",
         "choice": "hate_speech",
-        "confidence": 0.94,
-        "probabilities": { "hate_speech": 0.94, "spam": 0.06 }
+        "confidence": 0.91,
+        "probabilities": { "hate_speech": 0.91, "harassment": 0.06, "spam": 0.03 }
       },
       "severity": {
         "type": "score",
@@ -187,7 +188,10 @@ export interface DecisionResult {
   latencyMs: number;
 }
 
-// プロジェクトSLOから導出した時間予算パラメータ
+// プロジェクトSLOから導出した時間予算パラメータ（記入例）
+// JS SDKの timeout は1試行あたりで、リトライ全体の予算はないため外側絶対Deadlineが必要。
+// 日本から米国エンドポイントへ呼ぶ場合、太平洋横断RTTが約100〜160msあるため
+// ATTEMPT_TIMEOUT_MS=150 は仮説値に過ぎず、PoC実測で再設定すること。
 const JEV_TOTAL_BUDGET_MS = 350; // 外側絶対締め切り
 const ATTEMPT_TIMEOUT_MS = 150;  // 1試行あたりのタイムアウト
 const MAX_RETRIES = 1;           // 最大リトライ回数
