@@ -274,7 +274,7 @@ export async function executeSafetyDecision(
   - [ ] 評価データセット上でFP率・FN率の95%信頼上限が各目標以下となる `blockThreshold` と `allowThreshold` の確定（検証ステータス更新）
 - [ ] **サービス実装 & 耐障害性**:
   - [ ] 質問定義（`choice` / `score` / `noul`）の実装
-  - [ ] 3段階分岐ロジックと Safe Default の実装
+  - [ ] 3段階分岐ロジックと、業務側ステークホルダーが承認した Safe Default の実装（定義・選定原則は `references/jev-design-patterns.md` §2 を参照）
   - [ ] 外側絶対Deadline（`JEV_TOTAL_BUDGET_MS`）とAbortControllerの実装
 - [ ] **テスト実装**:
   - [ ] 閾値境界値テスト（閾値直下・一致・直上の挙動確認）
