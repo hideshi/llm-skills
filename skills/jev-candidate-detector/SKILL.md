@@ -68,6 +68,7 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 5. **業務・上位成果物への影響分析**
    - 人の確認・承認業務を代替する候補は、実装（design.md / tasks.md）だけでなく業務プロセスと上流成果物が変わる。影響を受ける **ドメインモデル・ユースケース・画面設計・requirements.md** を特定し、レポートの「業務・上位成果物への影響」セクションに Requirement ID 紐付けで記録する。
+   - **本スキルの責務は影響の特定・記録までとし、上流成果物の更新自体は行わない。** ドメインモデル・ユースケース・画面設計等の更新は、人間の承認後に専用スキル（要件定義・ドメイン設計・画面設計等）または SDD フロー（Kiro/cc-sdd）の更新プロセスへ委譲する。レポートはその委譲先への引き継ぎ契約として機能させる。
 
 6. **フェーズ間契約レポートの出力**
    - `templates/jev-candidate-report-template.md` に従い出力。
