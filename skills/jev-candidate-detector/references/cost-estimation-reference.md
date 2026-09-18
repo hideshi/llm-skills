@@ -26,7 +26,7 @@
 単位（月間総額 USD）を厳密に揃えたTCO計算式です。通貨記号 `$` は Markdown の数式区切りと衝突するため、金額はすべて `USD` と表記します。
 
 $$
-\text{Expected Monthly Cost} = N \times C_{\mathrm{jev}} + N \times P(\mathrm{review}) \times C_{\mathrm{review}} + N \times P(\mathrm{fallback}) \times C_{\mathrm{fallback}} + C_{\mathrm{retry}} + C_{\mathrm{ops}}
+\text{Expected Monthly Cost} = (N \times C_{\mathrm{jev}}) + (N \times P(\mathrm{review}) \times C_{\mathrm{review}}) + (N \times P(\mathrm{fallback}) \times C_{\mathrm{fallback}}) + C_{\mathrm{retry}} + C_{\mathrm{ops}}
 $$
 
 ### 各項の定義と次元
@@ -35,26 +35,26 @@ $$
 - **C_jev** (Jev 1回あたり呼出単価 [USD])。0.042 は入力 1M tokens あたりの単価（出力は無料）:
 
 $$
-C_{\mathrm{jev}} = \frac{(T_{\mathrm{state}} + T_{\mathrm{instructions}} + T_{\mathrm{criteria}}) \times 0.042}{1000000}
+C_{\mathrm{jev}} = \frac{((T_{\mathrm{state}} + T_{\mathrm{instructions}} + T_{\mathrm{criteria}}) \times 0.042)}{1000000}
 $$
 
 - **P(review)**: 人手確認・レビュー経路へ回る確率 (0.0 ≦ P ≦ 1.0)
 - **C_review**: 人手レビュー1件あたりの人件費コスト (USD/case, 例: 0.10 USD)
 - **P(fallback)**: 生成型LLMによるエスカレーションまたはAPI障害時フォールバックへ回る確率 (0.0 ≦ P ≦ 1.0)
-  - ※ レビューとフォールバックは原則排他的な経路としてモデル化（P(auto) + P(review) + P(fallback) = 1.0）
+  - ※ レビューとフォールバックは原則排他的な経路としてモデル化（P(auto) + P(review) + P(fallback) = 1.0）。Jevは全件呼ぶため、レビュー/フォールバック件にも C_jev は加算する。
 - **C_fallback**: 代替LLM（GPT-4o-mini等）の1回あたり呼出コスト (USD/case)
 
 $$
-C_{\mathrm{fallback}} = \frac{T_{\mathrm{in}} \times P_{\mathrm{in}} + T_{\mathrm{out}} \times P_{\mathrm{out}}}{1000000}
+C_{\mathrm{fallback}} = \frac{(T_{\mathrm{in}} \times P_{\mathrm{in}}) + (T_{\mathrm{out}} \times P_{\mathrm{out}})}{1000000}
 $$
 
-- **C_retry**: 429/タイムアウト再試行に伴う追加コスト（通常は N × C_jev × 0.01〜0.03）
+- **C_retry**: 429/タイムアウト再試行に伴う追加コスト（通常は (N × C_jev) × (0.01〜0.03)）
 - **C_ops**: 監視、ログ保管、定期評価データセット保守等の固定運用費 (USD/month)
 
 ### ベースライン（従来の生成LLMのみ）の比較式
 
 $$
-\text{Baseline Monthly Cost} = N \times \frac{T_{\mathrm{in}} \times P_{\mathrm{in}} + T_{\mathrm{out}} \times P_{\mathrm{out}}}{1000000}
+\text{Baseline Monthly Cost} = N \times \frac{(T_{\mathrm{in}} \times P_{\mathrm{in}}) + (T_{\mathrm{out}} \times P_{\mathrm{out}})}{1000000}
 $$
 
 （現行利用中のLLMの単価を使用。C_fallback と同形だが、全リクエストに適用する点が異なる）
