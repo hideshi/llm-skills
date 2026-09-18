@@ -24,8 +24,11 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 ### 🚫 Step 2: 除外条件（1つでも該当すれば即座に不採用）
 - ❌ **決定論的ロジック**: 数値計算、日付比較、DB検索、固定権限ロール判定（`role === 'ADMIN'`）などで完全にコード化できる。
+- ❌ **数え上げ・日付/数値演算を本質とする判定**: Jev は計算機ではなく、個数のカウント（対象が大きいほど誤差が増大）、日付の前後関係・期間・ウィンドウ判定の精度は保証されない（2026-09-19 調査）。これらはコードで処理すること。**意味理解と計算の複合判定は分割を検討**する（例: 「この段落はバージョン番号・価格を述べているか？」は Noul で意味抽出し、新旧の比較はコードで行う）。抽出（意味判断）は Jev、集計・順序付け（算術）はコード、という分担が前提。
 - ❌ **不可逆な高リスク単独操作**: 誤判定時に取り返しのつかない操作（送金実行、データ完全消去等）を、人手確認やフォールバックなしにモデル単独で行おうとしている。
 - ❌ **可変長・未知の出力**: 出力すべき候補が事前に列挙できず、動的に無限に増える。
+
+> **📚 数え上げ・日付演算の除外根拠**: DEV Community「How to Use Jev」/ flaviocopes「A deep dive into Jev」（2026-09-19確認）— "It is not a calculator. It does not count reliably" / "Dates are text to it, not ordered quantities"。
 
 ### ⭐️ Step 3: 適格性判定 & 適合度スコアリング (Eligibility & Scoring)
 
