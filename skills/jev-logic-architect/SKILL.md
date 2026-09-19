@@ -74,3 +74,12 @@ description: Transforms identified business decisions into concrete, typed Jev s
 5. **成果物の出力**
    - `templates/jev-logic-spec-template.md` に従い、`design.md` / ADR 用の設計ブロック、および `tasks.md` 向けの実装・評価・監視タスクを出力する。設計ブロックにはスキーマ・Safe Default・**初期閾値仮説**・`validationStatus: PENDING` を含める。
    - 評価セットの freeze と閾値較正の実行は本スキルでは行わない。設計ブロック出力後は **`jev-eval-set` → `jev-calibration`** へ委譲する（共有語彙: `../jev-shared/references/jev-lifecycle-status.md`）。
+
+---
+
+## テンプレート・参照
+
+- 設計テンプレ: `templates/jev-logic-spec-template.md`
+- 設計パターン: `references/jev-design-patterns.md`
+- 共有語彙: `../jev-shared/references/jev-lifecycle-status.md`
+- パイプライン定形結果レポート（プロセス表の architect 行を後段が埋める前提）: `../jev-shared/templates/jev-pipeline-result-report-template.md`

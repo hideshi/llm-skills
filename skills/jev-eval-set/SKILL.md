@@ -98,3 +98,4 @@ JSONL 実データや実験数値そのものは本スキル／`llm-skills` に�
 - レポート: `templates/jev-eval-set-report-template.md`
 - サンプリング・リーク防止: `references/sampling-and-leakage-guide.md`
 - 共有語彙: `../jev-shared/references/jev-lifecycle-status.md`
+- パイプライン定形結果レポート（freeze 時点の部分記入可。完了版は calibration 区切りで必須）: `../jev-shared/templates/jev-pipeline-result-report-template.md`

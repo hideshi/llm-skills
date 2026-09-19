@@ -15,6 +15,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 - 推奨閾値（**提案**。確定は HITL。値は入力／実験側）
 - `validationStatus: VALIDATED | REJECTED | NEEDS_MORE_DATA`（未了時は `PENDING`）
 - shadow レポート契約（**記録のみ・本番非適用**）
+- **パイプライン定形結果レポート**（`../jev-shared/templates/jev-pipeline-result-report-template.md`）
 
 実験の生ログ・混同行列の実数値・JSONL は実験用リポジトリ側に置き、本スキルは契約と手順のみを扱います。
 
@@ -74,7 +75,12 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
    - `shadowStatus: shadowed` は「記録した」意味であり、トラフィックへの適用・canary を含意しない。
 
 7. **成果物出力**
-   - `templates/jev-calibration-report-template.md` に従う。
+   - 詳細: `templates/jev-calibration-report-template.md` に従う。
+   - **定形結果レポート（必須・区切り到達時）**: 次のいずれかに達したら、`../jev-shared/templates/jev-pipeline-result-report-template.md` を**同じ見出し構造のまま**埋めて出力する。
+     - `validationStatus: VALIDATED` かつ `shadowStatus: shadowed`
+     - `validationStatus: REJECTED` または `NEEDS_MORE_DATA`（差し戻しで一旦区切るとき）
+     - （任意）利用者が「ここまでで結果報告」と明示したとき
+   - 定形レポートはユビキタス言語（担当部署・緊急度・人手レビュー要否など案件用語）と契約ステータス（`decision` / `datasetStatus` / `validationStatus` / `shadowStatus`）で書く。パス・数値は入力／実験成果物から転記し、スキルに焼かない。
 
 ---
 
@@ -86,6 +92,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 | 推奨閾値 | 提案欄に記載。確定は HITL |
 | バッチ評価要約 | 指標定義に沿った要約（数値は実験側参照） |
 | `shadowStatus` | `not_started` または `shadowed`（本番非適用を明記） |
+| 定形結果レポート | 区切り到達時に `jev-pipeline-result-report-template.md` 準拠（必須） |
 | 差し戻し先 | `jev-eval-set` または `jev-logic-architect`（該当時） |
 | 次フェーズ | `VALIDATED` かつ shadow 記録後 → リリース管理へ委譲 |
 
@@ -93,6 +100,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 
 ## テンプレート・参照
 
-- レポート: `templates/jev-calibration-report-template.md`
+- 詳細レポート: `templates/jev-calibration-report-template.md`
+- **定形結果レポート**: `../jev-shared/templates/jev-pipeline-result-report-template.md`
 - 指標定義: `references/evaluation-metrics.md`
 - 共有語彙: `../jev-shared/references/jev-lifecycle-status.md`

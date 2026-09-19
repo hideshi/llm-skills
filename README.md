@@ -44,8 +44,9 @@ llm-skills/
 │   │   ├── SKILL.md
 │   │   ├── references/evaluation-metrics.md
 │   │   └── templates/jev-calibration-report-template.md
-│   └── jev-shared/                            # [Jev] 共有語彙
-│       └── references/jev-lifecycle-status.md
+│   └── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
+│       ├── references/jev-lifecycle-status.md
+│       └── templates/jev-pipeline-result-report-template.md
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
 ├── .claude/skills/                            # Claude Code 向け (symlink)
@@ -71,7 +72,7 @@ llm-skills/
 | **`jev-candidate-detector`** | Kiro/cc-sddの`requirements.md`または同等の要件定義書を一次資料とし、`design.md` / `tasks.md`、ドメインモデル・ユースケース・画面/API/テーブル設計等で補完してJev適用候補を検出、期待TCOとレイテンシを試算 | 最新の公式価格、実測レイテンシ、業務・上位成果物への影響 |
 | **`jev-logic-architect`** | 選定された候補を詳細設計（`design.md`）やタスク（`tasks.md`）に落とし込み、TypeScript型定義、Jevスキーマ、確信度（Confidence）別フォールバックコードを設計 | RLCD（校正済み確信度）アーキテクチャパターン |
 | **`jev-eval-set`** | 承認済み設計に対し、正解定義・サンプリング/リーク防止・`datasetVersion`・freeze 記録を整え `datasetStatus: frozen` にする | 共有語彙 `jev-shared`、実験リポ上の評価成果物 |
-| **`jev-calibration`** | frozen セット上で閾値を較正し、バッチ評価要約・推奨閾値・`validationStatus`・shadow 記録（本番非適用）を出す | ゲート基準はプロジェクト入力、指標定義はスキル参照 |
+| **`jev-calibration`** | frozen セット上で閾値を較正し、バッチ評価要約・推奨閾値・`validationStatus`・shadow 記録（本番非適用）を出す。区切り到達時は定形結果レポート必須 | ゲート基準はプロジェクト入力、定形レポートは `jev-shared/templates` |
 
 ---
 

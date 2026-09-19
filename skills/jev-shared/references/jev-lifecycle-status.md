@@ -109,3 +109,20 @@ validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問
 - プロジェクト固有の SLO・コスト単価・人件費
 
 スキル側が定義するのは**手順・契約項目・報告欄・委譲先**のみとする。
+
+---
+
+## 6. 定形結果レポート
+
+一連工程の**区切り**では、`../templates/jev-pipeline-result-report-template.md` に従い定形結果レポートを出す。区切りの例:
+
+- `validationStatus: VALIDATED` かつ `shadowStatus: shadowed`
+- `REJECTED` / `NEEDS_MORE_DATA` での差し戻し区切り
+- **利用者が「ここまでで結果報告」と明示したとき**（任意トリガ。`jev-calibration` の契約と揃える）
+
+ルール:
+
+- 見出し構造を変えず、毎回同じ節立てで書く。
+- 対象・プロセス・結果・成果物パス・次アクションをユビキタス言語と本語彙で埋める。
+- 詳細な較正表は `jev-calibration` の詳細レポート側。定形レポートは利用者向け要約である。
+- **完了版の出力義務は `jev-calibration`**。他スキルはプロセス表の自段を埋める・部分記入してよいが、完了版の所有者は calibration。

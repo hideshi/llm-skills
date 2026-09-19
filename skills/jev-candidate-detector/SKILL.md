@@ -98,4 +98,4 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 ## 後段スキル鎖（承認後）
 
-`decision: approved` の後は、設計（`jev-logic-architect`）に続き、評価セット freeze（`jev-eval-set`）と閾値較正（`jev-calibration`）へ進む。状態語彙と差し戻しは `../jev-shared/references/jev-lifecycle-status.md` を参照する。本番適用は本鎖の外（リリース管理）とする。
+`decision: approved` の後は、設計（`jev-logic-architect`）に続き、評価セット freeze（`jev-eval-set`）と閾値較正（`jev-calibration`）へ進む。状態語彙と差し戻しは `../jev-shared/references/jev-lifecycle-status.md` を参照する。本番適用は本鎖の外（リリース管理）とする。区切り到達時の利用者向け定形要約は `../jev-shared/templates/jev-pipeline-result-report-template.md`（**完了版は `jev-calibration` が出力する**）。

@@ -78,3 +78,9 @@
 ## 7. 次フェーズ
 - `validationStatus: VALIDATED` かつ必要な shadow 記録が済んだら → **リリース管理プロセス**へ委譲
 - それ以外は上記差し戻し先へ戻る
+
+---
+
+## 付録: 定形結果レポート
+
+区切り到達時は、本詳細レポートとは**別に必須**で、`../../jev-shared/templates/jev-pipeline-result-report-template.md` を同じ見出し構造で出力すること（詳細レポートの要約で代替しない）。
