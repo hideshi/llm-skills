@@ -91,10 +91,15 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 
 8. **成果物出力**
    - 詳細: `templates/jev-calibration-report-template.md` に従う。
-   - **定形結果レポート（必須・区切り到達時）**: 次のいずれかに達したら、`../jev-shared/templates/jev-pipeline-result-report-template.md` を**同じ見出し構造のまま**埋めて出力する。
+   - **定形結果レポート（必須・区切り到達時）**: 次のいずれかに達したら、`../jev-shared/templates/jev-pipeline-result-report-template.md` を**同じ見出し構造のまま**埋める。
      - `validationStatus: VALIDATED` かつ `shadowStatus: shadowed`
      - `validationStatus: REJECTED` または `NEEDS_MORE_DATA`（差し戻しで一旦区切るとき）
      - （任意）利用者が「ここまでで結果報告」と明示したとき
+   - **「出力」の定義（両方必須・区切りで自動義務）**:
+     1. テンプレと同見出しで定形本文を埋める
+     2. 入力で指定されたパスへ**ファイル保存**する
+     3. **同じ本文を利用者チャットへ全文貼る**（会話上で読める形）
+   - ファイルのみ・添付のみ・口頭／チャット要約のみは**契約未達**。区切り到達時に「レポートを出しますか？」と利用者へ確認する必要はない（自動義務）。詳細較正表はチャット全文に出さず、パス参照でよい。
    - 定形レポートはユビキタス言語（担当部署・緊急度・人手レビュー要否など案件用語）と契約ステータス（`decision` / `datasetStatus` / `validationStatus` / `shadowStatus`）で書く。**プロセス表では日本語名称を必須とし、スキル ID を併記する**（対応は共有語彙 §7）。パス・数値は入力／実験成果物から転記し、スキルに焼かない。
    - **閾値・分岐を変更した場合**は定形結果レポートの **「## 4. 閾値・分岐の改善（該当時必須）」** を必ず埋める（4.1 変更前→後、4.2 理由、4.3 掃引・採用・再スコア要約）。変更が無い場合は「なし（初期仮説のまま）」と明記する。詳細レポート側の同名節から転記してよい。
 
@@ -109,7 +114,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 | 閾値・分岐の改善経緯 | 変更時は定形レポート §4（および詳細レポート同名節）に変更前→後・理由・改善内容 |
 | バッチ評価要約 | 指標定義に沿った要約（数値は実験側参照） |
 | `shadowStatus` | `not_started` または `shadowed`（本番非適用を明記） |
-| 定形結果レポート | 区切り到達時に `jev-pipeline-result-report-template.md` 準拠（必須） |
+| 定形結果レポート | 区切り到達時に `jev-pipeline-result-report-template.md` 準拠。**利用者チャット全文提示＋ファイル保存の両方必須**（添付のみ・要約のみ・ファイルのみは未達） |
 | 差し戻し先 | `jev-eval-set` または `jev-logic-architect`（該当時） |
 | 次フェーズ | `VALIDATED` かつ shadow 記録後 → `jev-observability`（監視設計）→ リリース管理へ委譲 |
 
