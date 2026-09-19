@@ -32,6 +32,7 @@
 | 2 | 論理設計 | `jev-logic-architect` | 設計完了 / 初期閾値仮説あり / `validationStatus: PENDING` | | |
 | 3 | 評価セット整備 | `jev-eval-set` | `datasetStatus:` `draft` → `frozen` / `datasetVersion:` | | |
 | 4 | 較正（バッチ評価・閾値・検証ゲート） | `jev-calibration` | `validationStatus:` `PENDING` → `VALIDATED` \| `REJECTED` \| `NEEDS_MORE_DATA` | | |
+| 4a | （較正の子）パラメータ掃引 | `jev-calibration` | 比較表あり / 1変数またはペア / オフライン再スコアの有無 | | 較正の子ステップ。順番は推奨であり固定契約ではない |
 | 5 | shadow 評価 | `jev-calibration`（shadow） | `shadowStatus:` `not_started` → `shadowed`（**記録のみ・本番非適用**） | | |
 | 6 | 監視設計 | `jev-observability` | `observabilityStatus:` `drafted` → `reviewed`（任意 HITL） | | |
 
@@ -101,6 +102,22 @@
 - **HITL**: [推奨のまま / 確定済み（承認者・日付）]
 
 ---
+
+## 4.4 試して棄却したレバー（推奨）
+
+較正・設計で試したが採用しなかったレバーがあれば残す（再発明防止）。該当なしなら「なし」と書く。
+
+| レバー（閾値 / データ / プロンプト設計 など） | 試した内容 | 棄却理由 | 再検討条件 |
+| :--- | :--- | :--- | :--- |
+| | | | |
+
+## 4.5 問題タイプ切り分けチェック（短）
+
+今回の主問題はどれに近いか（複数可）。根拠は §3 / §4 へ。
+
+- [ ] **閾値問題**: 分布は妥当だが切る位置が悪い（オフライン再スコアで改善見込み）
+- [ ] **データ問題**: 層の欠落・境界不足・ロケール偏り・ラベル定義の揺れ（`jev-eval-set`）
+- [ ] **プロンプト設計問題**: criteria / Score アンカー / 主タイプ規則 / state の意味設計（`jev-logic-architect`）
 
 ## 5. 主な成果物パス（すべて入力由来）
 

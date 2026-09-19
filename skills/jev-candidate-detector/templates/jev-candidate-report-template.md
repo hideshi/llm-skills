@@ -42,6 +42,8 @@
 - **適合度スコア**: [★3 / ★4 / ★5]
   - 根拠: [月間リクエスト規模、レイテンシ要求、縮退設計の成立可否に基づく評価]
 - **ドメインエキスパート確認事項**: [なし / あり: ...]（ドメイン知識を要するゲート判定に確信が持てない場合に記録）
+- **複合ラベルの主タイプ優先規則**: [不要 / 要・草案 / 要・未定義（HITL）]
+- **Score 意味の一意性**: [一意 / 混同リスクあり（違反強度 vs 温度・自動公開）/ Score なし]
 
 #### 💰 期待TCO試算マトリクス（月間リクエスト規模別）
 
@@ -98,7 +100,7 @@ Jev が人の確認・承認業務を代替する場合、変わるのは実装�
 人間によるレビューの上、採用する候補の `decision` を **`approved`** に更新してください。見送りの候補は **`rejected`** とし、理由（業務・技術・コスト等）を短く記録する。
 高リスクな判断については、プロジェクト内に ADR を作成（または `design.md` の Decision 節に起票）した上で `jev-logic-architect` を実行します。
 
-architect 完了後の後段鎖: **`jev-eval-set`（freeze）→ `jev-calibration`（VALIDATED / shadow 記録）→ リリース管理**。共有語彙は `../jev-shared/references/jev-lifecycle-status.md`（リポジトリルートからは `skills/jev-shared/...`）。
+architect 完了後の後段鎖: **`jev-eval-set`（freeze）→ `jev-calibration`（VALIDATED / shadow 記録）→ リリース管理**。共有語彙は `../../jev-shared/references/jev-lifecycle-status.md`（リポジトリルートからは `skills/jev-shared/...`）。
 
 なお、`jev-logic-architect` がカバーするのは Jev 固有の設計（スキーマ・閾値・フォールバック）までです。以下は各専門プロセス・スキルへ委譲してください。
 

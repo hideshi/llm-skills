@@ -63,22 +63,33 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
    - score: 期待値ではなく `probabilities` 側の分岐仮説を、帯域別に検証する（設計原則は architect 側参照）。
    - choice: confidence／先頭確率と誤分類コストに基づく自動確定帯を検討する。
 
-4. **推奨閾値の提案**
+4. **パラメータ掃引（較正の子ステップ）**
+   - 手順の詳細は `references/parameter-sweep-playbook.md` に従う。
+   - **比較表は必須**（候補ごとに変更変数・固定条件・主要指標・失敗モード・採用可否）。
+   - **1変数が既定**。相互作用が疑われるときのみペア掃引を許容する。掃引の順番はプレイブックの **推奨** であり、固定契約にしない。
+   - 閾値・帯域ルールのみの変更なら、同一推論ログへの **オフライン再スコア** でよい。
+   - ラベル空間／criteria／Score アンカーの **意味** が変わった場合は二重再掃引トリガ（プレイブック §5）を適用する。文言の言い換えのみは対象外。
+
+5. **推奨閾値の提案**
    - ゲート基準を満たす候補を**推奨**として提示する。確定値のコミットは HITL。
    - 満たせない場合は `NEEDS_MORE_DATA` または `REJECTED` を選び、差し戻し先を明示する。
    - 初期仮説から**変更した場合**は、変更前→変更後・理由（観測問題）・掃引／採用ルール／オフライン再スコア要約を、詳細レポートの「閾値・分岐の改善」節と定形結果レポート §4 に必ず転記できる形で残す。
 
-5. **validationStatus の付与**
+6. **validationStatus の付与**
    - `VALIDATED`: ゲート基準クリア + HITL 承認
    - `NEEDS_MORE_DATA`: データ不足 → `jev-eval-set`
    - `REJECTED`: 閾値では救えない・スキーマ再設計が必要 → `jev-logic-architect`
    - それ以外・作業中: `PENDING`
 
-6. **shadow レポート（記録のみ）**
+6b. **版安定ゲート（datasetVersion 変更時）**
+   - `datasetVersion` が変わったら、共有語彙に従い `validationStatus` を **`PENDING`** に戻す（`UNVALIDATED` 等の新語彙は導入しない）。
+   - **再測定**は本スキル（同一ポリシーでゲート再計測）、**再 freeze**は `jev-eval-set`。ゲートを満たすまで `VALIDATED` へ昇格しない。
+
+7. **shadow レポート（記録のみ）**
    - 本番非適用の観測計画または結果要約をテンプレに記録する。
    - `shadowStatus: shadowed` は「記録した」意味であり、トラフィックへの適用・canary を含意しない。
 
-7. **成果物出力**
+8. **成果物出力**
    - 詳細: `templates/jev-calibration-report-template.md` に従う。
    - **定形結果レポート（必須・区切り到達時）**: 次のいずれかに達したら、`../jev-shared/templates/jev-pipeline-result-report-template.md` を**同じ見出し構造のまま**埋めて出力する。
      - `validationStatus: VALIDATED` かつ `shadowStatus: shadowed`
@@ -109,4 +120,5 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 - 詳細レポート: `templates/jev-calibration-report-template.md`
 - **定形結果レポート**: `../jev-shared/templates/jev-pipeline-result-report-template.md`
 - 指標定義: `references/evaluation-metrics.md`
+- **パラメータ掃引プレイブック**: `references/parameter-sweep-playbook.md`
 - 共有語彙: `../jev-shared/references/jev-lifecycle-status.md`

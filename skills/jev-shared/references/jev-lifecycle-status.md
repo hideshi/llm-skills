@@ -94,6 +94,7 @@ decision: proposed
 validationStatus: NEEDS_MORE_DATA  →  jev-eval-set（データ追加・再サンプリング・再 freeze）
 validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問い／Safe Default 再設計）
 質問文・スキーマ変更後             →  validationStatus を PENDING に戻し、必要なら dataset 再 freeze
+datasetVersion 変更後              →  validationStatus を PENDING に戻す（再測定=較正、再 freeze=評価セット整備）。ゲート再達まで昇格禁止
 監視設計で設計不備を検出           →  jev-logic-architect（例: Safe Default が観測不能、経路語彙が欠落）
 ```
 
@@ -153,6 +154,7 @@ validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問
 | 論理設計 | `jev-logic-architect` | |
 | 評価セット整備 | `jev-eval-set` | |
 | 較正（バッチ評価・閾値・検証ゲート） | `jev-calibration` | 短く「較正」と書いてもよい（同一工程） |
+| （較正の子）パラメータ掃引 | `jev-calibration` | 較正の子ステップ。比較表必須。順番は推奨であり固定契約ではない |
 | shadow 評価 | `jev-calibration`（shadow） | calibration 内の shadow 記録工程。本番適用を含まない |
 | 監視設計 | `jev-observability` | 観測契約（イベント・メトリクス・アラート意図・保持境界）。実装は SRE/MLOps |
 

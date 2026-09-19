@@ -33,6 +33,7 @@ description: Designs a Jev-specific observability contract (decision events, tim
 - **セキュリティ・プライバシー審査（外部送信・保持期間の最終判断）** → セキュリティレビュー・法務
 - **本番 canary / 全量 / ロールバック** → リリース管理プロセス
 - **ドリフト検知後の閾値再較正の実行** → `jev-calibration`（設計変更が必要なら architect）＋ SRE 運用
+- **評価セット版の更新** → `datasetVersion` 変更時は較正の版安定ゲート（`validationStatus: PENDING` へ戻し、同一ポリシー再測定まで昇格禁止）を参照（`jev-calibration` / 共有語彙）
 
 ---
 
