@@ -41,7 +41,7 @@
 | :--- | :--- | :--- | :--- |
 | `NEEDS_MORE_DATA` | 評価セット整備 / `jev-eval-set` | | |
 | `REJECTED` | 論理設計 / `jev-logic-architect` | | |
-| 監視設計で設計不備 | 論理設計 / `jev-logic-architect` | | |
+| 監視設計で設計不備 | 論理設計 / `jev-logic-architect` | | 再設計後は `validationStatus: PENDING` に戻す（共有語彙 §3） |
 
 ---
 

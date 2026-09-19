@@ -73,7 +73,7 @@ description: Designs a Jev-specific observability contract (decision events, tim
 
 6. **成果物出力**
    - `templates/jev-observability-spec-template.md` に従う。
-   - 定形結果レポートを更新する場合は、プロセス表に **監視設計** 行を追加してよい（共有語彙 §7）。完了版レポートの所有者は引き続き主に calibration 区切りだが、運用突入前の追加区切りとして本スキル完了時に部分更新してよい。
+   - 定形結果レポートを更新する場合は、プロセス表に **監視設計** 行を追加してよい（共有語彙 §7）。完了版レポートの所有者は引き続き主に calibration 区切りだが、運用突入前の追加区切りとして本スキル完了時に部分更新してよい。**完了版の二重発行を避ける**: 監視設計完了をもって完了版とする場合は、calibration 側の区切り条件（例: `validationStatus: VALIDATED` かつ `shadowStatus: shadowed`）を満たしていることを確認し、既に出している完了版があるときは同一成果物を更新するか版を明示する。
 
 ---
 
