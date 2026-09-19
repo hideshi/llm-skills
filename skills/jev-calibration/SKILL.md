@@ -29,6 +29,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 - **ラベリング方法論・一致率の品質管理** → データ整備プロセス
 - **スキーマ／問い文／Safe Default の変更** → `jev-logic-architect`（変更後は `validationStatus` を `PENDING` に戻す）
 - **本番 / canary / 全量展開・ロールバック** → リリース管理プロセス
+- **観測契約の設計** → `jev-observability`
 - **定常ドリフト監視・閾値の定期再較正の運用実行** → SRE / MLOps
 - **負荷試験・レイテンシ SLO 実測の主体** → 性能試験スキル / SRE（本スキルは判定品質の較正に集中）
 
@@ -65,6 +66,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 4. **推奨閾値の提案**
    - ゲート基準を満たす候補を**推奨**として提示する。確定値のコミットは HITL。
    - 満たせない場合は `NEEDS_MORE_DATA` または `REJECTED` を選び、差し戻し先を明示する。
+   - 初期仮説から**変更した場合**は、変更前→変更後・理由（観測問題）・掃引／採用ルール／オフライン再スコア要約を、詳細レポートの「閾値・分岐の改善」節と定形結果レポート §4 に必ず転記できる形で残す。
 
 5. **validationStatus の付与**
    - `VALIDATED`: ゲート基準クリア + HITL 承認
@@ -83,6 +85,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
      - `validationStatus: REJECTED` または `NEEDS_MORE_DATA`（差し戻しで一旦区切るとき）
      - （任意）利用者が「ここまでで結果報告」と明示したとき
    - 定形レポートはユビキタス言語（担当部署・緊急度・人手レビュー要否など案件用語）と契約ステータス（`decision` / `datasetStatus` / `validationStatus` / `shadowStatus`）で書く。**プロセス表では日本語名称を必須とし、スキル ID を併記する**（対応は共有語彙 §7）。パス・数値は入力／実験成果物から転記し、スキルに焼かない。
+   - **閾値・分岐を変更した場合**は定形結果レポートの **「## 4. 閾値・分岐の改善（該当時必須）」** を必ず埋める（4.1 変更前→後、4.2 理由、4.3 掃引・採用・再スコア要約）。変更が無い場合は「なし（初期仮説のまま）」と明記する。詳細レポート側の同名節から転記してよい。
 
 ---
 
@@ -92,11 +95,12 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 | :--- | :--- |
 | `validationStatus` | `PENDING` / `VALIDATED` / `REJECTED` / `NEEDS_MORE_DATA` |
 | 推奨閾値 | 提案欄に記載。確定は HITL |
+| 閾値・分岐の改善経緯 | 変更時は定形レポート §4（および詳細レポート同名節）に変更前→後・理由・改善内容 |
 | バッチ評価要約 | 指標定義に沿った要約（数値は実験側参照） |
 | `shadowStatus` | `not_started` または `shadowed`（本番非適用を明記） |
 | 定形結果レポート | 区切り到達時に `jev-pipeline-result-report-template.md` 準拠（必須） |
 | 差し戻し先 | `jev-eval-set` または `jev-logic-architect`（該当時） |
-| 次フェーズ | `VALIDATED` かつ shadow 記録後 → リリース管理へ委譲 |
+| 次フェーズ | `VALIDATED` かつ shadow 記録後 → `jev-observability`（監視設計）→ リリース管理へ委譲 |
 
 ---
 

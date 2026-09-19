@@ -1,12 +1,12 @@
 # Jev ライフサイクル共有ステータス語彙
 
-本ドキュメントは `jev-candidate-detector` / `jev-logic-architect` / `jev-eval-set` / `jev-calibration` が共通して用いる**状態語彙**と遷移の契約である。プロジェクト固有のゲート基準・閾値・データパスはここに書かず、各スキルの**入力契約**で受け取る。
+本ドキュメントは `jev-candidate-detector` / `jev-logic-architect` / `jev-eval-set` / `jev-calibration` / `jev-observability` が共通して用いる**状態語彙**と遷移の契約である。プロジェクト固有のゲート基準・閾値・データパスはここに書かず、各スキルの**入力契約**で受け取る。
 
 ---
 
 ## 0. 表記規約
 
-- `decision` / `datasetStatus` / `shadowStatus` の**値**は小文字（例: `proposed`, `frozen`, `shadowed`）。
+- `decision` / `datasetStatus` / `shadowStatus` / `observabilityStatus` の**値**は小文字（例: `proposed`, `frozen`, `shadowed`, `drafted`）。
 - `validationStatus` の**値**のみ大文字（例: `PENDING`, `VALIDATED`）。歴史的互換のため。
 - フィールド名自体は camelCase。
 
@@ -49,6 +49,17 @@
 
 `shadowed` は「本番に出した」ことを意味しない。本番適用はリリース管理プロセスへ委譲する。
 
+
+### 1.5 `observabilityStatus`（観測契約の整備状態）
+
+| 値 | 意味 |
+| :--- | :--- |
+| `drafted` | 監視設計（`jev-observability`）の仕様草案。HITL 未了でも可。 |
+| `reviewed` | 観測契約を人間がレビュー済み。実装委譲の前提としてよい。 |
+
+`observabilityStatus` の**値**は小文字（§0 の例外は `validationStatus` のみ）。
+
+
 ---
 
 ## 2. 状態機械（前進）
@@ -60,7 +71,8 @@ decision: proposed
       → datasetStatus: frozen   … jev-eval-set
         → validationStatus: VALIDATED   … jev-calibration
           → shadowStatus: shadowed   … 記録のみ（本番非適用）
-            → （リリース管理へ委譲: canary / 全量 / ロールバック）
+            → observabilityStatus: drafted → reviewed   … 監視設計（jev-observability）
+              → （リリース管理へ委譲: canary / 全量 / ロールバック）
 ```
 
 前進の前提（各矢印で必須）:
@@ -72,6 +84,7 @@ decision: proposed
 | `draft → frozen` | ラベル承認者・freeze 承認者・`datasetVersion`・リーク防止確認 |
 | `PENDING → VALIDATED` | `datasetStatus: frozen` + プロジェクト入力のゲート基準クリア + HITL |
 | `VALIDATED → shadowed` | shadow レポート契約の記録（本番適用はしない） |
+| shadowed → 監視設計完了 | `jev-observability` の観測契約（`observabilityStatus: drafted` 以上。本番前は `reviewed` 推奨） |
 
 ---
 
@@ -81,6 +94,7 @@ decision: proposed
 validationStatus: NEEDS_MORE_DATA  →  jev-eval-set（データ追加・再サンプリング・再 freeze）
 validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問い／Safe Default 再設計）
 質問文・スキーマ変更後             →  validationStatus を PENDING に戻し、必要なら dataset 再 freeze
+監視設計で設計不備を検出           →  jev-logic-architect（例: Safe Default が観測不能、経路語彙が欠落）
 ```
 
 差し戻し時は必ず次を記録する。
@@ -140,5 +154,6 @@ validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問
 | 評価セット整備 | `jev-eval-set` | |
 | 較正（バッチ評価・閾値・検証ゲート） | `jev-calibration` | 短く「較正」と書いてもよい（同一工程） |
 | shadow 評価 | `jev-calibration`（shadow） | calibration 内の shadow 記録工程。本番適用を含まない |
+| 監視設計 | `jev-observability` | 観測契約（イベント・メトリクス・アラート意図・保持境界）。実装は SRE/MLOps |
 
 差し戻し先を書くときも、日本語名称とスキル ID を併記する（例: 評価セット整備 / `jev-eval-set`）。

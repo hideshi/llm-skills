@@ -44,6 +44,10 @@ llm-skills/
 │   │   ├── SKILL.md
 │   │   ├── references/evaluation-metrics.md
 │   │   └── templates/jev-calibration-report-template.md
+│   ├── jev-observability/                     # 9. [Jev] 監視設計（観測契約）
+│   │   ├── SKILL.md
+│   │   ├── references/decision-event-contract.md
+│   │   └── templates/jev-observability-spec-template.md
 │   └── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
 │       ├── references/jev-lifecycle-status.md
 │       └── templates/jev-pipeline-result-report-template.md
@@ -73,6 +77,7 @@ llm-skills/
 | **`jev-logic-architect`** | 選定された候補を詳細設計（`design.md`）やタスク（`tasks.md`）に落とし込み、TypeScript型定義、Jevスキーマ、確信度（Confidence）別フォールバックコードを設計 | RLCD（校正済み確信度）アーキテクチャパターン |
 | **`jev-eval-set`** | 承認済み設計に対し、正解定義・サンプリング/リーク防止・`datasetVersion`・freeze 記録を整え `datasetStatus: frozen` にする | 共有語彙 `jev-shared`、実験リポ上の評価成果物 |
 | **`jev-calibration`** | frozen セット上で閾値を較正し、バッチ評価要約・推奨閾値・`validationStatus`・shadow 記録（本番非適用）を出す。区切り到達時は定形結果レポート必須 | ゲート基準はプロジェクト入力、定形レポートは `jev-shared/templates` |
+| **`jev-observability`** | 判定イベント・時系列メトリクス・アラート意図・保持/プライバシー境界の観測契約を設計する（実装はしない） | 目標値はプロジェクト入力、実装は SRE/MLOps |
 
 ---
 
