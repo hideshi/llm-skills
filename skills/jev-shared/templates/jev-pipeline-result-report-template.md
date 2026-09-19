@@ -23,22 +23,23 @@
 
 ## 2. プロセス（どのスキルをどの契約で使ったか）
 
-未実施の工程行は削除せず、契約ステータス欄に `未到達` と書く（部分記入時も同じ）。
+- **日本語名称は必須**（利用者向け）。スキル ID は併記必須（実装・トレーサビリティ用）。対応は共有語彙 §7 の表に従い、勝手に別名を増やさない。
+- 未実施の工程行は削除せず、契約ステータス欄に `未到達` と書く（部分記入時も同じ）。
 
-| 順 | スキル | 契約ステータス（到達値） | 実施日 | 備考 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | `jev-candidate-detector` | `decision:` `proposed` → `approved`（または `rejected`） | | |
-| 2 | `jev-logic-architect` | 設計完了 / 初期閾値仮説あり / `validationStatus: PENDING` | | |
-| 3 | `jev-eval-set` | `datasetStatus:` `draft` → `frozen` / `datasetVersion:` | | |
-| 4 | `jev-calibration` | `validationStatus:` `PENDING` → `VALIDATED` \| `REJECTED` \| `NEEDS_MORE_DATA` | | |
-| 5 | shadow | `shadowStatus:` `not_started` → `shadowed`（**記録のみ・本番非適用**） | | |
+| 順 | 日本語名称（工程） | スキル ID | 契約ステータス（到達値） | 実施日 | 備考 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 候補検出 | `jev-candidate-detector` | `decision:` `proposed` → `approved`（または `rejected`） | | |
+| 2 | 論理設計 | `jev-logic-architect` | 設計完了 / 初期閾値仮説あり / `validationStatus: PENDING` | | |
+| 3 | 評価セット整備 | `jev-eval-set` | `datasetStatus:` `draft` → `frozen` / `datasetVersion:` | | |
+| 4 | 較正（バッチ評価・閾値・検証ゲート） | `jev-calibration` | `validationStatus:` `PENDING` → `VALIDATED` \| `REJECTED` \| `NEEDS_MORE_DATA` | | |
+| 5 | shadow 評価 | `jev-calibration`（shadow） | `shadowStatus:` `not_started` → `shadowed`（**記録のみ・本番非適用**） | | |
 
 差し戻しがあった場合:
 
-| 発生ステータス | 差し戻し先 | 理由要約 | 再開後の版 |
+| 発生ステータス | 差し戻し先（日本語名称 / スキル ID） | 理由要約 | 再開後の版 |
 | :--- | :--- | :--- | :--- |
-| `NEEDS_MORE_DATA` | `jev-eval-set` | | |
-| `REJECTED` | `jev-logic-architect` | | |
+| `NEEDS_MORE_DATA` | 評価セット整備 / `jev-eval-set` | | |
+| `REJECTED` | 論理設計 / `jev-logic-architect` | | |
 
 ---
 
@@ -61,7 +62,7 @@
 例の型に合わせて、案件用語で 2〜4 文:
 
 - 何を判定したか（例: 担当部署・緊急度・人手レビュー要否）
-- どの工程まで進んだか（decision / datasetStatus / validationStatus / shadow）
+- どの工程まで進んだか（日本語工程名＋ decision / datasetStatus / validationStatus / shadow）
 - 主な定量結果（一致率・経路内訳・レイテンシの要点）
 - 次アクション（リリース管理へ委譲 / eval-set 差し戻し / architect 差し戻し）
 
@@ -73,11 +74,11 @@
 
 | 種別 | パスまたは参照 | 備考 |
 | :--- | :--- | :--- |
-| 候補レポート | | detector |
-| 設計ブロック / ADR | | architect |
-| 評価セット（frozen） | | eval-set / 実験リポ |
-| バッチ評価・較正レポート | | calibration |
-| shadow 記録 | | calibration |
+| 候補レポート | | 候補検出 |
+| 設計ブロック / ADR | | 論理設計 |
+| 評価セット（frozen） | | 評価セット整備 / 実験リポ |
+| バッチ評価・較正レポート | | 較正 |
+| shadow 記録 | | shadow 評価 |
 | 本定形結果レポートの保存先 | | 入力で指定された場所 |
 
 ---
@@ -87,8 +88,8 @@
 | 条件 | 次 |
 | :--- | :--- |
 | `validationStatus: VALIDATED` かつ `shadowStatus: shadowed` | **リリース管理プロセス**へ委譲（canary / 全量 / ロールバックは本鎖の外） |
-| `NEEDS_MORE_DATA` | `jev-eval-set` でデータ追加・再 freeze 後、較正を再開 |
-| `REJECTED` | `jev-logic-architect` でスキーマ／問い／Safe Default 再設計 |
+| `NEEDS_MORE_DATA` | **評価セット整備**（`jev-eval-set`）でデータ追加・再 freeze 後、較正を再開 |
+| `REJECTED` | **論理設計**（`jev-logic-architect`）でスキーマ／問い／Safe Default 再設計 |
 | `decision: rejected` | パイプライン終了。理由を §3.1 に残す |
 
 ---

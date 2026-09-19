@@ -5,6 +5,8 @@ description: Transforms identified business decisions into concrete, typed Jev s
 
 # Jev Logic Architect
 
+工程名（日本語）: **論理設計**（スキル ID との対応は `../jev-shared/references/jev-lifecycle-status.md` §7）。
+
 このスキルは、前段の `jev-candidate-detector` で承認（`decision: approved`）された業務判断ポイント、およびプロジェクトの技術スタックを入力とし、**仕様駆動開発（Kiro/cc-sdd等）の設計書（`design.md`）、ADR、およびタスク分解（`tasks.md`）にそのまま組み込める堅牢な技術仕様**（TypeSafe公式SDKコード、3プリミティブ定義、実証的閾値設計、耐障害フォールバック）を生成します。
 
 必ず事前に `references/jev-design-patterns.md` を精読して設計パターンを把握した上で実行してください。

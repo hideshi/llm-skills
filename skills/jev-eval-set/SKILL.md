@@ -5,6 +5,8 @@ description: Builds and freezes a labeled evaluation dataset contract for an app
 
 # Jev Eval Set
 
+工程名（日本語）: **評価セット整備**（スキル ID との対応は `../jev-shared/references/jev-lifecycle-status.md` §7）。
+
 このスキルは、前段の `jev-logic-architect` が出力した設計ブロック（プリミティブ・選択肢・Safe Default・初期閾値仮説）と、プロジェクトから渡された生データ源・承認者情報を入力とし、**較正（`jev-calibration`）に使える評価データセットの契約記述と freeze 記録**を整備します。
 
 共有ステータス語彙は `../jev-shared/references/jev-lifecycle-status.md` を参照してください。

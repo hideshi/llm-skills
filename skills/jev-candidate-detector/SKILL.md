@@ -5,6 +5,8 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 # Jev Candidate Detector
 
+工程名（日本語）: **候補検出**（スキル ID との対応は `../jev-shared/references/jev-lifecycle-status.md` §7）。
+
 本スキルでは、Kiro/cc-sdd の `requirements.md` と、特定の仕様駆動開発フレームワークに依存しない一般的な要件定義書を総称して**「要件文書」**と呼びます。
 
 このスキルは要件文書を主な対象とし、Kiro/cc-sdd では `design.md`・`tasks.md` も参照します。必要に応じてドメインモデル、ユースケース、業務フロー、画面設計書、API仕様書、テーブル定義書等で補完し、**TypeSafe AI の決定特化型モデル「Jev (System One)」が適用可能な業務ロジックを抽出・アタリ付け**します。さらに、フォールバック確率を含めた期待TCO（総保有コスト）およびレイテンシの削減効果を試算します。関連文書はファイル名・形式ではなく役割で識別します。

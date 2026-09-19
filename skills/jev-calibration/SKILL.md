@@ -5,6 +5,8 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 
 # Jev Calibration
 
+工程名（日本語）: **較正（バッチ評価・閾値・検証ゲート）**（短称「較正」。shadow 記録工程は **shadow 評価**。対応は共有語彙 §7）。
+
 このスキルは、`jev-eval-set` で freeze された評価セット（`datasetStatus: frozen` + `datasetVersion`）と、architect の初期閾値仮説・プロジェクトのゲート基準を入力とし、**どこで切るか（閾値較正）**を実証します。
 
 共有ステータス語彙は `../jev-shared/references/jev-lifecycle-status.md` を参照してください。
@@ -80,7 +82,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
      - `validationStatus: VALIDATED` かつ `shadowStatus: shadowed`
      - `validationStatus: REJECTED` または `NEEDS_MORE_DATA`（差し戻しで一旦区切るとき）
      - （任意）利用者が「ここまでで結果報告」と明示したとき
-   - 定形レポートはユビキタス言語（担当部署・緊急度・人手レビュー要否など案件用語）と契約ステータス（`decision` / `datasetStatus` / `validationStatus` / `shadowStatus`）で書く。パス・数値は入力／実験成果物から転記し、スキルに焼かない。
+   - 定形レポートはユビキタス言語（担当部署・緊急度・人手レビュー要否など案件用語）と契約ステータス（`decision` / `datasetStatus` / `validationStatus` / `shadowStatus`）で書く。**プロセス表では日本語名称を必須とし、スキル ID を併記する**（対応は共有語彙 §7）。パス・数値は入力／実験成果物から転記し、スキルに焼かない。
 
 ---
 
