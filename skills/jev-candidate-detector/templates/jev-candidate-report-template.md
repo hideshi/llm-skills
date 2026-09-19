@@ -94,15 +94,18 @@ Jev が人の確認・承認業務を代替する場合、変わるのは実装�
 
 ---
 
-## 5. 次フェーズ（`jev-logic-architect`）への移行条件
-人間によるレビューの上、採用する候補の `decision` を **`approved`** に更新してください。
+## 5. 次フェーズへの移行条件（`jev-logic-architect` → 後段）
+人間によるレビューの上、採用する候補の `decision` を **`approved`** に更新してください。見送りの候補は **`rejected`** とし、理由（業務・技術・コスト等）を短く記録する。
 高リスクな判断については、プロジェクト内に ADR を作成（または `design.md` の Decision 節に起票）した上で `jev-logic-architect` を実行します。
+
+architect 完了後の後段鎖: **`jev-eval-set`（freeze）→ `jev-calibration`（VALIDATED / shadow 記録）→ リリース管理**。共有語彙は `../jev-shared/references/jev-lifecycle-status.md`（リポジトリルートからは `skills/jev-shared/...`）。
 
 なお、`jev-logic-architect` がカバーするのは Jev 固有の設計（スキーマ・閾値・フォールバック）までです。以下は各専門プロセス・スキルへ委譲してください。
 
 - エラーハンドリング方針・コーディング規約・テスト規約 → steering ドキュメント / 専用スキル
 - セキュリティ・プライバシー審査（個人情報の外部送信・越境データ移転、DPA、ベンダーの学習利用ポリシー）→ セキュリティレビュー・法務/コンプライアンス
-- 評価データセットの作成・ラベリング（方法論・品質管理）→ データ整備プロセス
+- 評価データセットの起票・スキーマ整合・freeze → `jev-eval-set`；ラベリング方法論・品質管理 → データ整備プロセス
+- 閾値の実証較正・validationStatus・shadow 記録（本番非適用）→ `jev-calibration`
 - PoC・負荷試験の実施 → 性能試験スキル / SRE
 - 本番運用の定常業務（アラート対応・閾値の定期再較正）→ SRE / MLOps 運用プロセス
 - リリース戦略（shadow / canary / ロールバック）→ リリース管理プロセス

@@ -149,7 +149,8 @@ safety_questions = {
 
 | ポリシー状態 (`validationStatus`) | 確率条件 ($p = \text{noul}$) | 判定結果 (`status`) | 実行アクション / 理由 |
 | :--- | :--- | :--- | :--- |
-| **`UNVALIDATED` (未検証・初期設計時)** | **全確率領域 ($0.0 \le p \le 1.0$)** | **`REVIEW_REQUIRED`** | **自動化禁止。実証前は全件レビューまたは安全側縮退。** |
+| **`PENDING` (未検証・初期設計時)** | **全確率領域 ($0.0 \le p \le 1.0$)** | **`REVIEW_REQUIRED`** | **自動化禁止。実証前は全件レビューまたは安全側縮退。** |
+| **`REJECTED` / `NEEDS_MORE_DATA`** | **全確率領域** | **`REVIEW_REQUIRED`** | **自動化禁止。差し戻し先は共有語彙に従う（architect / eval-set）。** |
 | **`VALIDATED` (実証検証完了後)** | $p \ge \text{blockThreshold}$<br>*(例: 0.95)* | **`BLOCK`** | 即時ブロック。目標FP率（偽陽性率）をクリアした高確信領域。 |
 | **`VALIDATED` (実証検証完了後)** | $p \le \text{allowThreshold}$<br>*(例: 0.05)* | **`ALLOW`** | 即時通過。目標FN率（偽陰性率）をクリアした高確信領域。 |
 | **`VALIDATED` (実証検証完了後)** | $\text{allowThreshold} < p < \text{blockThreshold}$ | **`REVIEW_REQUIRED`** | 不確実領域のため安全側に倒して確認・エスカレーション。 |
@@ -173,7 +174,7 @@ export const safetyQuestions = {
 export interface DecisionPolicy {
   blockThreshold: number;      // 例: 0.95 (評価データセット実証値)
   allowThreshold: number;      // 例: 0.05 (評価データセット実証値)
-  validationStatus: 'UNVALIDATED' | 'VALIDATED';
+  validationStatus: 'PENDING' | 'VALIDATED' | 'REJECTED' | 'NEEDS_MORE_DATA';
 }
 
 /**
@@ -276,9 +277,10 @@ export async function executeSafetyDecision(
   - [ ] `TYPESAFE_API_KEY` の設定
   - [ ] プロジェクトのスタックに応じたSDK導入（JS/TS: `@typesafe-ai/sdk`, Python: `typesafe-sdk`, その他: HTTP API契約）
 - [ ] **評価データセット構築 & 実証的閾値決定**:
-  - [ ] 発生頻度・クラス別カバレッジ・境界ケースを満たす評価データセットの作成
-  - [ ] 誤判定コスト・リスク・法的要件・レビュー可能件数から目標FP率（偽陽性率: $\le X\%$）および目標FN率（偽陰性率: $\le Y\%$）を定義
-  - [ ] 評価データセット上でFP率・FN率の95%信頼上限が各目標以下となる `blockThreshold` と `allowThreshold` の確定（検証ステータス更新）
+  - [ ] 評価セットの起票・スキーマ整合・freeze → **`jev-eval-set`**（`datasetStatus: frozen` + `datasetVersion`）
+  - [ ] ラベリング方法論・一致率等の品質管理 → データ整備プロセス（`jev-eval-set` と併用）
+  - [ ] 誤判定コスト・リスク・法的要件・レビュー可能件数から目標FP率・FN率等のゲート基準を**プロジェクト入力として**定義（数値はスキルに焼かない）
+  - [ ] frozen セット上での閾値較正・`validationStatus`・shadow 記録（本番非適用）→ **`jev-calibration`**
 - [ ] **サービス実装 & 耐障害性**:
   - [ ] 質問定義（`choice` / `score` / `noul`）の実装（instructions / criteria / state の設計原則は `references/jev-design-patterns.md` §2 を参照。質問文は版管理し、変更時は閾値を再較正する）
   - [ ] 3段階分岐ロジックと、業務側ステークホルダーが承認した Safe Default の実装（定義・選定原則は `references/jev-design-patterns.md` §3 を参照）

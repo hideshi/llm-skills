@@ -19,7 +19,10 @@ description: Transforms identified business decisions into concrete, typed Jev s
 - **コーディング規約**（命名・lint・フォーマッタ・ディレクトリ構成等）→ steering ドキュメント / 専用スキル
 - **テスト規約**（テストピラミッド・命名・カバレッジ要件・E2E方針等）→ steering ドキュメント / 専用スキル
 - **セキュリティ・プライバシー審査**（個人情報・機密データの外部API送信の可否、越境データ移転、DPA締結、ベンダーの学習利用ポリシー確認）→ セキュリティレビュー・法務/コンプライアンス
-- **評価データセットの作成・ラベリング**（作成タスクの起票は行うが、ラベリングガイドライン・複数人アノテーション・一致率確保等の方法論と品質管理）→ データ整備プロセス
+- **評価データセットの作成・ラベリング**:
+  - 起票・スキーマ整合・freeze 手続き → **`jev-eval-set`**
+  - ラベリング方法論・複数人アノテーション・一致率確保等の品質管理 → **データ整備プロセス**
+- **閾値の実証較正・`validationStatus`（VALIDATED 等）・shadow 記録（本番非適用）** → **`jev-calibration`**
 - **PoC・負荷試験の実施**（負荷試験の設計、レイテンシ・スループット実測の実行）→ 性能試験スキル / SRE
 - **本番運用の定常業務**（監視タスクの設計は行うが、アラート対応、ドリフト監視に基づく閾値の定期再較正の実行）→ SRE / MLOps 運用プロセス
 - **リリース戦略**（shadow mode → canary → 全量展開の段階的ロールアウト、ロールバック手順）→ リリース管理プロセス
@@ -59,6 +62,7 @@ description: Transforms identified business decisions into concrete, typed Jev s
 
 3. **閾値設計 & 3段階ハンドリングの実装**
    - 固定の決め打ち（0.95等）を排し、評価データセットに基づく閾値決定プロセスを前提とする。
+   - 設計ブロックには **初期閾値仮説**（例: Dual Threshold の仮の high/low）を必ず含める。値はプロジェクト入力または説明用の仮説として記録し、スキルに焼き込まない。`validationStatus` は初期出力では `PENDING`。確定閾値は `jev-calibration` の HITL 後。
    - `Noul` の場合は Dual Threshold（$p \ge \text{high}$ でBlock、$p \le \text{low}$ でAllow、中間帯はReview/エスカレーション）を設計する。
    - 設計書の表とコード例の分岐ロジックが**完全に一致**していることを担保する。
 
@@ -68,4 +72,5 @@ description: Transforms identified business decisions into concrete, typed Jev s
    - 外部障害・Deadline超過時の Safe Default（安全側への縮退）
 
 5. **成果物の出力**
-   - `templates/jev-logic-spec-template.md` に従い、`design.md` / ADR 用の設計ブロック、および `tasks.md` 向けの実装・評価・監視タスクを出力する。
+   - `templates/jev-logic-spec-template.md` に従い、`design.md` / ADR 用の設計ブロック、および `tasks.md` 向けの実装・評価・監視タスクを出力する。設計ブロックにはスキーマ・Safe Default・**初期閾値仮説**・`validationStatus: PENDING` を含める。
+   - 評価セットの freeze と閾値較正の実行は本スキルでは行わない。設計ブロック出力後は **`jev-eval-set` → `jev-calibration`** へ委譲する（共有語彙: `../jev-shared/references/jev-lifecycle-status.md`）。

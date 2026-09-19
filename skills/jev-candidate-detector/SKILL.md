@@ -93,3 +93,9 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
      - **全社基盤ADR**: Jev基盤の導入自体が複数チーム・全社横断の意思決定に相当する場合。
      - **機能別ADR**: 高リスク（決済・BAN等の不可逆性の高い判定）にJevを適用する場合。
      - **design.md内の記録で十分**: 低〜中リスクの機能内判断に留まる場合。
+
+---
+
+## 後段スキル鎖（承認後）
+
+`decision: approved` の後は、設計（`jev-logic-architect`）に続き、評価セット freeze（`jev-eval-set`）と閾値較正（`jev-calibration`）へ進む。状態語彙と差し戻しは `../jev-shared/references/jev-lifecycle-status.md` を参照する。本番適用は本鎖の外（リリース管理）とする。

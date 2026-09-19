@@ -3,7 +3,7 @@
 以下の2つのスキル群からなるエージェントスキル集です。
 
 1. **LLM選定・裏取り**: 目的やシステム要件に応じて、客観的な外部ベンチマークや最新モデルカードの裏取りを行った上で、最適なLLM（主にローカルLLM）を提案
-2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマとフォールバック設計までを生成
+2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマ・フォールバック設計、評価セット freeze、閾値較正（shadow 記録まで）を支援
 
 **Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
 
@@ -32,10 +32,20 @@ llm-skills/
 │   │   ├── SKILL.md
 │   │   ├── references/cost-estimation-reference.md
 │   │   └── templates/jev-candidate-report-template.md
-│   └── jev-logic-architect/                   # 6. [Jev] 詳細設計(design.md)向けスキーマ & フォールバック設計
-│       ├── SKILL.md
-│       ├── references/jev-design-patterns.md
-│       └── templates/jev-logic-spec-template.md
+│   ├── jev-logic-architect/                   # 6. [Jev] 詳細設計(design.md)向けスキーマ & フォールバック設計
+│   │   ├── SKILL.md
+│   │   ├── references/jev-design-patterns.md
+│   │   └── templates/jev-logic-spec-template.md
+│   ├── jev-eval-set/                          # 7. [Jev] 評価セット整備 & freeze
+│   │   ├── SKILL.md
+│   │   ├── references/sampling-and-leakage-guide.md
+│   │   └── templates/jev-eval-set-report-template.md
+│   ├── jev-calibration/                       # 8. [Jev] 閾値較正 & validationStatus / shadow 記録
+│   │   ├── SKILL.md
+│   │   ├── references/evaluation-metrics.md
+│   │   └── templates/jev-calibration-report-template.md
+│   └── jev-shared/                            # [Jev] 共有語彙
+│       └── references/jev-lifecycle-status.md
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
 ├── .claude/skills/                            # Claude Code 向け (symlink)
@@ -60,6 +70,8 @@ llm-skills/
 | :--- | :--- | :--- |
 | **`jev-candidate-detector`** | Kiro/cc-sddの`requirements.md`または同等の要件定義書を一次資料とし、`design.md` / `tasks.md`、ドメインモデル・ユースケース・画面/API/テーブル設計等で補完してJev適用候補を検出、期待TCOとレイテンシを試算 | 最新の公式価格、実測レイテンシ、業務・上位成果物への影響 |
 | **`jev-logic-architect`** | 選定された候補を詳細設計（`design.md`）やタスク（`tasks.md`）に落とし込み、TypeScript型定義、Jevスキーマ、確信度（Confidence）別フォールバックコードを設計 | RLCD（校正済み確信度）アーキテクチャパターン |
+| **`jev-eval-set`** | 承認済み設計に対し、正解定義・サンプリング/リーク防止・`datasetVersion`・freeze 記録を整え `datasetStatus: frozen` にする | 共有語彙 `jev-shared`、実験リポ上の評価成果物 |
+| **`jev-calibration`** | frozen セット上で閾値を較正し、バッチ評価要約・推奨閾値・`validationStatus`・shadow 記録（本番非適用）を出す | ゲート基準はプロジェクト入力、指標定義はスキル参照 |
 
 ---
 
