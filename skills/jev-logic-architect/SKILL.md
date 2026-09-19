@@ -44,9 +44,11 @@ description: Transforms identified business decisions into concrete, typed Jev s
    - 言語・ランタイム（TypeScript, Python, Go 等）
    - フレームワークおよび既存の外部APIクライアント・エラー処理慣習
    - 公式SDK（JS/TS: `@typesafe-ai/sdk`、Python: `typesafe-sdk`、その他: HTTP API契約）の利用可否
-3. **リスク区分 & ADR方針**:
-   - 不可逆・高リスク（決済・BAN・権限）か、中低リスク（UI・トリアージ）か
-   - ADR の作成要否
+3. **業務結果の重篤度 & リスク区分 & ADR方針**（共有語彙 §8。投稿の深刻度＝Score と混同しない）:
+   - 失敗モードごとの相対コスト（FN vs FP、不可逆の有無）— 要件／候補レポートから転記。欠けたら HITL
+   - リスク区分（高/中/低）＋理由一文
+   - ラボ／本番ゲートで見る指標／見ない指標（calibration ゲート入力へ渡す）
+   - ADR の作成要否（不可逆・高リスクは機能別 ADR を検討）
 4. **プロジェクト規約の所在**: エラーハンドリング方針・コーディング規約・テスト規約を定めた steering ドキュメント（Kiro steering / cc-sdd / AGENTS.md / .cursor/rules 等）。未整備の場合は未決事項として報告する（スコープ境界参照）。
 
 ---

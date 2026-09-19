@@ -35,3 +35,10 @@ description: Analyzes system goals and requirements to define target constraints
 3. **要件定義書の出力**
    - `templates/requirements-template.md` のフォーマットに従い、要件定義書を出力する。
    - 後続の `local-llm-researcher` や `hardware-compatibility-checker` に引き渡す。
+
+---
+
+## Jev 判定案件がある場合（本スキル外への委譲）
+
+ローカルLLM選定要件とは別に、**誤判定の業務影響（業務結果の重篤度／コスト非対称）**は Jev パイプライン入口（`jev-candidate-detector` 以降、共有語彙 §8）の必須入力とする。投稿の深刻度（Score）と同一視しない。本スキルの要件定義シートに無理に同居させず、Jev 鎖へ委譲する。
+

@@ -42,7 +42,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 1. **`datasetStatus: frozen`** と **`datasetVersion`**（必須）
 2. **評価セット成果物の所在**: パスは入力（特定の実験リポ名やパスをスキルに焼かない）
 3. **architect 設計ブロック**: プリミティブ、問い定義、Safe Default、**初期閾値仮説**
-4. **ゲート基準（VALIDATED 条件）**: 目標指標・信頼区間・最低件数・帯域別条件など。**すべてプロジェクト入力**
+4. **ゲート基準（VALIDATED 条件）**: 目標指標・信頼区間・最低件数・帯域別条件など。**すべてプロジェクト入力**。業務結果の重篤度（共有語彙 §8: 失敗モード相対コスト、リスク区分、ラボ／本番で見る／見ない指標）から導出・転記する。投稿の深刻度（Score）と混同しない。
 5. **Requirement ID**（行番号は用いない）
 6. （任意）前回較正レポート、既知の失敗モード
 
