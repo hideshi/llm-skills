@@ -29,8 +29,9 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 - **ラベリング方法論・一致率の品質管理** → データ整備プロセス
 - **スキーマ／問い文／Safe Default の変更** → `jev-logic-architect`（変更後は `validationStatus` を `PENDING` に戻す）
 - **本番 / canary / 全量展開・ロールバック** → リリース管理プロセス
-- **観測契約の設計** → `jev-observability`
+- **観測契約の設計**（人手最終判定イベント契約を含む） → `jev-observability`
 - **定常ドリフト監視・閾値の定期再較正の運用実行** → SRE / MLOps
+- **再較正の承認者・タイミングの業務フロー固定** → 本版スコープ外（後段）。本スキルは不一致＋理由コードからの**技術トリアージ**のみ
 - **負荷試験・レイテンシ SLO 実測の主体** → 性能試験スキル / SRE（本スキルは判定品質の較正に集中）
 
 ---
@@ -74,6 +75,15 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
    - ゲート基準を満たす候補を**推奨**として提示する。確定値のコミットは HITL。
    - 満たせない場合は `NEEDS_MORE_DATA` または `REJECTED` を選び、差し戻し先を明示する。
    - 初期仮説から**変更した場合**は、変更前→変更後・理由（観測問題）・掃引／採用ルール／オフライン再スコア要約を、詳細レポートの「閾値・分岐の改善」節と定形結果レポート §4 に必ず転記できる形で残す。
+
+5b. **人手最終フィードバックのトリアージ（観測から戻るとき）**
+   - 入力は `jev-observability` の人手最終判定イベント（不一致＋理由コード＋版リンク）。自由文だけでは進めない。
+   - **一行指針**: 不一致＋理由コード → **eval 境界追加（データ）** / **criteria・問い改訂（prompt）** / **Dual・ゲート調整（閾値）**。
+   - 振り分けの型（詳細は `references/evaluation-metrics.md` §6）:
+     - 情報不足・分布外・境界曖昧が主 → `NEEDS_MORE_DATA`（`jev-eval-set` で境界ケース追加・再 freeze）
+     - 転用評価・必須重視・見落とし／過剰警戒など**問い・criteria の意味ずれ**が主 → `REJECTED` 相当で `jev-logic-architect`（問い／criteria 改訂。改訂後は `PENDING` に戻す）
+     - 帯の切り方・Dual 閾値のずれが主でスキーマは妥当 → 本スキル内の**閾値掃引**（プレイブック）
+   - 誰がいつ承認して再較正に入るかは**書かない**（業務フローは後段）。
 
 6. **validationStatus の付与**
    - `VALIDATED`: ゲート基準クリア + HITL 承認
