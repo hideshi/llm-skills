@@ -1,0 +1,26 @@
+# 例: まず1サービス。付属が必要になったら services を足す。
+# 使い方: 案件リポにコピーし、build context / volumes を実パスに合わせる。
+
+services:
+  jev-monitor-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.example
+    ports:
+      - "8787:8787"
+    volumes:
+      # アプリ本体をマウント（パスは案件で変更）。
+      # 注意: `../:/app` のままだと親ディレクトリ全体をマウントする。案件のアプリ根に絞ること。
+      - ../:/app
+    working_dir: /app
+    environment:
+      # 秘密はイメージに焼かない。ホストの .dev.vars や compose の env_file を使う。
+      - NODE_ENV=development
+    # env_file:
+    #   - .dev.vars
+
+  # 例: 認証をモックするときだけ有効化（イメージは案件で選定）
+  # mock-idp:
+  #   image: (プロジェクト入力)
+  #   ports:
+  #     - "8080:8080"

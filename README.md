@@ -48,6 +48,12 @@ llm-skills/
 │   │   ├── SKILL.md
 │   │   ├── references/decision-event-contract.md
 │   │   └── templates/jev-observability-spec-template.md
+│   ├── jev-monitoring-platform/               # 10. [Jev] 監視基盤要件（CF既定・他クラウド写像）
+│   │   ├── SKILL.md
+│   │   ├── references/cloud-provider-remap.md
+│   │   ├── references/testing-and-local-dev.md
+│   │   ├── templates/jev-monitoring-platform-spec-template.md
+│   │   └── templates/local-dev/                 # Dockerfile / compose 例
 │   └── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
 │       ├── references/jev-lifecycle-status.md
 │       └── templates/jev-pipeline-result-report-template.md
@@ -78,6 +84,7 @@ llm-skills/
 | **`jev-eval-set`** | 承認済み設計に対し、正解定義・サンプリング/リーク防止・`datasetVersion`・freeze 記録を整え `datasetStatus: frozen` にする | 共有語彙 `jev-shared`、実験リポ上の評価成果物 |
 | **`jev-calibration`** | frozen セット上で閾値を較正し、バッチ評価要約・推奨閾値・`validationStatus`・shadow 記録（本番非適用）を出す。区切り到達時は定形結果レポート必須 | ゲート基準はプロジェクト入力、定形レポートは `jev-shared/templates` |
 | **`jev-observability`** | 判定イベント・時系列メトリクス・アラート意図・保持/プライバシー境界の観測契約を設計する（実装はしない） | 目標値はプロジェクト入力、実装は SRE/MLOps |
+| **`jev-monitoring-platform`** | 観測契約を監視インフラ／監視アプリ要件に落とす。既定 Cloudflare、AWS/GCP/Azure 写像 | 制限値は出典付き裏取り／入力。実装は SRE/MLOps |
 
 ---
 

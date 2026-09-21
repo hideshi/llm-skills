@@ -1,0 +1,20 @@
+# 例: Jev 監視まわりの「コンポーネント試験／ローカル再現」用。
+# 案件リポにコピーしてから使う。スキル内のパスや Node 版はプロジェクト入力で更新する。
+# Analytics Engine / Access 等の本番相当はここでは再現しない（staging の狭い統合へ）。
+
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+# Wrangler（Workers ローカル／Miniflare 系統）を CLI として使う例。
+# ロックファイルがある案件では npm ci に差し替える。
+# Wrangler メジャー例。採用版は公式ドキュメントで確認し、取得日を案件側に残す（例: 確認日 2026-09-20）。
+RUN npm install -g wrangler@4
+
+# 依存はビルド時ではなく、マウントしたアプリで入れる運用でもよい。
+# COPY package.json package-lock.json ./
+# RUN npm ci
+
+EXPOSE 8787
+# 既定コマンドはプレースホルダ。案件の wrangler.toml に合わせて上書きする。
+CMD ["wrangler", "dev", "--ip", "0.0.0.0", "--port", "8787"]

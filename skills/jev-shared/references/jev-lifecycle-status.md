@@ -6,7 +6,7 @@
 
 ## 0. 表記規約
 
-- `decision` / `datasetStatus` / `shadowStatus` / `observabilityStatus` の**値**は小文字（例: `proposed`, `frozen`, `shadowed`, `drafted`）。
+- `decision` / `datasetStatus` / `shadowStatus` / `observabilityStatus` / `platformStatus` の**値**は小文字（例: `proposed`, `frozen`, `shadowed`, `drafted`）。
 - `validationStatus` の**値**のみ大文字（例: `PENDING`, `VALIDATED`）。歴史的互換のため。
 - フィールド名自体は camelCase。
 
@@ -62,6 +62,14 @@
 
 ---
 
+
+### 1.6 `platformStatus`（監視基盤要件）
+
+| 値 | 意味 |
+| :--- | :--- |
+| `drafted` | 基盤・アプリ要件の草案 |
+| `reviewed` | HITL 済み（任意） |
+
 ## 2. 状態機械（前進）
 
 ```text
@@ -72,7 +80,8 @@ decision: proposed
         → validationStatus: VALIDATED   … jev-calibration
           → shadowStatus: shadowed   … 記録のみ（本番非適用）
             → observabilityStatus: drafted → reviewed   … 監視設計（jev-observability）
-              → （リリース管理へ委譲: canary / 全量 / ロールバック）
+              → platformStatus: drafted → reviewed   … 監視基盤要件（jev-monitoring-platform）
+                → （実装／リリース管理へ委譲: canary / 全量 / ロールバック）
 ```
 
 前進の前提（各矢印で必須）:
@@ -85,6 +94,7 @@ decision: proposed
 | `PENDING → VALIDATED` | `datasetStatus: frozen` + プロジェクト入力のゲート基準クリア + HITL |
 | `VALIDATED → shadowed` | shadow レポート契約の記録（本番適用はしない） |
 | shadowed → 監視設計完了 | `jev-observability` の観測契約（`observabilityStatus: drafted` 以上。本番前は `reviewed` 推奨） |
+| 監視設計 → 監視基盤要件 | 観測契約を入力に `jev-monitoring-platform`（`platformStatus: drafted` 以上） |
 
 ---
 
@@ -96,6 +106,7 @@ validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問
 質問文・スキーマ変更後             →  validationStatus を PENDING に戻し、必要なら dataset 再 freeze
 datasetVersion 変更後              →  validationStatus を PENDING に戻す（再測定=較正、再 freeze=評価セット整備）。ゲート再達まで昇格禁止
 監視設計で設計不備を検出           →  jev-logic-architect（例: Safe Default が観測不能、経路語彙が欠落）
+監視基盤要件で観測契約の欠落を検出 →  jev-observability（観測契約を揃えてから基盤要件を再開）
 ```
 
 差し戻し時は必ず次を記録する。
@@ -158,7 +169,8 @@ datasetVersion 変更後              →  validationStatus を PENDING に戻�
 | 較正（バッチ評価・閾値・検証ゲート） | `jev-calibration` | 短く「較正」と書いてもよい（同一工程） |
 | （較正の子）パラメータ掃引 | `jev-calibration` | 較正の子ステップ。比較表必須。順番は推奨であり固定契約ではない |
 | shadow 評価 | `jev-calibration`（shadow） | calibration 内の shadow 記録工程。本番適用を含まない |
-| 監視設計 | `jev-observability` | 観測契約（イベント・メトリクス・アラート意図・保持境界）。実装は SRE/MLOps |
+| 監視設計 | `jev-observability` | 観測契約（イベント・メトリクス・アラート意図・保持境界）。実装はしない |
+| 監視基盤要件 | `jev-monitoring-platform` | 観測契約→インフラ／監視アプリ要件。既定 CF、AWS/GCP/Azure 写像。実装・制限断定はしない |
 
 差し戻し先を書くときも、日本語名称とスキル ID を併記する（例: 評価セット整備 / `jev-eval-set`）。
 

@@ -29,7 +29,8 @@ description: Designs a Jev-specific observability contract (decision events, tim
 
 - **スキーマ／問い／Safe Default／初期閾値仮説** → `jev-logic-architect`
 - **評価セット・較正・shadow 記録** → `jev-eval-set` / `jev-calibration`
-- **ダッシュボード・ログ基盤・アラートルールの実装と運用** → SRE / MLOps
+- **監視インフラ／監視アプリの要件定義（クラウド中立＋写像）** → `jev-monitoring-platform`
+- **ダッシュボード・ログ基盤・アラートルールの実装と運用** → SRE / MLOps（基盤要件の後）
 - **セキュリティ・プライバシー審査（外部送信・保持期間の最終判断）** → セキュリティレビュー・法務
 - **本番 canary / 全量 / ロールバック** → リリース管理プロセス
 - **ドリフト検知後の閾値再較正の実行** → `jev-calibration`（設計変更が必要なら architect）＋ SRE 運用
@@ -87,7 +88,7 @@ description: Designs a Jev-specific observability contract (decision events, tim
 | アラート意図一覧 | 条件の型・委譲先。実装はしない |
 | 保持・プライバシー境界 | 審査要否付き |
 | `observabilityStatus` | `drafted`（既定）/ `reviewed`（HITL 後） |
-| 次フェーズ | SRE/MLOps 実装、セキュリティ審査、リリース管理 |
+| 次フェーズ | `jev-monitoring-platform`（監視基盤要件）→ SRE/MLOps 実装、セキュリティ審査、リリース管理 |
 
 ---
 
