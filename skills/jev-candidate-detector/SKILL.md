@@ -1,6 +1,6 @@
 ---
 name: jev-candidate-detector
-description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd) to identify logic suitable for TypeSafe AI Jev (System One Model), providing feasibility scoring and cost/latency comparisons.
+description: Finds Jev-suitable decision points from requirements (primary) or, when asked, via reverse discovery from code—always with a light candidate list HITL before deep scoring/TCO when in reverse mode.
 ---
 
 # Jev Candidate Detector
@@ -51,7 +51,44 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
 
 ---
 
-## 2. 実行ワークフロー
+
+---
+
+## 1b. 入口モード・軽い刈り・HITL①（深掘りの前）
+
+別スキルは作らない。リバースも本スキル内の入口分岐とする。詳細の探し方は `references/reverse-discovery.md`。
+
+### 入口モード
+| モード | いつ | 一次資料 |
+| :--- | :--- | :--- |
+| **正攻法** | 要件文書が使える | 要件文書 |
+| **リバース** | 「コードから提案して」等、または要件が一次として使えない | 実装（仮説）。確定にはしない |
+| **混在** | 要件と実装の両方 | 要件側を先に刈る。実装のみの判断は「要件なし」側 |
+
+push／PR／CI では起動しない。明示依頼のみ。
+
+### 軽い刈り（深掘り前）
+候補を短い表に列挙するだけにする。
+
+- **書いてよい**: 仮 ID、責務の一文、ポインタ（Requirement ID またはパス／関数）、区分（要件あり／要件なし）、実装状況（未実装／一部／既存）のラベル
+- **書いてはいけない**: §1 ハードゲート・除外・★スコアの**各項目への合否**、プリミティブの確定、TCO、ADR 要否判定（現行 Step 6）の一切
+- §1 の判定基準を**1項目でも適用した時点で深掘り**とみなす（HITL①前にやってはならない）
+
+### HITL① — 候補一覧の採択
+- **役割**: 深掘り工数の**投資判断**。承認（`decision: approved`）の含意を持たない。ここで「進める」としても HITL② で reject してよい。
+- **リバースモード**: **必須**。利用者の明示的な応答（チャット等）で、進める／捨てる／保留を選ばせる。
+- **正攻法**（要件文書が一次として明確）: **省略可**。省略する場合は、完成レポート内に刈り一覧を併記する。
+- **混在**: 要件あり／要件なしを**1回の HITL①**で提示する（要件ありを上に並べる）。
+- HITL①用の表は完成版レポートとは別の**軽量フォーマット**とし、**`decision` フィールドを持たない**。HITL①完了前に完成版レポート・TCO・★付けを出さない。
+
+### 採択後の深掘り
+- **進める（要件あり）**: 下記 §2 の通常フロー（ゲート・★・TCO 等）。未実装でも落とさない。実装との差分は記録し、勝手に実装へ寄せない。
+- **進める（要件なし／リバース）**: 要件相当1枚を復元（責務、state、出力空間、Safe Default、業務結果の重篤度＝共有語彙 §8）。読めない欄は推測で埋めず、ドメインエキスパートへの確認事項（HITL）として記録する。その後 §1 を本適用。根拠区分は `supplementary-only`。
+- **保留**: 触れない。**捨てる**: 一覧に理由だけ残してよい。
+
+後から要件文書が付いたリバース候補は、突き合わせて primary に格上げし、差分があれば記録する。
+
+## 2. 実行ワークフロー（HITL①採択後・または正攻法で HITL①省略時）
 
 1. **ドキュメントの静的スキャン & Requirement ID特定**
    - **要件文書（一次資料）**: Kiro/cc-sdd の `requirements.md`、または他のフレームワークや独自プロセスにおける同等の要件定義書から、業務要件、判断条件、制約、非機能要件およびトレーサビリティを抽出する。
@@ -97,15 +134,25 @@ description: Scans domain models, requirements, and spec documents (Kiro/cc-sdd)
    - **本スキルの責務は影響の特定・記録までとし、上流成果物の更新自体は行わない。** ドメインモデル・ユースケース・画面設計等の更新は、人間の承認後に専用スキル（要件定義・ドメイン設計・画面設計等）または SDD フロー（Kiro/cc-sdd）の更新プロセスへ委譲する。レポートはその委譲先への引き継ぎ契約として機能させる。
    - オペレーターの役割変更・人員配置・教育等の**組織的な変更（チェンジマネジメント）**が必要な場合は、その旨を記録する。実行は業務部門・人事へ委譲する。
 
-6. **フェーズ間契約レポートの出力**
-   - `templates/jev-candidate-report-template.md` に従い出力。
-   - 各候補のステータスは `decision: proposed` として出力し、人間の承認（`decision: approved`）を待つ状態にする。業務変更を伴う候補の承認は、技術承認に加えて**業務側ステークホルダーの承認**を含む。
+6. **フェーズ間契約レポートの出力（HITL②）**
+   - `templates/jev-candidate-report-template.md` に従い出力（完成版。HITL①の軽量表とは別）。
+   - **HITL②の役割**: 後段鎖（architect 以降）への**承認ゲート**。各候補は `decision: proposed` として出力し、人間の承認（`decision: approved`）を待つ。業務変更を伴う候補の承認は、技術承認に加えて**業務側ステークホルダーの承認**を含む。
+   - 正攻法で HITL①を省略した場合は、レポートに軽い刈りの一覧表を併記する。
    - 個人情報・機密データを外部APIへ送信する候補には**セキュリティ・プライバシー審査の要否**を記録する（審査自体はセキュリティレビュー・法務等の専門プロセスへ委譲）。
    - 与信・採用・医療等の規制業界や自動意思決定に関わる候補には、**法的・規制要件の確認要否**を記録する（確認自体は法務・コンプライアンスへ委譲）。
    - **ADR要否の判定基準**:
      - **全社基盤ADR**: Jev基盤の導入自体が複数チーム・全社横断の意思決定に相当する場合。
      - **機能別ADR**: 高リスク（決済・BAN等の不可逆性の高い判定）にJevを適用する場合。
      - **design.md内の記録で十分**: 低〜中リスクの機能内判断に留まる場合。
+
+---
+
+## テンプレート・参照
+
+- 候補レポート: `templates/jev-candidate-report-template.md`
+- リバース発見ガイド: `references/reverse-discovery.md`
+- コスト試算: `references/cost-estimation-reference.md`
+- 共有語彙: `../jev-shared/references/jev-lifecycle-status.md`
 
 ---
 
