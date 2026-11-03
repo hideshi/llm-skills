@@ -1,0 +1,4 @@
+interface:
+  display_name: "歴史・文化背景の裏取り"
+  short_description: "史料と研究を照合し、人物や制度の判断に必要な時代背景と解釈の限界を整理する"
+  default_prompt: "$historical-context-grounding を使って、対象の時代と地域の史料を確認し、判断を支える根拠と未確認の前提を整理してください。"

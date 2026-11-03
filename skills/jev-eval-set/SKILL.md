@@ -20,6 +20,8 @@ description: Builds and freezes a labeled evaluation dataset contract for an app
 
 JSONL 実データや実験数値そのものは本スキル／`llm-skills` には置かず、実験用リポジトリ側に残します。ここは**汎用手順と契約**のみです。
 
+歴史・文化に依存する人物判断では、[歴史的文脈を含む判断の設計と評価](../jev-shared/references/historical-judgment-evaluation.md)を参照し、期待行動の根拠と本人が知る情報を確認する。正解が一意に定まらない探索は、本スキルのラベル付き較正用セットとは区別する。史料の一例や実験者の予想を唯一の正解にせず、評価資料を固定しただけで本スキルの `datasetStatus: frozen` を付与しない。
+
 ---
 
 ## スコープ境界（委譲事項）

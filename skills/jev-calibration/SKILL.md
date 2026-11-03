@@ -21,6 +21,8 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 
 実験の生ログ・混同行列の実数値・JSONL は実験用リポジトリ側に置き、本スキルは契約と手順のみを扱います。
 
+歴史・文化に依存する結果が予想と違う場合は、[歴史的文脈を含む判断の設計と評価](../jev-shared/references/historical-judgment-evaluation.md)に沿って、予想の史料根拠、本人の認識、制度と選択肢の不足を確認してからモデルや閾値の問題と判断する。自然さを探るだけの人物判断は、正解・ゲートを持つ閾値較正と区別し、反復が安定したことや期待方向に動いたことだけで `VALIDATED` にしない。
+
 ---
 
 ## スコープ境界（委譲事項）

@@ -1,9 +1,10 @@
-# LLM Skills (LLM選定・裏取り & Jev設計スキル群)
+# LLM Skills (LLM選定・裏取り、時代考証 & Jev設計スキル群)
 
-以下の2つのスキル群からなるエージェントスキル集です。
+以下の3つのスキル群からなるエージェントスキル集です。
 
 1. **LLM選定・裏取り**: 目的やシステム要件に応じて、客観的な外部ベンチマークや最新モデルカードの裏取りを行った上で、最適なLLM（主にローカルLLM）を提案
 2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマ・フォールバック設計、評価セット freeze、閾値較正（shadow 記録まで）を支援
+3. **歴史・文化背景の裏取り**: 人物や制度の判断を史料・研究と照合し、出来事の記録、当時や後世の評価、創作上の仮定を分ける。歴史的な振る舞いの評価やシミュレーション設計に利用
 
 **Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
 
@@ -16,6 +17,10 @@ llm-skills/
 ├── README.md
 │
 ├── skills/                                    # [本体] スキル実体
+│   ├── historical-context-grounding/          # 歴史・文化背景の裏取り（Jev以外でも利用可）
+│   │   ├── SKILL.md
+│   │   ├── references/source-workflows.md      # 外部の取得・判定手順、参照版と利用条件
+│   │   └── agents/openai.yaml
 │   ├── model-requirements-analyzer/           # 1. 要件定義 & 制約整理
 │   │   ├── SKILL.md
 │   │   └── templates/requirements-template.md
@@ -56,6 +61,7 @@ llm-skills/
 │   │   └── templates/local-dev/                 # Dockerfile / compose 例
 │   └── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
 │       ├── references/jev-lifecycle-status.md
+│       ├── references/historical-judgment-evaluation.md
 │       └── templates/jev-pipeline-result-report-template.md
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
@@ -85,6 +91,16 @@ llm-skills/
 | **`jev-calibration`** | frozen セット上で閾値を較正し、バッチ評価要約・推奨閾値・`validationStatus`・shadow 記録（本番非適用）を出す。区切り到達時は定形結果レポート必須 | ゲート基準はプロジェクト入力、定形レポートは `jev-shared/templates` |
 | **`jev-observability`** | 判定イベント・時系列メトリクス・アラート意図・保持/プライバシー境界の観測契約を設計する（実装はしない） | 目標値はプロジェクト入力、実装は SRE/MLOps |
 | **`jev-monitoring-platform`** | 観測契約を監視インフラ／監視アプリ要件に落とす。既定 Cloudflare、AWS/GCP/Azure 写像 | 制限値は出典付き裏取り／入力。実装は SRE/MLOps |
+
+### 3. 歴史・文化背景の裏取り
+
+| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+| :--- | :--- | :--- |
+| **`historical-context-grounding`** | 歴史上の人物・制度・道義に関わる判断の根拠を確認し、競合する規範、適用範囲、未確認点を整理する | 原史料の本文・注・評、信頼できる翻訳・校注、学術研究 |
+
+時代考証はJevと独立して利用できる。史料の読み分けは `historical-context-grounding`、資料取得・採用判定は既存の `video-production-skills` の手順、Jevの入力・評価は[歴史的文脈を含む判断の設計と評価](skills/jev-shared/references/historical-judgment-evaluation.md)が担当する。参照先は確認時点で非公開のため、[参照版・読めない場合の扱い](skills/historical-context-grounding/references/source-workflows.md)を分けて記載している。
+
+Jevの人物判断では `jev-logic-architect`、`jev-eval-set`、`jev-calibration` から必要な手順だけを参照する。個別案件の調査・実測はこのリポジトリに置かない。責務の比較と保守範囲は[時代考証スキルの責務と共通化の第一段階](docs/skill-responsibilities.md)を参照。
 
 ---
 

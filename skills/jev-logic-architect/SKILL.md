@@ -11,6 +11,8 @@ description: Transforms identified business decisions into concrete, typed Jev s
 
 必ず事前に `references/jev-design-patterns.md` を精読して設計パターンを把握した上で実行してください。
 
+歴史・文化に依存する人物判断を設計する場合は、[歴史的文脈を含む判断の設計と評価](../jev-shared/references/historical-judgment-evaluation.md)も参照する。時代背景と期待行動の根拠を確認し、本人の認識と未知の世界事実を分ける。人格概念の数値化やScoreによる中間評価を自動的な前提にせず、利用者の表現方針に合わせる。
+
 ---
 
 ## スコープ境界（委譲事項）
