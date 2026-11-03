@@ -19,7 +19,7 @@ llm-skills/
 ├── skills/                                    # [本体] スキル実体
 │   ├── historical-context-grounding/          # 歴史・文化背景の裏取り（Jev以外でも利用可）
 │   │   ├── SKILL.md
-│   │   ├── references/source-workflows.md      # 外部の取得・判定手順、参照版と利用条件
+│   │   ├── references/source-workflows.md      # 資料の取得・判定の手順と記録
 │   │   └── agents/openai.yaml
 │   ├── model-requirements-analyzer/           # 1. 要件定義 & 制約整理
 │   │   ├── SKILL.md
@@ -98,9 +98,9 @@ llm-skills/
 | :--- | :--- | :--- |
 | **`historical-context-grounding`** | 歴史上の人物・制度・道義に関わる判断の根拠を確認し、競合する規範、適用範囲、未確認点を整理する | 原史料の本文・注・評、信頼できる翻訳・校注、学術研究 |
 
-時代考証はJevと独立して利用できる。史料の読み分けは `historical-context-grounding`、資料取得・採用判定は既存の `video-production-skills` の手順、Jevの入力・評価は[歴史的文脈を含む判断の設計と評価](skills/jev-shared/references/historical-judgment-evaluation.md)が担当する。参照先は確認時点で非公開のため、[参照版・読めない場合の扱い](skills/historical-context-grounding/references/source-workflows.md)を分けて記載している。
+時代考証はJevと独立して利用できる。史料の読み分けは `historical-context-grounding`、資料の取得・採用判定は利用者や案件が指定する手順（指定がなければ同スキルの[基本手順](skills/historical-context-grounding/references/source-workflows.md)）、Jevの入力・評価は[歴史的文脈を含む判断の設計と評価](skills/jev-shared/references/historical-judgment-evaluation.md)が担当する。
 
-Jevの人物判断では `jev-logic-architect`、`jev-eval-set`、`jev-calibration` から必要な手順だけを参照する。個別案件の調査・実測はこのリポジトリに置かない。責務の比較と保守範囲は[時代考証スキルの責務と共通化の第一段階](docs/skill-responsibilities.md)を参照。
+Jevの人物判断では `jev-logic-architect`、`jev-eval-set`、`jev-calibration` から必要な手順だけを参照する。個別案件の調査・実測はこのリポジトリに置かない。責務と保守範囲は[時代考証スキルの責務](docs/skill-responsibilities.md)を参照。
 
 ---
 

@@ -19,7 +19,7 @@ description: Grounds judgments about historical people, institutions, and cultur
 
 ## 資料の取得・判定は既存手順へ接続する
 
-資料を探して保存する時、または根拠として採用する時は、[参照する資料手順と利用条件](references/source-workflows.md)を読み、利用可能な `period-source-ingestion` と `period-source-criticism-gate` の本文を確認する。このスキルで別の取得手順やTier表を再定義しない。読めない場合の代替実施と、使った版の記録方法も同資料に従う。
+資料を探して保存する時、または根拠として採用する時は、[資料の取得・判定の手順と記録](references/source-workflows.md)を読む。利用者や案件が別の手順を指定していればそれに従い、このスキルで採用基準を再定義しない。指定がなければ同資料の基本手順を使う。使った手順と版の記録方法も同資料に従う。
 
 ここでは歴史の読解に固有の点を扱う。
 
@@ -41,7 +41,7 @@ description: Grounds judgments about historical people, institutions, and cultur
 
 確認した社会の慣行・価値判断と、創作で採用・変更する仮定を分ける。考証だけで企画を確定しない。調査者の知識を、そのまま過去の人物が持っていた認識と同一視しない。
 
-映像の場面レビューは `period-accuracy-review`、Jevの入力構築・人物表現・実験評価は用途側の手順が担当する。用途ごとの必須ファイルや承認工程を、この共通の読解手順へ持ち込まない。
+映像の場面レビュー、Jevの入力構築・人物表現・実験評価は、それぞれ用途側の手順が担当する。用途ごとの必須ファイルや承認工程を、この共通の読解手順へ持ち込まない。
 
 ## 返すもの
 
