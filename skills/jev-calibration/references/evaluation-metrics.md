@@ -37,6 +37,8 @@
 
 ## 5. （任意）確率較正
 
+集中度・正答率・較正・現実の頻度、および Choice / Score の confidence の違いは[分布の読み方](../../jev-shared/references/judgment-input-and-sensitivity.md#分布の読み方)を参照する。
+
 - **Reliability / ECE**: 予測確率ビンごとの実正解率とのずれ。
 - 較正が崩れている場合、閾値だけではゲートを満たせないことがあり、そのときは `REJECTED`（スキーマ・問い再設計）または前処理変更を検討する。
 

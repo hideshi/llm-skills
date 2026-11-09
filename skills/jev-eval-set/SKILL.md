@@ -20,7 +20,7 @@ description: Builds and freezes a labeled evaluation dataset contract for an app
 
 JSONL 実データや実験数値そのものは本スキル／`llm-skills` には置かず、実験用リポジトリ側に残します。ここは**汎用手順と契約**のみです。
 
-歴史・文化に依存する人物判断では、[歴史的文脈を含む判断の設計と評価](../jev-shared/references/historical-judgment-evaluation.md)を参照し、期待行動の根拠と本人が知る情報を確認する。正解が一意に定まらない探索は、本スキルのラベル付き較正用セットとは区別する。史料の一例や実験者の予想を唯一の正解にせず、評価資料を固定しただけで本スキルの `datasetStatus: frozen` を付与しない。
+正解が一意でない判断、感度測定、反復の揺れを扱うときは、[判断入力の点検と感度測定](../jev-shared/references/judgment-input-and-sensitivity.md)に従い、歴史・文化に依存する人物判断では[歴史固有の根拠・認識・人による評価](../jev-shared/references/historical-judgment-evaluation.md)も参照する。
 
 ---
 
@@ -65,7 +65,7 @@ JSONL 実データや実験数値そのものは本スキル／`llm-skills` に�
 2. **サンプリング & 分割方針の文書化**
    - `references/sampling-and-leakage-guide.md` に従い、層化・境界ケース・時間分割などの方針を**入力と合意に基づき**記録する。
    - **層化軸（推奨セット）**: 短文 / 長文 / 皮肉・嫌味 / 複合 / 境界、および **ロケール（JA/EN）**。案件で不要な軸は省略理由を書く。
-   - 最低件数・層の目標比率などの数値は入力契約から受け取り、スキルに焼かない。
+   - 最低件数・層の目標比率などの数値は入力契約から受け取り、比較計画と派生文の分割は[共通手順](../jev-shared/references/judgment-input-and-sensitivity.md#反復と条件比較の事前固定)に従う。
 
 3. **リーク防止の確認**
    - train/dev/test（または eval 専用ホールドアウト）間の重複、同一スレッド・同一顧客の漏洩、プロンプト／ラベルの混入をチェック項目として報告する。
@@ -84,7 +84,7 @@ JSONL 実データや実験数値そのものは本スキル／`llm-skills` に�
    - `datasetStatus: frozen` とする。
 
 7. **HITL トリガの列挙（該当をレポートに残す）**
-   - criteria / ラベル定義の **意味** 変更（文言の言い換えのみは除く）
+   - criteria の判定境界 / ラベル定義 / Score アンカーの **意味** 変更（言い換え時の扱いは[共通手順](../jev-shared/references/judgment-input-and-sensitivity.md#反復と条件比較の事前固定)）
    - 境界ケースの系統的不一致（層別に偏る誤り）
    - 複合ラベルの主タイプ優先規則が未定義、またはアノテータ間で食い違う
    - ロケール（JA/EN）間で指標が大きく乖離する

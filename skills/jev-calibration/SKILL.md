@@ -21,7 +21,7 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
 
 実験の生ログ・混同行列の実数値・JSONL は実験用リポジトリ側に置き、本スキルは契約と手順のみを扱います。
 
-歴史・文化に依存する結果が予想と違う場合は、[歴史的文脈を含む判断の設計と評価](../jev-shared/references/historical-judgment-evaluation.md)に沿って、予想の史料根拠、本人の認識、制度と選択肢の不足を確認してからモデルや閾値の問題と判断する。自然さを探るだけの人物判断は、正解・ゲートを持つ閾値較正と区別し、反復が安定したことや期待方向に動いたことだけで `VALIDATED` にしない。
+正解が一意でない判断、感度測定、反復の揺れを扱うときは、[判断入力の点検と感度測定](../jev-shared/references/judgment-input-and-sensitivity.md)に従い、歴史・文化に依存する人物判断では[歴史固有の根拠・認識・人による評価](../jev-shared/references/historical-judgment-evaluation.md)も参照する。
 
 ---
 
@@ -58,20 +58,20 @@ description: Calibrates decision thresholds on a frozen Jev eval set, producing 
    - ラベル空間とスキーマの版が一致していること。
 
 2. **バッチ評価**
-   - frozen セット上でモデル／現行実装を評価する。
+   - frozen セット上でモデル／現行実装を評価する前に、[反復と条件比較の事前固定](../jev-shared/references/judgment-input-and-sensitivity.md#反復と条件比較の事前固定)を行う。
    - `references/evaluation-metrics.md` の定義に沿い、一致率・混同行列・帯域分布・フォールバック率などを集計する（合格ライン数値は入力）。
 
 3. **Dual Threshold / 帯域別の検討（該当プリミティブ）**
    - noul: high / low 閾値と中間帯（REVIEW）のトレードオフを整理する。
    - score: 期待値ではなく `probabilities` 側の分岐仮説を、帯域別に検証する（設計原則は architect 側参照）。
-   - choice: confidence／先頭確率と誤分類コストに基づく自動確定帯を検討する。
+   - choice: 正解ラベルのある業務分類の自動確定では、[共通参照の閾値指針](../jev-shared/references/judgment-input-and-sensitivity.md#confidence-と閾値)に従う。
 
 4. **パラメータ掃引（較正の子ステップ）**
    - 手順の詳細は `references/parameter-sweep-playbook.md` に従う。
    - **比較表は必須**（候補ごとに変更変数・固定条件・主要指標・失敗モード・採用可否）。
    - **1変数が既定**。相互作用が疑われるときのみペア掃引を許容する。掃引の順番はプレイブックの **推奨** であり、固定契約にしない。
    - 閾値・帯域ルールのみの変更なら、同一推論ログへの **オフライン再スコア** でよい。
-   - ラベル空間／criteria／Score アンカーの **意味** が変わった場合は二重再掃引トリガ（プレイブック §5）を適用する。文言の言い換えのみは対象外。
+   - ラベル空間／criteria／Score アンカーの **意味** が変わった場合は二重再掃引トリガ（プレイブック §5）を適用する。言い換え時の版更新・再推論・再測定は[共通手順](../jev-shared/references/judgment-input-and-sensitivity.md#反復と条件比較の事前固定)に従う。
 
 5. **推奨閾値の提案**
    - ゲート基準を満たす候補を**推奨**として提示する。確定値のコミットは HITL。

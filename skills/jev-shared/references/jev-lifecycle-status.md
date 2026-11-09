@@ -103,7 +103,8 @@ decision: proposed
 ```text
 validationStatus: NEEDS_MORE_DATA  →  jev-eval-set（データ追加・再サンプリング・再 freeze）
 validationStatus: REJECTED         →  jev-logic-architect（スキーマ／問い／Safe Default 再設計）
-質問文・スキーマ変更後             →  validationStatus を PENDING に戻し、必要なら dataset 再 freeze
+問い文・criteria・state テンプレートの言い換え後 → questionRev 更新、validationStatus: PENDING、再推論・ゲート再測定（自動で再 freeze は求めない）
+ラベルの意味・criteria の判定境界・Score アンカー変更後 → dataset 再 freeze → validationStatus: PENDING → 再推論・ゲート再測定
 datasetVersion 変更後              →  validationStatus を PENDING に戻す（再測定=較正、再 freeze=評価セット整備）。ゲート再達まで昇格禁止
 監視設計で設計不備を検出           →  jev-logic-architect（例: Safe Default が観測不能、経路語彙が欠落）
 監視基盤要件で観測契約の欠落を検出 →  jev-observability（観測契約を揃えてから基盤要件を再開）

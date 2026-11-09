@@ -61,6 +61,7 @@ llm-skills/
 │   │   └── templates/local-dev/                 # Dockerfile / compose 例
 │   └── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
 │       ├── references/jev-lifecycle-status.md
+│       ├── references/judgment-input-and-sensitivity.md
 │       ├── references/historical-judgment-evaluation.md
 │       └── templates/jev-pipeline-result-report-template.md
 │

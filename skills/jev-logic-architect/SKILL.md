@@ -62,6 +62,7 @@ description: Transforms identified business decisions into concrete, typed Jev s
    - エラーハンドリング・コーディング・テスト規約は steering ドキュメントを参照し、未整備の場合は推測で作成せず未決事項として報告する（スコープ境界参照）。
 
 2. **適切なプリミティブの選定 & スキーマ設計**
+   - 問い合わせ前に[共通の入力点検](../jev-shared/references/judgment-input-and-sensitivity.md#問い合わせ前の入力点検)を行う。
    - **`Choice`**: 排他選択肢（Instructions + 各Criteria）
    - **`Score`**: 順序尺度（レベル定義）
    - **`Noul`**: Yes/No 命題確率
@@ -72,6 +73,7 @@ description: Transforms identified business decisions into concrete, typed Jev s
    - **state の追加フィールド**: 追加する各フィールドについて (a) 判断に必要な事実か (b) ラベル由来でないか (c) 追加前後の比較評価ができるか、を満たすこと。
 
 3. **閾値設計 & 3段階ハンドリングの実装**
+   - Choice の業務分類の自動確定と人物行動の抽選を区別し、[適用範囲と閾値指針](../jev-shared/references/judgment-input-and-sensitivity.md#confidence-と閾値)に従う。
    - 固定の決め打ち（0.95等）を排し、評価データセットに基づく閾値決定プロセスを前提とする。
    - 設計ブロックには **初期閾値仮説**（例: Dual Threshold の仮の high/low）を必ず含める。値はプロジェクト入力または説明用の仮説として記録し、スキルに焼き込まない。`validationStatus` は初期出力では `PENDING`。確定閾値は `jev-calibration` の HITL 後。
    - `Noul` の場合は Dual Threshold（$p \ge \text{high}$ でBlock、$p \le \text{low}$ でAllow、中間帯はReview/エスカレーション）を設計する。
