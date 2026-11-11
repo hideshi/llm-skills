@@ -31,9 +31,9 @@ llm-skills/
 │   ├── hardware-compatibility-checker/        # 3. VRAM/KV Cache/推論エンジン適合性検証
 │   │   ├── SKILL.md
 │   │   └── references/vram-calculator-formula.md
-│   └── llm-selection-advisor/                 # 4. 比較レポート & 導入手順の生成
-│       ├── SKILL.md
-│       └── templates/evaluation-report-template.md
+│   ├── llm-selection-advisor/                 # 4. 比較レポート & 導入手順の生成
+│   │   ├── SKILL.md
+│   │   └── templates/evaluation-report-template.md
 │   ├── jev-candidate-detector/                # 5. [Jev] ドメイン/要件からの候補抽出 & コスト試算
 │   │   ├── SKILL.md
 │   │   ├── references/cost-estimation-reference.md
