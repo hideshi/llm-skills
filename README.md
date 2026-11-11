@@ -1,10 +1,11 @@
-# LLM Skills (LLM選定・裏取り、時代考証 & Jev設計スキル群)
+# LLM Skills (LLM選定・裏取り、時代考証、Jev設計 & エージェント連携の実装スキル群)
 
-以下の3つのスキル群からなるエージェントスキル集です。
+以下の4つのスキル群からなるエージェントスキル集です。
 
 1. **LLM選定・裏取り**: 目的やシステム要件に応じて、客観的な外部ベンチマークや最新モデルカードの裏取りを行った上で、最適なLLM（主にローカルLLM）を提案
 2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマ・フォールバック設計、評価セット freeze、閾値較正（shadow 記録まで）を支援
 3. **歴史・文化背景の裏取り**: 人物や制度の判断を史料・研究と照合し、出来事の記録、当時や後世の評価、創作上の仮定を分ける。歴史的な振る舞いの評価やシミュレーション設計に利用
+4. **エージェント連携の実装**: 既存のWebアプリにMCPサーバーを組み込み、HTTPでエージェントに公開する際の要件定義・設計・実装・試験を、言語・SDKに依存せず支援
 
 **Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
 
@@ -59,11 +60,15 @@ llm-skills/
 │   │   ├── references/testing-and-local-dev.md
 │   │   ├── templates/jev-monitoring-platform-spec-template.md
 │   │   └── templates/local-dev/                 # Dockerfile / compose 例
-│   └── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
-│       ├── references/jev-lifecycle-status.md
-│       ├── references/judgment-input-and-sensitivity.md
-│       ├── references/historical-judgment-evaluation.md
-│       └── templates/jev-pipeline-result-report-template.md
+│   ├── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
+│   │   ├── references/jev-lifecycle-status.md
+│   │   ├── references/judgment-input-and-sensitivity.md
+│   │   ├── references/historical-judgment-evaluation.md
+│   │   └── templates/jev-pipeline-result-report-template.md
+│   └── app-mcp-server-integration/            # アプリに組み込むMCPサーバー（要件・設計・実装・試験）
+│       ├── SKILL.md
+│       ├── references/                        # 要件・認可・書き込みの安全・実装・試験・仕様の追従
+│       └── agents/openai.yaml
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
 ├── .claude/skills/                            # Claude Code 向け (symlink)
@@ -102,6 +107,14 @@ llm-skills/
 時代考証はJevと独立して利用できる。史料の読み分けは `historical-context-grounding`、資料の取得・採用判定は利用者や案件が指定する手順（指定がなければ同スキルの[基本手順](skills/historical-context-grounding/references/source-workflows.md)）、Jevの入力・評価は[歴史的文脈を含む判断の設計と評価](skills/jev-shared/references/historical-judgment-evaluation.md)が担当する。
 
 Jevの人物判断では `jev-logic-architect`、`jev-eval-set`、`jev-calibration` から必要な手順だけを参照する。個別案件の調査・実測はこのリポジトリに置かない。責務と保守範囲は[時代考証スキルの責務](docs/skill-responsibilities.md)を参照。
+
+### 4. エージェント連携の実装
+
+| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+| :--- | :--- | :--- |
+| **`app-mcp-server-integration`** | 既存のWebアプリに組み込み、HTTPで公開するMCPサーバーについて、読み取りと書き込みの分離、機能ごとの有効・無効、ロールによる絞り込み、リソースサーバーとしての認可、書き込み前の利用者の確認を、不変条件と試験の対応表で設計・検証する | MCP公式仕様（使う前に版と変更履歴を確認）、OAuth関連のRFC |
+
+MCPクライアントの実装、既存のMCPサーバーを使うだけの作業、stdio のサーバーの認可は対象外。仕様の版ごとの仕組みの違いは同スキルの[仕様の追従](skills/app-mcp-server-integration/references/spec-tracking.md)で確かめる。
 
 ---
 
