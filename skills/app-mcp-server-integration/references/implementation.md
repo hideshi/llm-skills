@@ -11,7 +11,7 @@ Tool {
   name, title, description       # 固定の文字列。利用者のデータを入れない（INV-5）
   input_schema
   effect: WRITE | READ           # 既定値は WRITE（INV-1）
-  unit                           # 有効・無効の単位（INV-2）
+  unit                           # 有効・無効の単位（INV-2）。設定と世代は単位ごとに持ち、確認には自分の単位の世代だけを結びつける
   roles                          # 見せるロール（INV-3）
   read(principal, args)          # READ だけが持つ
   prepare(principal, args)       # WRITE だけが持つ。検査と確認の文と対象のダイジェストを作る。変更しない

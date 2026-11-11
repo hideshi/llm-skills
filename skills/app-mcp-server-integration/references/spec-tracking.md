@@ -7,7 +7,7 @@ MCPの仕様は、版の間で仕組みが入れ替わる（2026-07-28 の版で
 | 項目 | 内容 |
 |---|---|
 | 確かめた版 | 2026-07-28（[Versioning](https://modelcontextprotocol.io/specification/versioning) で現行と表示） |
-| 確かめた日 | 2026-11-11 |
+| 確かめた日 | 2026-11-11（同日、下の表の規定を各ページの原文の文と1つずつ照合し直した） |
 | 前の版 | 2025-11-25 |
 | 対象外 | 拡張の版（tasks 拡張の版番号は未確認） |
 
@@ -37,12 +37,12 @@ MCPの仕様は、版の間で仕組みが入れ替わる（2026-07-28 の版で
 | INV-1 | クライアントは、信頼できるサーバーのものでない限り、ツールの注釈を信頼できないものとして扱う（MUST）。注釈で守りを作らない根拠 |
 | INV-3 | `tools/list` は、要求したクライアントに今使えるツールを返す（MUST）。認可に応じた絞り込みは MAY。存在しないツールの呼び出しは JSON-RPC のエラーで返す。ページの例のコードは `-32602`（例であり、値を定める規定の文は見つからなかった）。「存在しないツールと同じ応答」は、この版でサーバーが実際に返す値と、同じ値・同じ文言にそろえる |
 | INV-6 | 無効・期限切れのトークンに401（MUST）。実行時のスコープ不足に403と `error="insufficient_scope"`（SHOULD。ただし同じページの表では「適切な状態コードを返す MUST」の下に403がある）。サーバーは自分を宛先として発行されたトークンだけを受け付ける（MUST）、ほかのトークンを受け付けず中継しない（MUST NOT）。Protected Resource Metadata（RFC 9728）を実装する（MUST）。具体的なスコープ名は定めていない |
-| INV-8 | クライアントは、確認に対応するなら、要求ごとに `_meta` の `io.modelcontextprotocol/clientCapabilities` に `elicitation` を宣言する（MUST）。空の `elicitation: {}` は form モードだけの対応として扱う。サーバーからの確認は、`tools/call` の結果に `resultType: "input_required"` と `inputRequests` を返し、クライアントが `inputResponses` と `requestState` を付けて同じ要求を送り直す（MRTR）。応答は `accept`・`decline`・`cancel` |
-| INV-9 | `requestState` は攻撃者が操作できる入力として扱う（MUST）。認可や業務の判断に影響するなら完全性を守る（MUST。例として HMAC か AEAD）。主体・短い期限・元の要求の識別子（メソッドと引数のダイジェスト）を入れて検証する（SHOULD）。これらだけでは1回だけの使用は保証されず、必要ならサーバー側で強制する（MUST）。状態のハンドルを持っていることを認証として扱わない（MUST NOT、セキュリティの実践） |
+| INV-8 | クライアントは、確認に対応するなら、要求ごとに `_meta` の `io.modelcontextprotocol/clientCapabilities` に `elicitation` を宣言する（MUST）。空の `elicitation: {}` は form モードだけの対応として扱う。サーバーからの確認は、`tools/call` の結果に `resultType: "input_required"` と `inputRequests` を返し、クライアントが `inputResponses` と `requestState` を付けて同じ要求を送り直す（MRTR）。応答は `accept`・`decline`・`cancel`。サーバーは、クライアントが宣言していない種類の入力の要求を `inputRequests` に入れない（MUST NOT） |
+| INV-9 | `requestState` は攻撃者が操作できる入力として扱う（MUST）。認可や業務の判断に影響するなら完全性を守る（MUST。例として HMAC か AEAD）。主体・短い期限・元の要求の識別子（メソッドと引数のダイジェスト）を入れて検証する（SHOULD）。これらだけでは1回だけの使用は保証されず、1回だけ使う必要があるサーバーはサーバー側で強制する（MUST）。なお、セキュリティの実践の「状態のハンドルを持つことを認証として扱わない（MUST NOT）」は、ツールの引数で渡すハンドルについての規定で、確認の状態に当てはめるのはこのスキルの設計 |
 | INV-11 | form モードでパスワード、APIキー、アクセストークン、支払いの資格情報などを求めない（MUST NOT）。そうした情報には url モードを使う（MUST）。このスキルは、どのモードでも確認の中で秘密情報を求めない（設計） |
 | INV-15 | サーバーはツールの呼び出しの回数を制限する（MUST、ツールの安全上の注意）。単位（アカウント×クライアント）は設計 |
 
-そのほかの変更で、実装に響くもの: すべての結果に `resultType` が必須になった。`Mcp-Session-Id` は無視し、発行も返しもしない。ヘッダーと本文の食い違いなどのエラーコードが付け直された（例: `MissingRequiredClientCapability` は `-32021`）。動的クライアント登録（DCR）は非推奨になり、Client ID Metadata Documents（CIMD）へ移る。
+そのほかの変更で、実装に響くもの: すべての結果に `resultType` が必須になった。この版だけに対応するサーバーは、旧版のクライアントから届いた `Mcp-Session-Id` を無視し、セッションIDを発行も返しもしない（SHOULD、Streamable HTTP の節）。ヘッダーと本文の食い違いなどのエラーコードが付け直された（例: `MissingRequiredClientCapability` は `-32021`）。動的クライアント登録（DCR）は非推奨になり、Client ID Metadata Documents（CIMD）へ移る。
 
 ## 使う前の確認手順
 
@@ -56,6 +56,6 @@ MCPの仕様は、版の間で仕組みが入れ替わる（2026-07-28 の版で
 
 - tasks 拡張の仕様本体（拡張のリポジトリ）と、その版。長時間の処理で確認を求める経路（`tasks/update` で入力を返す）は、MRTR とは別の経路なので、使うときは INV-8〜10 の守りが同じく効くかを確かめる。
 - 存在しないツールに返すエラーコードを定める規定の文（例の値 `-32602` だけを確かめた）。
-- 401 の `WWW-Authenticate` に `resource_metadata` を入れることを求める規定の強さ（例と流れの図にはある）。
+- 401 の `WWW-Authenticate` に `resource_metadata` を入れることを求める規定の強さ（例と流れの図にあり、403 の節には「401 の応答とそろえるため」として `resource_metadata` を入れる記述があるが、401 に入れることを求める規定の文は見つからなかった）。
 - セキュリティの実践の文書は、仕様の下（上の表のURL）と、docs の下（`/docs/2026-07-28/tutorials/security/security_best_practices`）の両方で見つかった。どちらが正本かは確かめていない。
 - 特定のクライアントでの表示（確認の文の折りたたみなど）。クライアントごとに実測する。
