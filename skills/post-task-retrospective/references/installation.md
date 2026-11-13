@@ -15,6 +15,8 @@
 
 四つのツールで使うなら `.agents/skills/` と `.claude/skills/` の二か所で足りる。Cursor は `.claude/skills/` も読むので、同名のスキルが二つ見えることがある。内容は同じに保つ。チームやリモート環境で使うなら、ユーザー単位ではなく開発リポジトリ内に置く。
 
+llm-skills 自身の `.agent/skills/` と `codex/skills/` は、このリポジトリで以前から使っている配置。導入先のアプリでは上の表の場所を使う。
+
 ## コピーで導入する
 
 `llm-skills` を取得したルートで実行する。スキルのフォルダー全体（`references/` を含む）と `LICENSE` を一緒にコピーし、アプリ自身の `LICENSE` は置き換えない。既存の導入があれば上書きせず、先に差分を確かめる。
@@ -26,6 +28,10 @@ macOS・Linux:
   set -eu
   src="$(pwd -P)/skills/post-task-retrospective"
   app="/absolute/path/to/application"
+  [ -f "$src/SKILL.md" ] && [ -f LICENSE ] || { echo "llm-skills のルートで実行してください" >&2; exit 1; }
+  [ -d "$app" ] || { echo "開発リポジトリが見つかりません: $app" >&2; exit 1; }
+  app="$(cd "$app" && pwd -P)"
+  [ "$app" != "$(pwd -P)" ] || { echo "llm-skills とは別の開発リポジトリを指定してください" >&2; exit 1; }
   for root in .agents/skills .claude/skills; do
     dest="$app/$root/post-task-retrospective"
     if [ -e "$dest" ] || [ -L "$dest" ]; then echo "既存の導入を確認してください: $dest" >&2; exit 1; fi
@@ -43,22 +49,33 @@ Windows（PowerShell。WSL2 は不要）:
 ```powershell
 & {
   $ErrorActionPreference = 'Stop'
-  $src = Join-Path (Get-Location) 'skills\post-task-retrospective'
+  $root0 = (Get-Location).ProviderPath
+  $src = Join-Path $root0 'skills\post-task-retrospective'
   $app = 'C:\path\to\application'
+  if (-not (Test-Path -LiteralPath (Join-Path $src 'SKILL.md') -PathType Leaf) -or
+      -not (Test-Path -LiteralPath (Join-Path $root0 'LICENSE') -PathType Leaf)) { throw 'llm-skills のルートで実行してください' }
+  if (-not (Test-Path -LiteralPath $app -PathType Container)) { throw "開発リポジトリが見つかりません: $app" }
+  $app = (Get-Item -LiteralPath $app).FullName.TrimEnd('\')
+  if ($app -eq $root0.TrimEnd('\')) { throw 'llm-skills とは別の開発リポジトリを指定してください' }
   foreach ($root in '.agents\skills', '.claude\skills') {
-    $dest = Join-Path $app "$root\post-task-retrospective"
-    if (Test-Path -LiteralPath $dest) { throw "既存の導入を確認してください: $dest" }
+    $parent = Join-Path $app $root
+    # 壊れたリンクも見つけるため、親フォルダーの一覧で確かめる
+    if ((Test-Path -LiteralPath $parent) -and
+        (Get-ChildItem -LiteralPath $parent -Force | Where-Object Name -eq 'post-task-retrospective')) {
+      throw "既存の導入を確認してください: $parent\post-task-retrospective"
+    }
   }
   foreach ($root in '.agents\skills', '.claude\skills') {
-    $dest = Join-Path $app "$root\post-task-retrospective"
-    New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+    $parent = Join-Path $app $root
+    $dest = Join-Path $parent 'post-task-retrospective'
+    [System.IO.Directory]::CreateDirectory($parent) | Out-Null
     Copy-Item -Recurse -LiteralPath $src -Destination $dest
     Copy-Item -LiteralPath 'LICENSE' -Destination (Join-Path $dest 'LICENSE')
   }
 }
 ```
 
-更新するときは、取得した版と導入済みのコピーを比べ、アプリ側の独自の変更があれば統合する。初回の手順を再実行して上書きしない。削除されたファイルも確かめる。
+更新するときは、取得した版と導入済みのコピーを比べ、アプリ側の独自の変更があれば統合する。初回の手順を再実行して上書きしない。削除されたファイルも確かめる。途中で失敗して半端なコピーが残ったら、中身を確かめてから消し、やり直す。
 
 ほかの方式: シンボリックリンクは正本を一つに保てるが、変更が即座に届き、別のマシンや Windows では保たれないことがある。submodule は版を固定できるが、置くだけではスキルとして検出されず、配置先へのコピーかリンクが要る。
 
