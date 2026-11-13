@@ -1,12 +1,13 @@
-# LLM Skills (LLM選定・裏取り、時代考証、Jev設計、エージェント連携の実装 & 振り返りのスキル群)
+# LLM Skills (LLM選定・裏取り、時代考証、Jev設計、エージェント連携の実装、振り返り & Cloudflareの基盤選定のスキル群)
 
-以下の5つのスキル群からなるエージェントスキル集です。
+以下の6つのスキル群からなるエージェントスキル集です。
 
 1. **LLM選定・裏取り**: 目的やシステム要件に応じて、客観的な外部ベンチマークや最新モデルカードの裏取りを行った上で、最適なLLM（主にローカルLLM）を提案
 2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマ・フォールバック設計、評価セット freeze、閾値較正（shadow 記録まで）を支援
 3. **歴史・文化背景の裏取り**: 人物や制度の判断を史料・研究と照合し、出来事の記録、当時や後世の評価、創作上の仮定を分ける。歴史的な振る舞いの評価やシミュレーション設計に利用
 4. **エージェント連携の実装**: 既存のWebアプリにMCPサーバーを組み込み、HTTPでエージェントに公開する際の要件定義・設計・実装・試験を、言語・SDKに依存せず支援
 5. **会話の一区切りの振り返り**: コーディングの会話の区切りで、摩擦を専門用語と情報処理技術者試験（基本情報から高度試験まで）の概念につなげ、利用者の個人用スキルを育てるかを判定
+6. **Cloudflareの基盤選定**: 要件を Cloudflare 前提の制約に整理し、製品の仕様・制限・価格を毎回公式資料で裏取りして、構成案を出す
 
 **Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
 
@@ -70,10 +71,19 @@ llm-skills/
 │   │   ├── SKILL.md
 │   │   ├── references/                        # 要件・認可・書き込みの安全・実装・試験・仕様の追従
 │   │   └── agents/openai.yaml
-│   └── post-task-retrospective/               # 会話の一区切りの振り返り（用語化・個人用スキルの判定）
+│   ├── post-task-retrospective/               # 会話の一区切りの振り返り（用語化・個人用スキルの判定）
+│   │   ├── SKILL.md
+│   │   ├── references/                        # 試験の概念へのつなぎ方・導入・改善PRの手順
+│   │   └── agents/openai.yaml
+│   ├── cloudflare-requirements-framing/       # [Cloudflare] 要件から制約シートへ（入口）
+│   │   └── SKILL.md
+│   ├── cloudflare-product-survey/             # [Cloudflare] 仕様・制限・価格の公式資料での裏取り
+│   │   ├── SKILL.md
+│   │   ├── references/official-sources.md
+│   │   └── templates/survey-result-template.md
+│   └── cloudflare-architecture-advisor/       # [Cloudflare] 本命・軽量・拡張の構成案
 │       ├── SKILL.md
-│       ├── references/                        # 試験の概念へのつなぎ方・導入・改善PRの手順
-│       └── agents/openai.yaml
+│       └── references/fit-checklist.md
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
 ├── .claude/skills/                            # Claude Code 向け (symlink)
@@ -129,6 +139,18 @@ MCPクライアントの実装、既存のMCPサーバーを使うだけの作�
 
 開発リポジトリへ導入して使う。振り返りのメモやそこから作るスキルは、このリポジトリにも導入したコピーにも書かず、利用者の個人用スキルリポジトリに置く。導入方法は同スキルの[導入ガイド](skills/post-task-retrospective/references/installation.md)を参照。
 
+### 6. Cloudflare の基盤選定
+
+要件を Cloudflare 前提の制約に整理し、製品の仕様を公式資料で裏取りして、構成案を出す。入口は `cloudflare-requirements-framing`。仕様・制限・価格の一問一答だけなら `cloudflare-product-survey` を直接使う。Jev の監視基盤（`jev-monitoring-platform`）で Cloudflare の制限値を裏取りするときも、`cloudflare-product-survey` を使える。
+
+| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+| :--- | :--- | :--- |
+| **`cloudflare-requirements-framing`** | 機能要件・非機能要件やワークロードの説明を、製品を選ぶ前の制約シート（レイテンシ、リージョン、認証、コスト、状態性など）にまとめる。製品の選定はしない | 利用者の要件の文書 |
+| **`cloudflare-product-survey`** | Cloudflare の製品・API の仕様、制限、価格、提供状態を、毎回公式資料で裏取りし、出典 URL と取得日を付けて答える | developers.cloudflare.com、GitHub の cloudflare/cloudflare-docs |
+| **`cloudflare-architecture-advisor`** | 制約シートと裏取りの結果から、本命・軽量・拡張の三案を比べ、製品の役割と経路を示す構成案を出す | 制約シート、裏取りの結果、[適合の点検表](skills/cloudflare-architecture-advisor/references/fit-checklist.md) |
+
+仕様・上限・料金の写しは持たない。仕様は変わり続けるため、毎回公式資料で裏取りする。確かめられなかった事項は利用する案件の文書に残し、スキルのディレクトリには書き込まない。
+
 ---
 
 ## 各ツールでの利用方法
@@ -150,7 +172,7 @@ MCPクライアントの実装、既存のMCPサーバーを使うだけの作�
 
 ## 利用上の注意
 
-- **非公式スキル**: 本リポジトリは TypeSafe AI 社および各LLMベンダーとは無関係の**非公式**スキル集です。仕様・価格・SDKの最新情報は必ず各社の公式ドキュメントを参照してください。
+- **非公式スキル**: 本リポジトリは TypeSafe AI 社、各LLMベンダー、Cloudflare 社とは無関係の**非公式**スキル集です。仕様・価格・SDKの最新情報は必ず各社の公式ドキュメントを参照してください。
 - **数値はすべて参考値**: スキル内の価格・レイテンシ等の数値は調査日時点の参考値です。見積もりや設計判断の際は最新の一次情報を確認し、**Jev の利用に際しては利用者が必ず事前に自環境での実測（PoC）を行ってください**。
 - **日本語のみ**: 本スキル集は日本語での利用を想定しています。
 
