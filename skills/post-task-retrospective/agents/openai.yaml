@@ -1,0 +1,4 @@
+interface:
+  display_name: "会話の一区切りの振り返り"
+  short_description: "区切りで摩擦を専門用語と試験の概念につなげ、個人用スキルの更新・新規・見送りを判定する"
+  default_prompt: "$post-task-retrospective を使って、今回の区切りまでを振り返り、用語にして、個人用スキルにするかを判定してください。"
