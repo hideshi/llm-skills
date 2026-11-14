@@ -1,0 +1,4 @@
+interface:
+  display_name: "パラメトリックな 3D モデル"
+  short_description: "CAD のスクリプトを正本にして部品を作り、ソリッドとメッシュを検査して、STEP・STL とプレビューを書き出す"
+  default_prompt: "$cad-parametric-modeling を使って、道具を決め、パラメータと根拠を並べてから、部品のスクリプトを書いて組み立て、検査してください。"

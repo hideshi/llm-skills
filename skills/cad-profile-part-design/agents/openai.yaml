@@ -1,0 +1,4 @@
+interface:
+  display_name: "部品の設計（プロファイル）"
+  short_description: "受付と道具の選択、一次情報の裏取り、方針の確認、組み立てと検査、見た目の確認、試作の反映に振り分ける"
+  default_prompt: "$cad-profile-part-design を使って、入口と道具を決め、どの工程から始めるかを示してください。"
