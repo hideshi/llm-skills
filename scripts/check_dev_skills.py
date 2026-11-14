@@ -23,6 +23,11 @@
     プロファイルと dev-shared の例も落とす。コードブロックと HTML のコメントの中は見ない。
     Markdown のすべての書き方は見ない（書く形は規約で決める）。例の見出しが型の欄に合うか、
     識別子が実在するかは見ない。案件の成果物には当てない
+13. 型の一覧の「語彙の表」がそろっている（名前が重ならない、語が「／」で並ぶ、使う型が型の一覧にある、
+    型の行が指す「語彙「名前」」が表にあり、表のどの語彙も型の行から指されている）。型の一覧の表の行の括弧に、
+    語彙の表を通さない「／」の並びが残っていない（「例:」で始まる括弧は除く）。埋めた例の中の、語彙を使う欄
+    （表の列の見出し、「欄 | 中身」の表の1列目、「- 欄: 値」の箇条書き）の値が、その語彙の語のどれかで始まるか、
+    「当てはまらない」「未確認」で始まる。「「、」で並べる」と書いた語彙は、「、」で分けた値をそれぞれ見る
 
 使い方: python3 -I scripts/check_dev_skills.py [--grounding-warnings] [リポジトリのルート]
 """
@@ -352,7 +357,95 @@ def looks_like_example(f, text):
             or bool(example_regions(text, False)) or bool(LOOSE_DECL.search(text)))
 
 
-def check_examples(name, path, skill_text, types, inputs, outputs, step_ids):
+VOCAB_REF = re.compile(r"語彙「([^」]+)」")
+VOCAB_USE = re.compile(r"([^、「」（）]+?)「([^」]+)」")
+GENERAL_VALUES = ("当てはまらない", "未確認")
+
+
+def load_vocab(text, types):
+    """型の一覧の「語彙の表」を読み、(語彙→語のリスト, (型, 欄)→[(語彙, 複数か)], 誤り) を返す。"""
+    errors, vocab, uses = [], {}, {}
+    rows = table_rows(text, "語彙の表")
+    if rows is None:
+        return vocab, uses, ["型の一覧: 「## 語彙の表」の直後に表が無い"]
+    for row in rows:
+        if len(row) < 4:
+            errors.append(f"語彙の表: 列が足りない: {row}")
+            continue
+        name, _, words, use_cell = row[:4]
+        if name in vocab:
+            errors.append(f"語彙の表: 語彙「{name}」が重なっている")
+        ws = [w.strip() for w in words.split("／")]
+        if len(ws) < 2 or any(not w for w in ws):
+            errors.append(f"語彙の表: 語彙「{name}」の語が「／」で並んでいない")
+        vocab[name] = ws
+        multi = "「、」で並べる" in use_cell
+        for m in VOCAB_USE.finditer(re.sub(r"（[^（）]*）", "", use_cell)):
+            t, f = m.group(1).strip(), m.group(2).strip()
+            if t not in types:
+                errors.append(f"語彙の表: 語彙「{name}」の使う型「{t}」が型の一覧に無い")
+            uses.setdefault((t, f), []).append((name, multi))
+    refs = set(VOCAB_REF.findall(text)) - {"名前"}  # 「語彙「名前」」は書き方の説明
+    for ref in sorted(refs - set(vocab)):
+        errors.append(f"型の一覧: 語彙「{ref}」が語彙の表に無い")
+    for name in sorted(set(vocab) - refs):
+        errors.append(f"語彙の表: 語彙「{name}」を型の一覧のどこからも指していない")
+    in_table = False
+    for line in text.splitlines():
+        if not line.strip().startswith("|"):
+            if in_table:
+                break
+            continue
+        row = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not in_table:
+            in_table = True
+            continue
+        for m in re.finditer(r"（([^（）]*)）", row[1] if len(row) > 1 else ""):
+            if "／" in m.group(1) and not m.group(1).startswith("例"):
+                errors.append(f"型の一覧: 型「{row[0]}」の括弧に、語彙の表を通さない語の並びがある: {m.group(1)[:30]}")
+    return vocab, uses, errors
+
+
+def check_value(where, type_name, field, value, vocab, choices):
+    """例の欄の値が語彙の語で始まるかを見る。"""
+    v = re.sub(r"`", "", value).strip()
+    if not v or v.startswith(GENERAL_VALUES):
+        return []
+    for vname, multi in choices:
+        parts = [x.strip() for x in v.split("、")] if multi else [v]
+        if all(any(x.startswith(w) for w in vocab.get(vname, [])) or x.startswith(GENERAL_VALUES) for x in parts if x):
+            return []
+    names = "」「".join(n for n, _ in choices)
+    return [f"{where}: 例「{type_name}」の欄「{field}」の値「{v[:20]}」が語彙「{names}」の語で始まらない"]
+
+
+def check_example_values(where, type_name, part, vocab, uses):
+    """埋めた例の中の、語彙を使う欄の値を見る（検査 13）。"""
+    errors = []
+    fields = {f: c for (t, f), c in uses.items() if t == type_name}
+    if not fields:
+        return errors
+    for header, rows in md_tables(part):
+        if header and header[0] in ("欄", "項目") and len(header) >= 2:
+            for row in rows:
+                cells = split_cells(row)
+                if len(cells) >= 2 and cells[0] in fields:
+                    errors.extend(check_value(where, type_name, cells[0], cells[1], vocab, fields[cells[0]]))
+            continue
+        for i, h in enumerate(header):
+            if h in fields:
+                for row in rows:
+                    cells = split_cells(row)
+                    if i < len(cells):
+                        errors.extend(check_value(where, type_name, h, cells[i], vocab, fields[h]))
+    for lm in re.finditer(r"^\s*[-*+]\s+([^:：\n|`]{1,30})[:：][ \t]*(.*)$", part, re.M):
+        f = lm.group(1).strip()
+        if f in fields:
+            errors.extend(check_value(where, type_name, f, lm.group(2), vocab, fields[f]))
+    return errors
+
+
+def check_examples(name, path, skill_text, types, inputs, outputs, step_ids, vocab=None, uses=None):
     """単位の埋めた例を見る（検査 12）。"""
     errors = []
     for f in sorted(path.rglob("*")):
@@ -420,6 +513,8 @@ def check_examples(name, path, skill_text, types, inputs, outputs, step_ids):
             for lm in re.finditer(r"^\s*[-*+]\s+[^:：\n|`]{1,30}[:：][ \t]*(.*)$", part, re.M):
                 if is_filler(lm.group(1)) and lm.group(1).strip():
                     errors.append(f"{where}: 例「{type_name}」の箇条書きの値が埋め草: {lm.group(0).strip()[:50]}")
+            if type_name in types and vocab is not None:
+                errors.extend(check_example_values(where, type_name, part, vocab, uses))
             for tok in sorted(set(re.findall(r"工程[ \t　]*[`「『]?([a-z][a-z0-9-]*)", part)) & step_ids):
                 errors.append(f"{where}: 例「{type_name}」が工程の識別子 `{tok}` を書いている")
     return errors
@@ -440,7 +535,10 @@ def stray_examples(path):
 
 def main():
     errors = []
-    types = first_table_keys(TYPES_FILE.read_text(encoding="utf-8"))
+    types_text = TYPES_FILE.read_text(encoding="utf-8")
+    types = first_table_keys(types_text)
+    vocab, vocab_uses, vocab_errors = load_vocab(types_text, types)
+    errors.extend(vocab_errors)
     dirs = sorted(p for p in SKILLS.glob("dev-*") if p.is_dir())
     for p in dirs:
         if p.name != SHARED and not (p / "SKILL.md").exists():
@@ -493,7 +591,7 @@ def main():
                 if heading == "入力" and (len(row) < 2 or not row[1].startswith(REQUIRED_WORDS)):
                     errors.append(f"{name}: 入力「{row[0]}」の必須の列が規約の語でない")
         unit_io[name] = io
-        errors.extend(check_examples(name, path, text, types, io["入力"], io["出力"], step_ids))
+        errors.extend(check_examples(name, path, text, types, io["入力"], io["出力"], step_ids, vocab, vocab_uses))
         g_errs, g_warns, g_counts = check_grounding(name, path, text)
         errors.extend(g_errs)
         grounding_warnings.extend(g_warns)
