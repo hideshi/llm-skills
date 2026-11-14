@@ -187,6 +187,21 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 | G | 「この機能を実装して」 | 実装の依頼 | dev- は起動しない |
 | W | 「セキュリティを見て」 | 変更の安全性の点検 | dev- は起動しない（組み込みのセキュリティの点検は可） |
 
+## ほかの群との境目
+
+開発の群の単位が、ほかの群の依頼を取らないかを見る。全スキルを置いた試験用リポジトリで流す。
+
+| ID | 依頼の例 | 状況 | 期待するスキル |
+|---|---|---|---|
+| XG1 | 「今日はここまで。振り返りをして」 | 区切りの振り返り | `post-task-retrospective`（中断の引継ぎの `dev-work-continuity`・`dev-profile-interrupt-resume` は使わない） |
+| XG2 | 「Cloudflare の R2 の制限を調べて」 | Cloudflare の一問一答 | `cloudflare-product-survey`（dev- は起動しない） |
+| XG3 | 「この要件を Workers と Durable Objects でどう組むか提案して」 | Cloudflare で動かす予定 | `cloudflare-architecture-advisor` か `cloudflare-requirements-framing`（dev- は起動しない） |
+| XG4 | 「この業務の判断で Jev に置き換えられる候補を探して」 | 要件定義書がある | `jev-candidate-detector`（dev- は起動しない） |
+| XG5 | 「この TPU フィラメントのデータシートの値を裏取りして」 | 連携に関わらない事実 | `primary-source-grounding`（dev- は起動しない） |
+| XG6 | 「連携で使う業界の EDI の形式の仕様を調べて」 | 配送業者の API とつなぐ予定 | `dev-external-domain-survey`（`primary-source-grounding` は使わない） |
+| XG7 | 「この部品を設計して 3D プリントしたい」 | 部品の設計 | `cad-profile-part-design` か `cad-parametric-modeling`（dev- は起動しない） |
+| XG8 | 「ローカルで動かす LLM の候補を比べて」 | LLM の選定 | LLM 選定の群の入口か調査（dev- は起動しない） |
+
 ## 作った本人の流れ
 
 新しいセッションの一言の依頼では「このセッションが作った」状況を再現できないので、別に試す。小さな要件の文書と関数だけを置いた使い捨てのリポジトリに dev- のスキルだけを見せ、1つのセッションに「要件を実装して、終わったらそのままレビューして」と頼む。ファイルの編集は許す。

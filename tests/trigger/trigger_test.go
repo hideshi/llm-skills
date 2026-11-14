@@ -395,6 +395,16 @@ func TestSummarizeAndGate(t *testing.T) {
 	if errs := Gate(ts, []string{"other"}, 0.9); len(errs) != 0 {
 		t.Errorf("必須でないモデルを判定した: %v", errs)
 	}
+	// 全体: m は A の 2/3 と B の 0/0 で 2/3
+	if errs := GateTotal(ts, []string{"m"}, 0.66); len(errs) != 0 {
+		t.Errorf("GateTotal(0.66) = %v", errs)
+	}
+	if errs := strings.Join(GateTotal(ts, []string{"m"}, 0.95), "\n"); !strings.Contains(errs, "m: 全体の合格 2/3") {
+		t.Errorf("GateTotal(0.95) = %s", errs)
+	}
+	if errs := GateTotal(ts, []string{"other", "n"}, 0.95); len(errs) != 1 || !strings.Contains(errs[0], "n: 全体の合格 0/1") {
+		t.Errorf("GateTotal の必須でないモデルか、回の無いモデルの扱いが違う: %v", errs)
+	}
 }
 
 // ---- 隔離 ----
