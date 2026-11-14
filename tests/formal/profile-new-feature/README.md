@@ -19,7 +19,8 @@
 | `TestsBeforeImplement` | テストケースを導いてから実装する |
 | `SizingBeforeReview` | 最後の変更の後で規模を判定し直してから、レビューに回す |
 | `EvidenceBeforeReview` | 受入の証拠は、確定してからレビューに回す |
-| `TasksBeforeAudit` | 通常の道なら、監査の前に作業の一覧がある |
+| `TasksBeforeAudit` | 通常の道なら、監査の前に作業の一覧がある（実装の後の判定で通常の道に変わったときも） |
+| `LateDesignBeforeReview` | 実装の後の判定で、要る観点に設計の判断が無いと分かったら、設計し直してから証拠・レビュー・監査へ進む |
 | `OpsApprovedBeforeReview` | 運用の成果物（`ops-artifacts`・`ops-ok`）が要るなら、最後の変更の後で承認してから、証拠の確定（`evidence`）とレビュー（`review-round`）へ進む（`ops` は、モデルの検査なしで手戻りなしか変更要求の依頼にだけ掛ける） |
 | `ApprovedChangeNeedsHuman` | 中断して再開したとき、中断の間に人が承認した成果物が変わっていたら、人に確かめてから工程に戻る（中断は工程 `implement` で1回までの割り込み。"R"・"HR" は工程ではなく、遷移の突き合わせの書き出しから外す。人が認めた後の戻り先（承認し直しなど）は表さずに元の工程へ戻す） |
 | `ResumeReturnsToSaved` | 再開したら、中断した工程に戻る（動作の性質。戻り先は突き合わせでは見ていないので、これで見る） |

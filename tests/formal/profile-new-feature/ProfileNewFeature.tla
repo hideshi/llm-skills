@@ -40,6 +40,10 @@ Steps == {"sizing", "req", "primary-source", "domain-model", "req-ask",
 OpsKinds == {"none", "ok", "ledgerQ", "fix", "decision", "reject"}
 ScreenKinds == {"none", "plain", "wireNo", "fbReq", "fbModel", "fbScreen", "fbShared", "late"}
 ScreenReworks == {"screenAc", "designScreen", "wireQ", "decisionScreen"}
+\* 実装の後の規模の判定し直し（実際の差分）で分かる手戻り。lateGrow は道が通常の道に変わり
+\* 作業の一覧が要る、lateDesign は要る観点に設計の判断が無い。状態の数を抑えるため、画面・
+\* 運用・モデルの検査・決定待ちの無い依頼にだけ掛ける
+LateReworks == {"lateGrow", "lateDesign"}
 Requests == {rr \in [e2e: BOOLEAN, needDesign: BOOLEAN, formal: {"none", "ok", "cex"},
                      pending: BOOLEAN, normal: BOOLEAN, becomeNormal: BOOLEAN,
                      discover: BOOLEAN, evidence: BOOLEAN,
@@ -47,7 +51,7 @@ Requests == {rr \in [e2e: BOOLEAN, needDesign: BOOLEAN, formal: {"none", "ok", "
                      spec: {"none", "model", "modelHypo", "modelHypoChange",
                             "reqQuestion"},
                      rework: {"none", "reject", "reapprove", "auditCond", "auditStop",
-                              "acRewrite"} \cup ScreenReworks,
+                              "acRewrite"} \cup ScreenReworks \cup LateReworks,
                      ops: OpsKinds, screen: ScreenKinds] :
               /\ rr.ops = "none" \/ (rr.formal = "none" /\ rr.rework \in {"none", "reject"})
               /\ rr.screen = "none" \/ (rr.formal = "none" /\ rr.ops \in {"none", "decision"}
@@ -55,7 +59,13 @@ Requests == {rr \in [e2e: BOOLEAN, needDesign: BOOLEAN, formal: {"none", "ok", "
               /\ rr.rework \in ScreenReworks => rr.screen \notin {"none", "late"}
               /\ rr.rework \in {"designScreen", "decisionScreen"} => rr.needDesign
               /\ rr.rework = "wireQ" => rr.screen \notin {"none", "plain", "late"}
-              /\ rr.screen = "late" => rr.needDesign}
+              /\ rr.screen = "late" => rr.needDesign
+              /\ rr.rework \in LateReworks => /\ rr.screen = "none" /\ rr.ops = "none"
+                                               /\ rr.formal = "none" /\ ~rr.pending
+                                               /\ rr.external \in {"none", "ok"}
+                                               /\ rr.spec \in {"none", "model"}
+              /\ rr.rework = "lateGrow" => ~rr.normal /\ ~rr.becomeNormal /\ ~rr.discover
+              /\ rr.rework = "lateDesign" => ~rr.needDesign}
 
 Ops == r.ops /= "none"
 
@@ -63,7 +73,7 @@ Ops == r.ops /= "none"
 Screens  == r.screen /= "none" /\ (r.screen /= "late" \/ h.lateScreen)
 Wire     == r.screen \notin {"none", "plain", "late"}
 Feedback == r.screen \in {"fbReq", "fbModel", "fbScreen", "fbShared"}
-NeedDesign == r.needDesign \/ h.needDS
+NeedDesign == r.needDesign \/ h.needDS \/ h.lateDesigned
 
 Hypo    == r.spec \in {"modelHypo", "modelHypoChange"}
 Changes == r.spec \in {"model", "modelHypo", "modelHypoChange"}
@@ -79,7 +89,7 @@ Init ==
             sized |-> FALSE, evidenceFixed |-> FALSE, rejected |-> FALSE,
             reapproved |-> FALSE, discovered |-> FALSE, auditConded |-> FALSE,
             auditStopped |-> FALSE, reqAsked |-> FALSE, acRewritten |-> FALSE,
-            lateFound |-> FALSE,
+            lateFound |-> FALSE, lateGrown |-> FALSE, lateDesigned |-> FALSE,
             opsApproved |-> FALSE, fromOps |-> FALSE, ledgerAsked |-> FALSE,
             opsFixed |-> FALSE, opsDecided |-> FALSE, opsRejected |-> FALSE,
             interrupted |-> FALSE, savedPc |-> "none", resumed |-> FALSE,
@@ -229,6 +239,10 @@ Implement == pc = "implement"
 SizingAfterImplement == pc = "sizing-after-implement"
     /\ IF r.rework = "reapprove" /\ ~h.reapproved
          THEN GoH("req", [h EXCEPT !.sized = TRUE, !.reapproved = TRUE, !.screenOk = FALSE])
+       ELSE IF r.rework = "lateDesign" /\ ~h.lateDesigned
+         THEN GoH("design", [h EXCEPT !.sized = TRUE, !.lateDesigned = TRUE, !.designDone = FALSE])
+       ELSE IF r.rework = "lateGrow" /\ ~h.lateGrown
+         THEN GoH("tasks", [h EXCEPT !.sized = TRUE, !.lateGrown = TRUE, !.normal = TRUE])
        ELSE IF h.normal /\ ~h.taskList
          THEN GoH("tasks", [h EXCEPT !.sized = TRUE])
        ELSE GoH(IF Ops THEN "ops-artifacts" ELSE IF r.evidence THEN "evidence" ELSE "review-round",
@@ -348,6 +362,9 @@ OpsApprovedBeforeReview == (pc \in {"evidence", "review-round"} /\ Ops) => h.ops
 
 \* 通常の道なら、監査の前に作業の一覧がある
 TasksBeforeAudit == (pc = "audit" /\ h.normal) => h.taskList
+
+\* 実装の後の判定で要る観点に設計の判断が無いと分かったら、設計し直してから証拠・レビューへ
+LateDesignBeforeReview == (pc \in {"evidence", "review-round", "audit"} /\ h.lateDesigned) => h.designDone
 
 \* 中断の間に人が承認した成果物が変わったら、人に確かめてから工程に戻る
 ApprovedChangeNeedsHuman == (h.resumed /\ h.apChanged /\ pc \in Steps) => h.humanChecked

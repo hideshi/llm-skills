@@ -50,6 +50,10 @@ OpsKinds == {"none", "ok", "ledgerQ", "fix", "decision", "reject"}
 \*           "decisionScreen" は、design-ok の決定（反例でない）で画面に及ぶ直しが要る手戻り
 ScreenKinds == {"none", "plain", "wireNo", "fbReq", "fbModel", "fbScreen", "fbShared", "late"}
 ScreenReworks == {"screenAc", "designScreen", "wireQ", "decisionScreen"}
+\* 実装の後の規模の判定し直し（実際の差分）で分かる手戻り。lateGrow は作業に分ける条件に
+\* 当たり作業の一覧が要る、lateDesign は要る観点に設計の判断が無い。状態の数を抑えるため、
+\* 調べの寄り道・画面・運用・モデルの検査・決定待ちの無い機能の変更にだけ掛ける
+LateReworks == {"lateGrow", "lateDesign"}
 Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
                      kind: {"feature", "featureDesign", "defect", "defectNeedsDesign"},
                      formal: {"none", "current", "design", "designCex"},
@@ -59,7 +63,7 @@ Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
                      external: {"none", "ok", "hypo", "late"},
                      evidence: BOOLEAN, tasks: BOOLEAN, expectChange: BOOLEAN,
                      rework: {"none", "reject", "reapprove", "audit", "acRewrite",
-                              "designDev"} \cup ScreenReworks,
+                              "designDev"} \cup ScreenReworks \cup LateReworks,
                      ops: OpsKinds, screen: ScreenKinds] :
               /\ rr.ops = "none" \/ (rr.formal = "none" /\ rr.rework \in {"none", "reject"})
               /\ rr.screen = "none" \/ (rr.survey \in {"none", "a"} /\ rr.formal = "none"
@@ -69,13 +73,20 @@ Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
               /\ rr.rework \in ScreenReworks => rr.screen \notin {"none", "late"}
               /\ rr.rework \in {"designScreen", "decisionScreen"} => rr.kind = "featureDesign"
               /\ rr.rework = "wireQ" => rr.screen \notin {"none", "plain", "late"}
-              /\ rr.screen = "late" => rr.kind = "featureDesign"}
+              /\ rr.screen = "late" => rr.kind = "featureDesign"
+              /\ rr.rework \in LateReworks => /\ rr.survey = "none" /\ rr.screen = "none"
+                                               /\ rr.ops = "none" /\ rr.formal = "none"
+                                               /\ ~rr.pending /\ rr.external \in {"none", "ok"}
+                                               /\ rr.spec \in {"none", "model"}
+                                               /\ rr.kind \in {"feature", "featureDesign"}
+              /\ rr.rework = "lateGrow" => ~rr.tasks
+              /\ rr.rework = "lateDesign" => rr.kind = "feature"}
 
 A               == r.survey \in {"a", "aDetours"}
 AorC            == r.survey /= "none"
 Detours         == r.survey \in {"aDetours", "cDetours"}
 IsDefect(rr)    == rr.kind \in {"defect", "defectNeedsDesign"}
-NeedDesign      == r.kind = "featureDesign" \/ h.needDS
+NeedDesign      == r.kind = "featureDesign" \/ h.needDS \/ h.lateDesigned
 Screens         == r.screen /= "none" /\ (r.screen /= "late" \/ h.lateScreen)
 Wire            == r.screen \notin {"none", "plain", "late"}
 Feedback        == r.screen \in {"fbReq", "fbModel", "fbScreen", "fbShared"}
@@ -96,6 +107,7 @@ Init ==
             req |-> FALSE, extDone |-> FALSE, modelDone |-> FALSE, hypo |-> FALSE,
             hypoResolved |-> FALSE, changed |-> FALSE, designing |-> FALSE,
             pending |-> FALSE, cexHandled |-> FALSE, taskList |-> FALSE,
+            lateGrown |-> FALSE, lateDesigned |-> FALSE, lateRedesigned |-> FALSE,
             sized |-> FALSE, evidenceFixed |-> FALSE, rejected |-> FALSE,
             reapproved |-> FALSE, switched |-> FALSE, auditConded |-> FALSE,
             auditStopped |-> FALSE, reqAsked |-> FALSE, acRewritten |-> FALSE,
@@ -232,7 +244,8 @@ Design == pc = "design" /\ h.req /\ ~(r.external = "late" /\ ~h.extDone)
     /\ ~ToScreenFromDesign
     /\ ~(r.screen = "late" /\ ~h.lateScreen)
     /\ GoH(IF FormalDesign /\ ~h.formalDesignDone THEN "formal-check" ELSE "design-ok",
-           [h EXCEPT !.designing = TRUE, !.pending = r.pending])
+           [h EXCEPT !.designing = TRUE, !.pending = r.pending,
+                     !.lateRedesigned = h.lateRedesigned \/ h.lateDesigned])
 
 \* design-ok（設計を承認する。人）。反例があれば扱いを決め、設計を直すなら design へ
 Approve == pc = "design-ok"
@@ -293,6 +306,10 @@ UpdateBaseline == pc = "baseline-update" /\ Go(IF Old /\ r.evidence THEN "eviden
 SizingAfterImplement == pc = "sizing-after-implement"
     /\ IF r.rework = "reapprove" /\ ~h.reapproved
          THEN GoH("req", [h EXCEPT !.sized = TRUE, !.reapproved = TRUE, !.screenOk = FALSE])
+       ELSE IF r.rework = "lateDesign" /\ ~h.lateDesigned
+         THEN GoH("design", [h EXCEPT !.sized = TRUE, !.lateDesigned = TRUE])
+       ELSE IF r.rework = "lateGrow" /\ ~h.lateGrown
+         THEN GoH("tasks", [h EXCEPT !.sized = TRUE, !.lateGrown = TRUE])
          ELSE GoH(IF Ops THEN "ops-artifacts" ELSE IF ~Old /\ r.evidence THEN "evidence" ELSE "review-round",
                   [h EXCEPT !.sized = TRUE])
 
@@ -403,7 +420,10 @@ EvidenceBeforeReview == (pc = "review-round" /\ r.evidence) => h.evidenceFixed
 SizingBeforeAudit == pc = "audit" => h.sized
 
 \* 作業に分ける条件に当たるなら、監査の前に作業の一覧がある
-TasksBeforeAudit == (pc = "audit" /\ r.tasks) => h.taskList
+TasksBeforeAudit == (pc = "audit" /\ (r.tasks \/ h.lateGrown)) => h.taskList
+
+\* 実装の後の判定で要る観点に設計の判断が無いと分かったら、設計し直してから証拠・レビューへ
+LateDesignBeforeReview == (pc \in {"evidence", "review-round", "audit"} /\ h.lateDesigned) => h.lateRedesigned
 
 \* 確定した受入の証拠を、要件の書き直し（工程 req）で無駄にしない
 EvidenceNotWasted == ~(pc = "req" /\ h.evidenceFixed)
@@ -421,7 +441,10 @@ ResumeReturnsToSaved == [][(pc \in {"R", "HR"} /\ pc' \in Steps) => pc' = h.save
 
 \* 作業に分けるのは、テストケース表を作った後（是正から分けるときも）。
 \* 中断からの再開は、中断した工程に戻るだけなので除く
-TestCasesBeforeTasks == [][(pc' = "tasks" /\ pc /= "tasks") => pc \in {"test-design", "R", "HR"}]_vars
+\* 実装の後の判定から作業に分けるのは機能の変更だけで、テストケース表は test-design で作ってある
+TestCasesBeforeTasks == [][(pc' = "tasks" /\ pc /= "tasks")
+                            => (pc \in {"test-design", "R", "HR"}
+                                \/ (pc = "sizing-after-implement" /\ ~h.defect))]_vars
 
 Terminates == <>(pc = "Done")
 

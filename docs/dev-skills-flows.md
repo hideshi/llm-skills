@@ -179,6 +179,8 @@ flowchart TD
     BaselineUpdate -->|"回帰の基準（区分と根拠つき）"| SizingAfterImplement
     SizingAfterImplement -->|"規模の判定"| JOps
     SizingAfterImplement -.->|"完了条件の承認し直しが要る"| Req
+    SizingAfterImplement -.->|"要る観点に設計の判断が無い（実際の差分で）"| Design
+    SizingAfterImplement -.->|"作業に分ける道に変わり、作業の一覧が無い"| Tasks
     JOps -->|"当たる"| OpsArtifacts
     JOps -->|"当たらない"| JEvidence
     OpsArtifacts -->|"本番の手順・目録・台帳"| JOpsResult
@@ -346,6 +348,8 @@ flowchart TD
     Implement -->|"変更の事実・作業の一覧"| SizingAfterImplement
     SizingAfterImplement -->|"規模の判定"| JOps
     SizingAfterImplement -.->|"完了条件の承認し直しが要る"| Req
+    SizingAfterImplement -.->|"要る観点に設計の判断が無い（実際の差分で）"| Design
+    SizingAfterImplement -.->|"作業に分ける道に変わり、作業の一覧が無い"| Tasks
     JOps -->|"当たる"| OpsArtifacts
     JOps -->|"当たらない"| JEvidence
     OpsArtifacts -->|"本番の手順・目録・台帳"| JOpsResult
