@@ -15,10 +15,14 @@
     中の単位が受け取るか、「外へ渡す型:」の行にある。順序（どの工程が先か）は見ない
 11. 単位の根拠の別紙（references/grounding.md）に必須の3節・確かめた日・有効な確かめた水準・
     SKILL.md からの参照がそろい、手順の箇所の節番号と DOI/URL の形式が合っている
-12. 単位の references/ にある埋めた例（行頭が「型: 」の行で始まる部分）が、型の一覧にある型で、
-    その単位の出力の表にあり、決まり文句があり、チェックボックスと空のセルが無く、SKILL.md から
-    リンクされている。「型: なし（…）」は型の外の文書の例で、型の検査の代わりに型の外の決まり文句を見る。
-    例の見出しが型の欄に合うか、識別子が実在するかは見ない。案件の成果物には当てない
+12. 単位の references/ の埋めた例（-example.md の全体と、別紙の見出しが「例」の節）の頭の2行が、
+    形の正しい型の宣言と決まり文句で、その型が型の一覧と単位の出力の表にある。例に、チェックボックス、
+    空のセル・埋め草、列の数の違い、3行を超える一覧の表、「工程」に続く工程の識別子が無い。SKILL.md の
+    入力か出力の節からリンクされている。「型: なし（…）」は型の外の文書の例で、型の検査の代わりに型の外の
+    決まり文句と、原典の参照を入力に持つ単位かを見る。範囲が取れない例、単位の直下や examples/ の例、
+    プロファイルと dev-shared の例も落とす。コードブロックと HTML のコメントの中は見ない。
+    Markdown のすべての書き方は見ない（書く形は規約で決める）。例の見出しが型の欄に合うか、
+    識別子が実在するかは見ない。案件の成果物には当てない
 
 使い方: python3 -I scripts/check_dev_skills.py [--grounding-warnings] [リポジトリのルート]
 """
@@ -46,7 +50,12 @@ GROUNDING_SECTIONS = ("先行の手法", "独自の判断", "改善の記録")
 EXAMPLE_PHRASE = "形の一例。正本は型の一覧の欄。形式・節名・置き場所は任意で、案件に既に形があればその形に従う。値はすべて作り物。"
 EXAMPLE_PHRASE_OUTSIDE = "形の一例。型の外の文書で、正本は案件の文書。形式・節名・置き場所は任意で、案件に既に形があればその形に従う。値はすべて作り物。"
 EXAMPLE_OUTSIDE = "なし"
-EXAMPLE_DECL = re.compile(r"^型: (.+)$", re.M)
+EXAMPLE_DECL = re.compile(r"^型: (\S.*)$", re.M)
+LOOSE_DECL = re.compile(r"^[ \t]*(?:[-*+][ \t]+|\d+\.[ \t]+)?型[ \t]*[:：]", re.M)
+CHECKBOX = re.compile(r"(?:^|[\s|>(（])\[[ xX\u3000]\](?!\()|[\u2610-\u2612]", re.M)
+HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+MD_HEADING = re.compile(r"^(#{1,6})[ \t]+(.*?)[ \t]*$", re.M)
+TABLE_SEP = re.compile(r"\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*")
 FALSIFY_HINTS = ("見直す", "件数", "比べる", "比較", "しきい値", "記録で", "再検討", "差し戻", "推移", "割合", "差分", "実測", "起きなかったか")
 
 
@@ -197,47 +206,236 @@ def check_grounding(name, path, skill_text):
     return g_errors, g_warnings, counts
 
 
-def check_examples(name, path, skill_text, types, outputs):
-    """単位の references/ の埋めた例を見る（検査 12）。例の部分は「型: 」の行から、次の「型: 」の行か
-    ファイルの終わりまで。"""
+def blank_code(text):
+    """コードブロック（字下げしたもの、4つ以上のバッククォートを含む）と HTML のコメントの中身を
+    空行に置き換える（行の数は保つ）。閉じは、開きと同じ文字で同じ長さ以上の行。"""
+    out, fence = [], None
+    for line in text.split("\n"):
+        if fence is None:
+            m = re.match(r"^\s*(`{3,}|~{3,})", line)
+            if m:
+                fence = m.group(1)
+                out.append("")
+                continue
+            out.append(line)
+        else:
+            m = re.match(r"^\s*(`{3,}|~{3,})\s*$", line)
+            if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence):
+                fence = None
+            out.append("")
+    text = "\n".join(out)
+    return HTML_COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+
+
+def blank_inline_code(text):
+    """行の中のコード（同じ数のバッククォートで囲んだ所）を、同じ長さの空白に置き換える。"""
+    def repl(m):
+        return " " * len(m.group(0))
+    return re.sub(r"(`+)(?!`).+?(?<!`)\1(?!`)", repl, text)
+
+
+def example_regions(text, whole):
+    """例の範囲を返す。-example.md はファイル全体。ほかは見出しが「例」の節で、次の同じ深さか浅い
+    見出しの前まで。例の範囲の中にある「例」の見出しは、別の例として数えない。"""
+    if whole:
+        return [text]
+    regions, covered_until = [], -1
+    heads = list(MD_HEADING.finditer(text))
+    for i, h in enumerate(heads):
+        # 見出しが「例」だけか、「例（…）」「例: …」の節（「例外」「手順の例」などは含めない）
+        if h.start() < covered_until or not re.fullmatch(r"例(?:[（(:：\s].*)?", h.group(2)):
+            continue
+        end = len(text)
+        for h2 in heads[i + 1:]:
+            if len(h2.group(1)) <= len(h.group(1)):
+                end = h2.start()
+                break
+        covered_until = end
+        regions.append(text[h.end():end])
+    return regions
+
+
+def example_head(part):
+    """例の範囲の頭の2行（見出しを除いた最初の空でない行と、その次の行）を返す。"""
+    lines = part.split("\n")
+    for i, ln in enumerate(lines):
+        if ln.strip() and not MD_HEADING.match(ln):
+            return ln, (lines[i + 1] if i + 1 < len(lines) else "")
+    return "", ""
+
+
+def is_filler(value):
+    """空、記号だけ、または埋め草の語か。"""
+    s = re.sub(r"<br\s*/?>", "", value)
+    s = s.strip("*_~` \t　")
+    if not re.search(r"\w", s):
+        return True
+    return bool(re.fullmatch(r"(?i)(tbd|tba|todo|n/?a|xxx|未定|未記入)[。.]?", s))
+
+
+def split_cells(line):
+    """表の行をセルに分ける。外枠の縦棒は片側1つだけ外す。`\\|` とバッククォートの中の縦棒は区切らない。"""
+    s = line.strip()
+    if s.startswith("|"):
+        s = s[1:]
+    if s.endswith("|") and not s.endswith("\\|"):
+        s = s[:-1]
+    cells, buf, i = [], "", 0
+    while i < len(s):
+        c = s[i]
+        if c == "\\" and i + 1 < len(s):
+            buf += s[i:i + 2]
+            i += 2
+            continue
+        if c == "`":
+            # 同じ数のバッククォートで閉じるまでを、行の中のコードとして読み飛ばす
+            n = len(re.match(r"`+", s[i:]).group(0))
+            close = re.compile(r"(?<!`)" + "`" * n + r"(?!`)").search(s, i + n)
+            if close:
+                buf += s[i:close.end()]
+                i = close.end()
+                continue
+            buf += s[i:i + n]
+            i += n
+            continue
+        if c == "|":
+            cells.append(buf.strip())
+            buf = ""
+        else:
+            buf += c
+        i += 1
+    cells.append(buf.strip())
+    return cells
+
+
+def md_tables(region):
+    """(見出しのセル, データの行の文字列のリスト) を返す。外枠の無い表も拾う。"""
+    lines = region.splitlines()
+    out, i = [], 0
+    while i + 1 < len(lines):
+        if "|" in lines[i] and "|" in lines[i + 1] and TABLE_SEP.fullmatch(lines[i + 1]):
+            header = split_cells(lines[i])
+            rows, j = [], i + 2
+            while j < len(lines) and "|" in lines[j] and lines[j].strip():
+                rows.append(lines[j])
+                j += 1
+            out.append((header, rows))
+            i = j
+        else:
+            i += 1
+    return out
+
+
+def link_targets(text):
+    """Markdown のリンク先（./ と #節 を外したもの）と、そのリンクがある「## 」の節の名前。
+    コードブロック、コメント、行の中のコードにあるものは数えない。題つき、<> で囲んだ形、参照の形も読む。"""
+    targets = {}
+    plain = blank_inline_code(blank_code(text))
+    section = ""
+    for line in plain.split("\n"):
+        h = re.match(r"^##[ \t]+(.+?)\s*$", line)
+        if h:
+            section = h.group(1)
+        found = re.findall(r"\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)", line)
+        found += re.findall(r"^\s*\[[^\]]+\]:\s*<?([^\s>]+)>?", line)
+        for t in found:
+            t = t.split("#", 1)[0]
+            if t.startswith("./"):
+                t = t[2:]
+            targets.setdefault(t, set()).add(section)
+    return targets
+
+
+def looks_like_example(f, text):
+    """例を置いたつもりのファイルか（名前、決まり文句、「例」の節、行頭の「型:」の行のどれか）。"""
+    return ("example" in f.name.lower() or EXAMPLE_PHRASE in text or EXAMPLE_PHRASE_OUTSIDE in text
+            or bool(example_regions(text, False)) or bool(LOOSE_DECL.search(text)))
+
+
+def check_examples(name, path, skill_text, types, inputs, outputs, step_ids):
+    """単位の埋めた例を見る（検査 12）。"""
     errors = []
+    for f in sorted(path.rglob("*")):
+        rel = f.relative_to(path).as_posix()
+        if f.is_dir() and f.name == "examples":
+            errors.append(f"{name}: {rel}: examples/ は作らない（例は references/ に置く）")
+        elif f.is_file() and f.name.endswith("-example.md") and not rel.startswith("references/"):
+            errors.append(f"{name}: {rel}: 例は references/ に置く")
     refs = path / "references"
     if not refs.is_dir():
         return errors
+    targets = link_targets(skill_text)
     for f in sorted(refs.rglob("*.md")):
-        text = f.read_text(encoding="utf-8")
-        decls = list(EXAMPLE_DECL.finditer(text))
-        if not decls:
-            continue
+        text = blank_code(f.read_text(encoding="utf-8"))
         rel = f.relative_to(path).as_posix()
         where = f"{name}: {rel}"
-        if f"]({rel})" not in skill_text:
+        whole = f.name.endswith("-example.md")
+        regions = example_regions(text, whole)
+        if not regions:
+            if "example" in f.name.lower() or EXAMPLE_PHRASE in text or EXAMPLE_PHRASE_OUTSIDE in text:
+                errors.append(f"{where}: 例の範囲が取れない（ファイル名を <名前>-example.md にするか、見出しが「例」の節に置く）")
+            continue
+        sections = targets.get(rel)
+        if not sections:
             errors.append(f"{where}: 例が SKILL.md からリンクされていない")
-        for i, m in enumerate(decls):
-            part = text[m.start():decls[i + 1].start() if i + 1 < len(decls) else len(text)]
-            type_name = re.split(r"[（(]", m.group(1), maxsplit=1)[0].strip()
+        elif not sections & {"入力", "出力"}:
+            errors.append(f"{where}: 例へのリンクが、入力か出力の表の直後に無い")
+        for part in regions:
+            first, second = example_head(part)
+            m = EXAMPLE_DECL.fullmatch(first)
+            if not m:
+                if LOOSE_DECL.match(first):
+                    errors.append(f"{where}: 型の宣言の形が違う（行頭に半角の「型: 」）: {first.strip()[:40]}")
+                else:
+                    errors.append(f"{where}: 例の頭に型の宣言が無い")
+                continue
+            dm = re.fullmatch(r"(.+?)\s*(（.+）)?", m.group(1).strip())
+            type_name, paren = dm.group(1).strip(), dm.group(2)
             if type_name == EXAMPLE_OUTSIDE:
-                # 型の外の文書の例（継続の文書など）。型の検査はせず、型の外の決まり文句を求める
-                if EXAMPLE_PHRASE_OUTSIDE not in part:
-                    errors.append(f"{where}: 型の外の例に、型の外の決まり文句が無い")
+                if not paren:
+                    errors.append(f"{where}: 型の外の例に「（何の文書の例か）」が無い")
+                if second.strip() != EXAMPLE_PHRASE_OUTSIDE:
+                    errors.append(f"{where}: 型の外の例の宣言の次の行に、型の外の決まり文句が無い")
+                if "原典の参照" not in inputs:
+                    errors.append(f"{where}: 型の外の例は、原典の参照を入力に持つ単位に置く")
             else:
                 if type_name not in types:
                     errors.append(f"{where}: 例の型「{type_name}」が型の一覧に無い")
                 elif type_name not in outputs:
                     errors.append(f"{where}: 例の型「{type_name}」が単位の出力の表に無い")
-                if EXAMPLE_PHRASE not in part:
-                    errors.append(f"{where}: 例「{type_name}」に決まり文句が無い")
-            if re.search(r"^\s*[-*] \[[ xX]\]", part, re.M):
+                if second.strip() != EXAMPLE_PHRASE:
+                    errors.append(f"{where}: 例「{type_name}」の宣言の次の行に決まり文句が無い")
+            plain = blank_inline_code(part)
+            if CHECKBOX.search(plain):
                 errors.append(f"{where}: 例「{type_name}」にチェックボックスがある")
-            for line in part.splitlines():
-                s = line.strip()
-                if not s.startswith("|") or re.fullmatch(r"\|[\s:|-]+\|", s):
-                    continue
-                # `\|` はセルの中の縦棒なので、区切りとして扱わない
-                cells = [c.strip() for c in re.split(r"(?<!\\)\|", s.strip("|"))]
-                if any(c == "" for c in cells):
-                    errors.append(f"{where}: 例「{type_name}」の表に空のセルがある: {s[:60]}")
+            for header, rows in md_tables(part):
+                if header and header[0] not in ("欄", "項目") and len(rows) > 3:
+                    errors.append(f"{where}: 例「{type_name}」の表の行が3つを超える: {' | '.join(header)[:40]}")
+                for row in rows:
+                    cells = split_cells(row)
+                    if len(cells) != len(header):
+                        errors.append(f"{where}: 例「{type_name}」の表の列の数が見出しと違う: {row.strip()[:50]}")
+                    elif any(is_filler(c) for c in cells):
+                        errors.append(f"{where}: 例「{type_name}」の表に空のセルか埋め草がある: {row.strip()[:50]}")
+            for lm in re.finditer(r"^\s*[-*+]\s+[^:：\n|`]{1,30}[:：][ \t]*(.*)$", part, re.M):
+                if is_filler(lm.group(1)) and lm.group(1).strip():
+                    errors.append(f"{where}: 例「{type_name}」の箇条書きの値が埋め草: {lm.group(0).strip()[:50]}")
+            for tok in sorted(set(re.findall(r"工程[ \t　]*[`「『]?([a-z][a-z0-9-]*)", part)) & step_ids):
+                errors.append(f"{where}: 例「{type_name}」が工程の識別子 `{tok}` を書いている")
     return errors
+
+
+def stray_examples(path):
+    """プロファイルと dev-shared に置かれた例を探す。"""
+    found = []
+    for f in sorted(path.rglob("*")):
+        rel = f.relative_to(path).as_posix()
+        if f.is_dir() and f.name == "examples":
+            found.append(f"{path.name}: {rel}: 例は単位の references/ に置く")
+        elif f.is_file() and f.suffix == ".md" and rel.startswith("references/"):
+            if looks_like_example(f, blank_code(f.read_text(encoding="utf-8"))):
+                found.append(f"{path.name}: {rel}: 例は単位の references/ に置く")
+    return found
 
 
 def main():
@@ -255,6 +453,13 @@ def main():
     used_units, used_types = set(), set()
     grounding_warnings = []
     grounding_totals = {"原典を読んだ": 0, "書誌と二次資料で確かめた": 0, "未確認": 0, "existence_only": 0}
+    # 例が工程を名指ししていないかを見るために、全プロファイルの工程の識別子を集める
+    step_ids = set()
+    for path in profiles.values():
+        for row in table_rows((path / "SKILL.md").read_text(encoding="utf-8"), "工程") or []:
+            step_ids.update(re.findall(r"`([a-z][a-z0-9-]*)`", row[0]))
+    for path in [*profiles.values(), SKILLS / SHARED]:
+        errors.extend(stray_examples(path))
 
     for name, path in {**units, **profiles}.items():
         text = (path / "SKILL.md").read_text(encoding="utf-8")
@@ -288,7 +493,7 @@ def main():
                 if heading == "入力" and (len(row) < 2 or not row[1].startswith(REQUIRED_WORDS)):
                     errors.append(f"{name}: 入力「{row[0]}」の必須の列が規約の語でない")
         unit_io[name] = io
-        errors.extend(check_examples(name, path, text, types, io["出力"]))
+        errors.extend(check_examples(name, path, text, types, io["入力"], io["出力"], step_ids))
         g_errs, g_warns, g_counts = check_grounding(name, path, text)
         errors.extend(g_errs)
         grounding_warnings.extend(g_warns)
