@@ -7,8 +7,9 @@
 | 性質 | プロファイルの決まり |
 |---|---|
 | `BaselineBeforeCode` | 回帰の基準は、コードを変える工程（`fix`・`implement`）より前に通す（A に当たるとき） |
+| `TestCasesBeforeTasks` | 作業に分ける（`tasks`）のは、テストケース表を作った（`test-design`）後。是正から分けるときも同じ（中断からの再開は除く）。動作の性質 |
 | `NoImplementWithPending` | 設計の判断に人の決定待ちが残っている作業は、始めない |
-| `NoHypothesisIntoDesign` | 仮説・未確定の業務規則（工程 `survey` で抜き出した候補、一次情報から推定したものを含む）を残したまま、設計（`design`）や試験の設計（`test-design`）へ進まない |
+| `NoHypothesisIntoDesign` | 仮説・未確定の業務規則（工程 `survey` で抜き出した候補、一次情報から推定したものを含む）を残したまま、設計（`design`）や試験の設計（`test-design`）へ進まない。是正を作業に分けるための `test-design` は要件を通らないので除く（そこで仮説の規則を根拠にしないのは本文の決まりで、モデルでは表さない） |
 | `ModelBeforeDesign` | 業務規則が変わるなら、モデルを直してから（`domain-model`）設計や試験の設計へ進む |
 | `ReqQuestionsAnswered` | 要件の確認事項に今回の範囲の未回答があれば、人に確かめてから（`req-ask`）設計や試験の設計へ進む |
 | `ExtBeforeUse` | 一次情報が要るなら、調べてから（`primary-source`）試験の設計や設計の承認へ進む（設計の途中で要ると分かった場合を含む） |
@@ -37,7 +38,7 @@
 - 手戻り（レビューの変更要求、完了条件の承認し直し、反例による設計の直し、是正から設計への切り替え、監査の「条件付き」「止める」、回答による規則の変更）は、それぞれ1回まで起きうるとする。レビューと監査と承認し直しの手戻りは、一つの依頼で一種類まで。
 - 寄り道（`formal-check`・`data-audit`・`survey-ask`、`primary-source`・`domain-model`・`req-ask`）は、工程 `survey`・`req` が「済んでいない寄り道があれば先にする」順で表す。プロファイルでは順序を決めていないが、どの順でも、戻る先は同じ工程なので、確かめる性質には影響しない。
 - 表していないもの: B が「両方」の場合、急ぎの不具合で是正を基準より先に進める例外、テストを先に書くのを外す場合、監査の依頼の前提（隔離した複製のデータを使えるか）。監査が「止める」ときの戻り先は、原因の工程のうち `fix`・`implement` だけを表す。
-- 定数 `Old` を `TRUE` にすると、2026-11-13 の設計の群のレビュー（別のモデルによる）の前の流れ（是正から設計（今の `design`）へ直接進む、受入の証拠の後に規模を判定し直す）と、`fix` から `tasks` へ行く道が無い流れになる。
+- 定数 `Old` を `TRUE` にすると、2026-11-13 の設計の群のレビュー（別のモデルによる）の前の流れ（是正から設計（今の `design`）へ直接進む、受入の証拠の後に規模を判定し直す）と、`fix` から作業に分ける道（今は `fix` → `test-design` → `tasks`）が無い流れになる。
 
 ## プロファイルとの対応
 
@@ -60,6 +61,7 @@
 | 2026-11-14 | 工程の番号を識別子に置き換えた版 | 同上 | 12,039,168 状態（全 12,983,808 生成、深さ 55、約6分）で違反なし。置き換えの前と状態数・深さが同じで、EdgeProbe の矢印も対応表で写すと一致した。モデルを対応表で旧い番号に戻すと、動作の名前と、識別子と同じ字の種類の名前（`"fix"`、`"design"`、`"audit"`）を除いて、前の版と字句が一致した。再開の時の人の確認を飛ばすと `ApprovedChangeNeedsHuman` が破れることを確かめ直した |
 | 2026-11-14 | 画面の工程（`screen`・`wireframe`・`screen-ok`）と、`ScreenAfterRequirements`・`ScreenBeforeDownstream`・`FeedbackRoutedFirst`・`ScreenRevisitedAfterDesignChange` を足した版 | 同上 | 12,667,712 状態（全 13,661,760 生成、深さ 55、9分35秒）で違反なし、`Terminates` と `ResumeReturnsToSaved` が成り立つ。突き合わせ（`check_dev_flows.py`、10分の上限）にも収まった。ほかの処理と並んだときに上限に近づくので、状態を増やすときは画面の経路だけの別のモデルに分ける。崩した写しで次を確かめた: 意見を `req` を通さず `screen` へ戻すと `FeedbackRoutedFirst` が、画面の契機があるのに `screen` を飛ばすと `ScreenBeforeDownstream` が、設計で画面が変わっても `design-ok` へ進むと `ScreenRevisitedAfterDesignChange` が破れる |
 | 2026-11-14 | レビュー（別のモデル2つ）を受けた版（"late" と "decisionScreen" を足し、運用の業務の決定と是正から機能の変更への切り替えで `req` へ戻るときも画面の採用を外した） | 同上 | 依頼は 275,456 通り。12,743,168 状態（全 13,742,848 生成、深さ 55、9分28秒）で違反なし、`Terminates` と `ResumeReturnsToSaved` が成り立つ。`ScreenRevisitedAfterDesignChange` を、`design-ok` の時点で決定の直しと設計で分かった画面が済んでいることも求める形に強めた（強めた後は迂回が破れることを、新規開発のモデルの崩した写しで確かめた） |
+| 2026-11-14 | 群全体のレビュー（別のモデル）を受けた版（是正を作業に分けるときに `fix` → `test-design` → `tasks` と通す。`TestCasesBeforeTasks` を足し、`NoHypothesisIntoDesign` から是正を作業に分けるための `test-design` を除いた） | 同上 | 突き合わせ（`TLC_TIMEOUT` 1200）で違反なし。状態の数は控えていない。直す途中の版で、是正から入った `test-design` が仮説を持ったまま進むことを `NoHypothesisIntoDesign` が見つけた。`fix` から `tasks` へ直接進む写しは、`TestCasesBeforeTasks` が破れることを確かめた（深さ4） |
 
 2026-11-14 に工程の番号を識別子に置き換えた。これより前の記録にある番号は、[対応表](../../../docs/dev-skills-conventions.md#付録-工程の識別子の対応表)で読み替える。
 

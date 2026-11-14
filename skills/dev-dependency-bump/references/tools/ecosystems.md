@@ -4,7 +4,8 @@
 
 ## 確かめた範囲
 
-2026-11-13 に、npm の audit、Composer の audit、git merge-file、semver の公式の文書を開いて、下の「確かめた」と書いた点を照合した。依存だけを解決するオプションは、npm の `package-lock-only` の説明だけを確かめた。ほかは未照合。
+- 確かめた日: 2026-11-13。確かめた版: 道具は動かしておらず、その日の npm の audit、Composer の audit、git merge-file、semver の公式の文書（最新の版の頁。semver は 2.0.0）を読んだ。
+- 【資料】と書いた点は、その文書で読んだことで、手元で流してはいない。依存だけを解決するオプションは、npm の `package-lock-only` の説明だけを読んだ。ほかは未照合。
 
 ## 依存だけを解決して、候補の告知を比べる
 
@@ -12,24 +13,24 @@
 
 | 生態系 | 依存だけを解決する例 | ロックを点検する例 |
 |---|---|---|
-| npm | `npm install --package-lock-only --ignore-scripts`（`package-lock-only` は「`package-lock.json` だけを使い、`node_modules` を無視する」設定。確かめた。`install` での動きは導入した版で確かめる） | `npm audit --json`（確かめた） |
+| npm | `npm install --package-lock-only --ignore-scripts`（`package-lock-only` は「`package-lock.json` だけを使い、`node_modules` を無視する」設定。【資料】。`install` での動きは導入した版で確かめる） | `npm audit --json`【資料】 |
 | pnpm | `pnpm install --lockfile-only`（未照合） | `pnpm audit --json`（未照合） |
-| Composer | 写しで、上げる部品を指定して導入しない更新（オプションは導入した版で確かめる。未照合） | `composer audit --locked --format=json`（確かめた） |
+| Composer | 写しで、上げる部品を指定して導入しない更新（オプションは導入した版で確かめる。未照合） | `composer audit --locked --format=json`【資料】 |
 
 告知の数は、道具の最後の表示（部品の数）ではなく、告知の識別子の数で比べる。
 
 ## 範囲の比べ
 
-- 範囲内の最新化を戻せるかは、生態系の比べ方の決まりの道具で判定する（例: npm は semver の道具）。semver では、同じ数字の版なら、試験的な版は正式な版より前になる（https://semver.org/ 、9 と 11.3。確かめた）。
+- 範囲内の最新化を戻せるかは、生態系の比べ方の決まりの道具で判定する（例: npm は semver の道具）。semver では、同じ数字の版なら、試験的な版は正式な版より前になる（https://semver.org/ 、9 と 11.3。【資料】）。
 - 比べられない範囲は保留にし、目で見て補わない。
 
 ## 改造の三方向の合わせ
 
 `git merge-file -p <旧い改造のファイル> <旧い上流のファイル> <新しい上流のファイル>`
 
-- `git merge-file` は、`<base>` から `<other>` への変更を `<current>` に取り込む（https://git-scm.com/docs/git-merge-file 。確かめた）。ここでは、current に旧い改造、base に旧い上流、other に新しい上流を置く。
-- `-p` は、current を上書きせずに結果を標準の出力に出す（確かめた）。
-- ぶつかった所は `<<<<<<<` と `>>>>>>>` の行で囲まれる（確かめた）。手で直してから、新しい上流との差が改造の意図だけかを差分で確かめる。
+- `git merge-file` は、`<base>` から `<other>` への変更を `<current>` に取り込む（https://git-scm.com/docs/git-merge-file 。【資料】）。ここでは、current に旧い改造、base に旧い上流、other に新しい上流を置く。
+- `-p` は、current を上書きせずに結果を標準の出力に出す【資料】。
+- ぶつかった所は `<<<<<<<` と `>>>>>>>` の行で囲まれる【資料】。手で直してから、新しい上流との差が改造の意図だけかを差分で確かめる。
 
 ## 試験が本当に走っているか
 

@@ -246,9 +246,10 @@ Approve == pc = "design-ok"
 SizingAfterDesign == pc = "sizing-after-design" /\ Go("test-design")
 
 \* test-design（試験を設計する）。受入条件の書き直しの案を採れば req へ。
-\*     作業に分ける条件に当たれば tasks
+\*     作業に分ける条件に当たれば tasks。是正から来たら（作業に分ける是正）、必ず tasks
 TestDesign == pc = "test-design"
-    /\ IF r.rework = "acRewrite" /\ ~h.acRewritten
+    /\ IF h.defect THEN Go("tasks")
+       ELSE IF r.rework = "acRewrite" /\ ~h.acRewritten
          THEN GoH("req", [h EXCEPT !.acRewritten = TRUE, !.screenOk = FALSE])
          ELSE Go(IF r.tasks THEN "tasks" ELSE "implement")
 
@@ -274,10 +275,11 @@ FixToDesign == pc = "fix" /\ FixNeedsDesign /\ ~h.switched
            [h EXCEPT !.switched = TRUE, !.defect = IF Old THEN h.defect ELSE FALSE,
                      !.screenOk = FALSE])
 
-\*   作業に分ける条件に当たる → tasks で分けてから作業ごとに fix（旧: この道が無い）
+\*   作業に分ける条件に当たる → test-design でテストケース表を作り、tasks で分けてから
+\*   作業ごとに fix（旧: この道が無い。2026-11-14 の全体のレビューの前は、fix から tasks へ直接）
 FixSplit == pc = "fix" /\ ~(FixNeedsDesign /\ ~h.switched)
     /\ ~Old /\ r.tasks /\ ~h.taskList
-    /\ Go("tasks")
+    /\ Go("test-design")
 
 FixCode == pc = "fix" /\ ~(FixNeedsDesign /\ ~h.switched)
     /\ (Old \/ ~r.tasks \/ h.taskList)
@@ -364,9 +366,11 @@ BaselineBeforeCode == (pc \in {"fix", "implement"} /\ A) => h.baseline
 \* 設計の判断に人の決定待ちが残っている作業は、始めない
 NoImplementWithPending == pc = "implement" => ~h.pending
 
-\* 仮説・未確定の業務規則を残したまま、画面、設計、試験の設計へ進まない
-NoHypothesisIntoDesign == pc \in {"screen", "wireframe", "screen-ok", "design",
-                                  "test-design"} => ~h.hypo
+\* 仮説・未確定の業務規則を残したまま、画面、設計、試験の設計へ進まない。
+\* 是正を作業に分けるための test-design（h.defect）は要件を通らないので除く。
+\* そこでは仮説の規則をケースの根拠にしない（本文の決まり。モデルでは表さない）
+NoHypothesisIntoDesign == /\ (pc \in {"screen", "wireframe", "screen-ok", "design"} => ~h.hypo)
+                          /\ ((pc = "test-design" /\ ~h.defect) => ~h.hypo)
 
 \* 画面の工程は、要件を書き終えた後にだけ入る
 ScreenAfterRequirements == pc \in {"screen", "wireframe", "screen-ok"} => h.req
@@ -414,6 +418,10 @@ ApprovedChangeNeedsHuman == (h.resumed /\ h.apChanged /\ pc \in Steps) => h.huma
 \* 再開したら、中断した工程（の最初）に戻る。割り込みは突き合わせの書き出しから
 \* 外しているので、戻り先はこの性質で確かめる
 ResumeReturnsToSaved == [][(pc \in {"R", "HR"} /\ pc' \in Steps) => pc' = h.savedPc]_vars
+
+\* 作業に分けるのは、テストケース表を作った後（是正から分けるときも）。
+\* 中断からの再開は、中断した工程に戻るだけなので除く
+TestCasesBeforeTasks == [][(pc' = "tasks" /\ pc /= "tasks") => pc \in {"test-design", "R", "HR"}]_vars
 
 Terminates == <>(pc = "Done")
 

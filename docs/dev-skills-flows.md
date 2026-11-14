@@ -170,7 +170,7 @@ flowchart TD
     Tasks -->|"作業の一覧・追跡表"| Implement
     Fix -->|"是正の対応表・変更の事実・完了条件の一覧"| JBaselineUpdate
     Fix -.->|"直す方針が設計を要る: B を機能の変更に"| Req
-    Fix -.->|"同じ形の箇所をまとめて直す: 作業に分ける"| Tasks
+    Fix -.->|"同じ形の箇所をまとめて直す: テストケース表から作業に分ける"| TestDesign
     Tasks -.->|"作業の一覧（是正のとき）"| Fix
     Implement -->|"変更の事実・検証の記録"| JBaselineUpdate
     Implement -.->|"差分の点検で設計の判断を見直すと決まった"| Design
@@ -216,7 +216,7 @@ flowchart TD
 | C. 仕様書が無い・信用できない、または原因の切り分けに今の動きの把握が要るか | 当たれば `survey`。仕様書が無いときは、人が確かめた問題台帳と現状の振る舞いの記録を、その後の工程の原典の参照にする |
 | 作業に分ける条件 | 通常の道、B が両方、設計の判断に波及や順序の制約がある、同じ形の箇所をまとめて直す承認がある、並べて進める。どれかに当たれば `tasks` |
 
-`formal-check`・`data-audit`・`survey-ask` は `survey` から寄り道して `survey` に戻り、`primary-source`・`domain-model`・`req-ask` は `req` から寄り道して `req` に戻る。`screen`・`wireframe`・`screen-ok` は本線で、要件を書き終え、仕様化を終えるときの検査を通した後にだけ入り、`screen` の後は必ず `screen-ok` を通る。既存の画面を踏襲するときは、`screen` で踏襲する範囲の表を人と合意してから差分だけを設計する。`screen-ok` の意見はどれも `req` で確認事項の記録の行にして振り分ける。`design` は、規模の判定が要るとした観点の単位だけを、責務の配置 → 認可 → システム間の連携 → データ → エラー → デザインシステム → 非同期の実行 → ログ → 呼ばれる契約 → 応答と入口の安全 → エージェント向けの契約 の順に使う。是正（`fix`）の方針が契約・エラー・データ・非同期の実行・システム間の連携を変えると分かったら、是正を止め、B を機能の変更に切り替えて `req` へ進む。是正で作業に分ける条件に当たったら、`tasks` で分けてから作業ごとに `fix` を進める。モデルの検査（`formal-check`）は、今の実装を対象なら `survey` の中で、`design` の設計を対象なら `design` の後に行い、反例の扱いは `design-ok` で人が決める。`test-design` の `dev-acceptance-e2e` は、画面をまたぐ流れが変わるか、既存の E2E がある処理の状態や導線を変えるときに使う。
+`formal-check`・`data-audit`・`survey-ask` は `survey` から寄り道して `survey` に戻り、`primary-source`・`domain-model`・`req-ask` は `req` から寄り道して `req` に戻る。`screen`・`wireframe`・`screen-ok` は本線で、要件を書き終え、仕様化を終えるときの検査を通した後にだけ入り、`screen` の後は必ず `screen-ok` を通る。既存の画面を踏襲するときは、`screen` で踏襲する範囲の表を人と合意してから差分だけを設計する。`screen-ok` の意見はどれも `req` で確認事項の記録の行にして振り分ける。`design` は、規模の判定が要るとした観点の単位だけを、責務の配置 → 認可 → システム間の連携 → データ → エラー → デザインシステム → 非同期の実行 → ログ → 呼ばれる契約 → 応答と入口の安全 → エージェント向けの契約 の順に使う。是正（`fix`）の方針が契約・エラー・データ・非同期の実行・システム間の連携を変えると分かったら、是正を止め、B を機能の変更に切り替えて `req` へ進む。是正で作業に分ける条件に当たったら、`test-design` でテストケース表を作り、`tasks` で分けてから作業ごとに `fix` を進める。モデルの検査（`formal-check`）は、今の実装を対象なら `survey` の中で、`design` の設計を対象なら `design` の後に行い、反例の扱いは `design-ok` で人が決める。`test-design` の `dev-acceptance-e2e` は、画面をまたぐ流れが変わるか、既存の E2E がある処理の状態や導線を変えるときに使う。
 
 決まり:
 
@@ -513,7 +513,7 @@ flowchart TD
     Intake(["intake<br/>受付（人）<br/>告知への対応か、定期の更新か"])
     JEntry{"入口"}
     AdvisoryCheck["advisory-check<br/>告知を点検する<br/>dev-advisory-check"]
-    TriageAsk(["triage-ask<br/>当たるかを決める（人）<br/>直す・受け入れる・保留"])
+    TriageAsk(["triage-ask<br/>直すかを決める（人）<br/>直す・受け入れる・保留"])
     JTriage{"直す行があるか"}
     JB{"基準を固める<br/>条件に当たるか"}
     Baseline["baseline<br/>上げる前の基準を固める<br/>dev-current-behavior-survey<br/>dev-regression-baseline"]
