@@ -1178,6 +1178,90 @@
           "note": "適法かの判断は台帳の単位の外。台帳の単位を使わなければ合格"
         },
         {
+          "id": "U1",
+          "prompt": "（予約の機能の要件と受入条件の文書がある）この要件の画面一覧を作って",
+          "accept": ["dev-screen-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U2",
+          "prompt": "（予約の機能の画面の設計がある）関係者に見せたいので、ワイヤーを作って",
+          "accept": ["dev-wireframe"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U3",
+          "prompt": "（画面ごとに色や余白の値がばらばらに書かれている）トークンを整理して",
+          "accept": ["dev-design-system"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U4",
+          "prompt": "（部品の仕様の文書と、部品のカタログがある）部品のカタログを仕様と照らして",
+          "accept": ["dev-design-system"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U5",
+          "prompt": "（申し込みの機能の要件の文書がある）画面遷移を決めて",
+          "accept": ["dev-screen-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "受入の試験の単位に取られない"
+        },
+        {
+          "id": "U6",
+          "prompt": "（取引先から画面のモックの画像が届いた）このモックから要件を起こして",
+          "accept": ["dev-requirements"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "画面の設計やワイヤーに取られない"
+        },
+        {
+          "id": "U7",
+          "prompt": "（申し込みの機能の要件の文書がある）エラーメッセージを決めて",
+          "accept": ["dev-error-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "画面の設計に取られない"
+        },
+        {
+          "id": "U8",
+          "prompt": "（管理者と一般の利用者がいる業務アプリ）誰にどの画面を見せるか決めて",
+          "accept": ["dev-authorization-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "画面の設計に取られない"
+        },
+        {
+          "id": "U9",
+          "prompt": "（動いている業務アプリの改修の前）今の画面がどう動いているか調べて",
+          "accept": ["dev-current-behavior-survey"],
+          "profiles": ["dev-profile-existing-system"],
+          "note": "画面の設計に取られない"
+        },
+        {
+          "id": "U10",
+          "prompt": "（新しいサービスを始める）ロゴを作って",
+          "forbidPrefixes": ["dev-design-system"],
+          "note": "ブランドそのものはデザインシステムの単位の外"
+        },
+        {
+          "id": "U11",
+          "prompt": "（部品の仕様の文書がある）このボタンの部品の story を書いて",
+          "forbidPrefixes": ["dev-design-system", "dev-wireframe", "dev-screen-design"],
+          "note": "story のコードを書くのは実装。テストを先に書く単位は使ってよい"
+        },
+        {
+          "id": "U12",
+          "prompt": "（画面の設計が人に採られている）この画面を実装して",
+          "forbidPrefixes": ["dev-wireframe", "dev-screen-design"],
+          "note": "実装の依頼。ワイヤーや画面の設計に取られない"
+        },
+        {
+          "id": "U13",
+          "prompt": "（受入の証拠として、申し込みの画面を操作した録画がある）このデモ動画を確認して",
+          "accept": ["dev-evidence-check"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "ワイヤーに取られない"
+        },
+        {
           "id": "G",
           "prompt": "この機能を実装して",
           "forbidPrefixes": [

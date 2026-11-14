@@ -20,7 +20,8 @@ vars == << pc, r, h >>
 
 \* 表さない工程: なし。"B"（判定 B）と "Done"（終わり）、"R"・"HR"（中断と再開）は工程ではない
 Steps == {"intake", "sizing", "survey", "formal-check", "data-audit", "survey-ask",
-          "baseline", "req", "primary-source", "domain-model", "req-ask", "design",
+          "baseline", "req", "primary-source", "domain-model", "req-ask",
+          "screen", "wireframe", "screen-ok", "design",
           "design-ok", "sizing-after-design", "fix", "test-design", "tasks", "implement",
           "baseline-update", "sizing-after-implement", "ops-artifacts", "ops-ok",
           "evidence", "review-round", "audit", "final-ok"}
@@ -38,7 +39,17 @@ Steps == {"intake", "sizing", "survey", "formal-check", "data-audit", "survey-as
 \*           確認事項を req-ask で確かめる／手元で流して不具合が見つかる／業務の決定が要る／
 \*           承認しない）。状態の数を抑えるため、モデルの検査なし、手戻りなしか変更要求の
 \*           依頼にだけ掛ける
+\*   screen: 画面の違いを一つの値にまとめる。画面なし／画面だけ（ワイヤーなし）／
+\*           ワイヤーで意見なし／意見が要件／意見がモデル（規則が変わる）／意見が画面／
+\*           意見が部品やトークンの共通の定義。画面の手戻り（画面から受入条件の案を返す、
+\*           設計で画面が変わる、ワイヤーから画面の設計を変える案を返す）は rework に入れる。
+\*           状態の数を抑えるため、調べと監査の寄り道なし、モデルの検査なし、運用なし、
+\*           一次情報は確定だけまで、機能の変更の依頼にだけ掛ける
 OpsKinds == {"none", "ok", "ledgerQ", "fix", "decision", "reject"}
+\*           "late" は、初めは画面の契機が無く、設計で画面が要ると分かる依頼。
+\*           "decisionScreen" は、design-ok の決定（反例でない）で画面に及ぶ直しが要る手戻り
+ScreenKinds == {"none", "plain", "wireNo", "fbReq", "fbModel", "fbScreen", "fbShared", "late"}
+ScreenReworks == {"screenAc", "designScreen", "wireQ", "decisionScreen"}
 Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
                      kind: {"feature", "featureDesign", "defect", "defectNeedsDesign"},
                      formal: {"none", "current", "design", "designCex"},
@@ -48,15 +59,26 @@ Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
                      external: {"none", "ok", "hypo", "late"},
                      evidence: BOOLEAN, tasks: BOOLEAN, expectChange: BOOLEAN,
                      rework: {"none", "reject", "reapprove", "audit", "acRewrite",
-                              "designDev"},
-                     ops: OpsKinds] :
-              rr.ops = "none" \/ (rr.formal = "none" /\ rr.rework \in {"none", "reject"})}
+                              "designDev"} \cup ScreenReworks,
+                     ops: OpsKinds, screen: ScreenKinds] :
+              /\ rr.ops = "none" \/ (rr.formal = "none" /\ rr.rework \in {"none", "reject"})
+              /\ rr.screen = "none" \/ (rr.survey \in {"none", "a"} /\ rr.formal = "none"
+                                        /\ rr.ops = "none" /\ rr.external \in {"none", "ok"}
+                                        /\ rr.kind \in {"feature", "featureDesign"}
+                                        /\ rr.spec \in {"none", "model"})
+              /\ rr.rework \in ScreenReworks => rr.screen \notin {"none", "late"}
+              /\ rr.rework \in {"designScreen", "decisionScreen"} => rr.kind = "featureDesign"
+              /\ rr.rework = "wireQ" => rr.screen \notin {"none", "plain", "late"}
+              /\ rr.screen = "late" => rr.kind = "featureDesign"}
 
 A               == r.survey \in {"a", "aDetours"}
 AorC            == r.survey /= "none"
 Detours         == r.survey \in {"aDetours", "cDetours"}
 IsDefect(rr)    == rr.kind \in {"defect", "defectNeedsDesign"}
-NeedDesign      == r.kind = "featureDesign"
+NeedDesign      == r.kind = "featureDesign" \/ h.needDS
+Screens         == r.screen /= "none" /\ (r.screen /= "late" \/ h.lateScreen)
+Wire            == r.screen \notin {"none", "plain", "late"}
+Feedback        == r.screen \in {"fbReq", "fbModel", "fbScreen", "fbShared"}
 FixNeedsDesign  == r.kind = "defectNeedsDesign"
 FormalCurrent   == r.formal = "current"
 FormalDesign    == r.formal \in {"design", "designCex"}
@@ -81,7 +103,11 @@ Init ==
             opsApproved |-> FALSE, fromOps |-> FALSE, ledgerAsked |-> FALSE,
             opsFixed |-> FALSE, opsDecided |-> FALSE, opsRejected |-> FALSE,
             interrupted |-> FALSE, savedPc |-> "none", resumed |-> FALSE,
-            apChanged |-> FALSE, humanChecked |-> FALSE]
+            apChanged |-> FALSE, humanChecked |-> FALSE,
+            screenOk |-> FALSE, fbDone |-> FALSE, fbPending |-> FALSE, needDS |-> FALSE,
+            screenAcDone |-> FALSE, designScreenDone |-> FALSE, dsPending |-> FALSE,
+            fromDesign |-> FALSE, wireQDone |-> FALSE,
+            lateScreen |-> FALSE, decDone |-> FALSE, decPending |-> FALSE]
 
 Go(s) == pc' = s /\ UNCHANGED << r, h >>
 GoH(s, h2) == pc' = s /\ h' = h2 /\ UNCHANGED r
@@ -121,12 +147,43 @@ Baseline == pc = "baseline" /\ GoH(DecideB(h), [h EXCEPT !.baseline = TRUE])
 \* req（要件を書く）。寄り道（primary-source・domain-model・req-ask）を済ませてから、
 \*    要件を書き終えて先へ。根拠にする規則に仮説があれば（抜き出した候補、推定を含む）
 \*    domain-model へ
+\*    画面への意見（fbPending）は、ここで確認事項の記録の行にして振り分ける。要件を書き終え、
+\*    画面が済んでいなければ（画面の契機があり、今の要件に追随して採られていない）screen へ
+AfterScreen == IF NeedDesign \/ h.switched THEN "design" ELSE "test-design"
+
 Requirements == pc = "req"
-    /\ IF NeedExt /\ ~h.extDone THEN Go("primary-source")
-       ELSE IF (Changes /\ ~h.modelDone) \/ h.hypo THEN Go("domain-model")
-       ELSE IF r.spec = "reqQuestion" /\ ~h.reqAsked THEN Go("req-ask")
-       ELSE GoH(IF NeedDesign \/ h.switched THEN "design" ELSE "test-design",
-                [h EXCEPT !.req = TRUE])
+    /\ LET h1 == [h EXCEPT !.fbPending = FALSE] IN
+       IF NeedExt /\ ~h.extDone THEN GoH("primary-source", h1)
+       ELSE IF (Changes /\ ~h.modelDone) \/ h.hypo THEN GoH("domain-model", h1)
+       ELSE IF r.spec = "reqQuestion" /\ ~h.reqAsked THEN GoH("req-ask", h1)
+       ELSE IF Screens /\ ~h.screenOk THEN GoH("screen", [h1 EXCEPT !.req = TRUE])
+       ELSE GoH(AfterScreen, [h1 EXCEPT !.req = TRUE])
+
+\* screen（画面を設計する。既存の画面を踏襲するなら、範囲の合意を含む）。
+\*    受入条件の案を返すなら req へ（1回まで）。人に見せたいなら wireframe、そうでなければ screen-ok へ
+ScreenDesign == pc = "screen"
+    /\ IF r.rework = "screenAc" /\ ~h.screenAcDone
+         THEN GoH("req", [h EXCEPT !.screenAcDone = TRUE])
+       ELSE Go(IF Wire THEN "wireframe" ELSE "screen-ok")
+
+\* wireframe（ワイヤーを作る）。画面の設計を変える案を返すなら screen へ（1回まで）
+WireframeMake == pc = "wireframe"
+    /\ IF r.rework = "wireQ" /\ ~h.wireQDone
+         THEN GoH("screen", [h EXCEPT !.wireQDone = TRUE])
+         ELSE Go("screen-ok")
+
+\* screen-ok（画面の設計を採る。人）。意見があれば、どれも req に戻して振り分ける（1回まで）。
+\*    意見がモデルなら規則が未確定に戻り、部品やトークンの共通の定義ならデザインシステムの設計が要る。
+\*    設計から戻って直した画面なら design へ、そうでなければ req の後と同じ分かれ方
+ScreenApprove == pc = "screen-ok"
+    /\ IF Feedback /\ ~h.fbDone
+         THEN GoH("req", [h EXCEPT !.fbDone = TRUE, !.fbPending = TRUE, !.screenOk = FALSE,
+                                   !.hypo = h.hypo \/ r.screen = "fbModel",
+                                   !.hypoResolved = h.hypoResolved /\ r.screen /= "fbModel",
+                                   !.needDS = h.needDS \/ r.screen = "fbShared"])
+       ELSE IF h.fromDesign
+         THEN GoH("design", [h EXCEPT !.screenOk = TRUE, !.fromDesign = FALSE, !.dsPending = FALSE])
+       ELSE GoH(AfterScreen, [h EXCEPT !.screenOk = TRUE])
 
 \* primary-source（一次情報を調べる）。推定した規則は仮説
 Primary == pc = "primary-source"
@@ -152,9 +209,28 @@ Confirm == pc = "req-ask"
 \* design（設計する）。要件（完了条件の一覧）が無いと設計しない（前提条件）。
 \*     設計で新しく外部に依存すると分かったら、req に戻って primary-source を通す
 DesignToExt == pc = "design" /\ h.req /\ r.external = "late" /\ ~h.extDone
-    /\ GoH("req", [h EXCEPT !.designing = TRUE])
+    /\ GoH("req", [h EXCEPT !.designing = TRUE, !.screenOk = FALSE])
+
+\* 認可・エラー・デザインシステムの判断で画面が変わるなら、screen・screen-ok を通ってから
+\*    design に戻り、その後に design-ok へ（1回まで）
+\*    design-ok の決定（decPending）で画面に及ぶ直しになったときも、同じく screen を通る
+ToScreenFromDesign == Screens /\ ((r.rework = "designScreen" /\ ~h.designScreenDone) \/ h.decPending)
+
+DesignToScreen == pc = "design" /\ h.req /\ ToScreenFromDesign
+    /\ ~(r.external = "late" /\ ~h.extDone)
+    /\ GoH("screen", [h EXCEPT !.designScreenDone = h.designScreenDone \/ r.rework = "designScreen",
+                               !.decPending = FALSE, !.screenOk = FALSE,
+                               !.fromDesign = TRUE, !.dsPending = TRUE, !.designing = TRUE])
+
+\* 初めは画面の契機が無く、設計で画面が要ると分かったら、req で適用する画面に書き足して
+\*    契機を立て、screen を通る
+DesignToReqScreen == pc = "design" /\ h.req /\ r.screen = "late" /\ ~h.lateScreen
+    /\ ~(r.external = "late" /\ ~h.extDone)
+    /\ GoH("req", [h EXCEPT !.lateScreen = TRUE, !.screenOk = FALSE, !.designing = TRUE])
 
 Design == pc = "design" /\ h.req /\ ~(r.external = "late" /\ ~h.extDone)
+    /\ ~ToScreenFromDesign
+    /\ ~(r.screen = "late" /\ ~h.lateScreen)
     /\ GoH(IF FormalDesign /\ ~h.formalDesignDone THEN "formal-check" ELSE "design-ok",
            [h EXCEPT !.designing = TRUE, !.pending = r.pending])
 
@@ -162,6 +238,8 @@ Design == pc = "design" /\ h.req /\ ~(r.external = "late" /\ ~h.extDone)
 Approve == pc = "design-ok"
     /\ IF Cex /\ h.formalDesignDone /\ ~h.cexHandled
          THEN GoH("design", [h EXCEPT !.pending = FALSE, !.cexHandled = TRUE])
+       ELSE IF r.rework = "decisionScreen" /\ ~h.decDone
+         THEN GoH("design", [h EXCEPT !.pending = FALSE, !.decDone = TRUE, !.decPending = TRUE])
          ELSE GoH("sizing-after-design", [h EXCEPT !.pending = FALSE])
 
 \* sizing-after-design（規模を判定し直す）
@@ -171,7 +249,7 @@ SizingAfterDesign == pc = "sizing-after-design" /\ Go("test-design")
 \*     作業に分ける条件に当たれば tasks
 TestDesign == pc = "test-design"
     /\ IF r.rework = "acRewrite" /\ ~h.acRewritten
-         THEN GoH("req", [h EXCEPT !.acRewritten = TRUE])
+         THEN GoH("req", [h EXCEPT !.acRewritten = TRUE, !.screenOk = FALSE])
          ELSE Go(IF r.tasks THEN "tasks" ELSE "implement")
 
 \* tasks（作業に分ける。是正から来たら fix へ、改修から来たら implement へ）
@@ -193,7 +271,8 @@ Implement == pc = "implement"
 \*   直す方針が設計を要る → 今の版: B を機能の変更に切り替えて req へ（旧: 設計 design へ直接）
 FixToDesign == pc = "fix" /\ FixNeedsDesign /\ ~h.switched
     /\ GoH(IF Old THEN "design" ELSE "req",
-           [h EXCEPT !.switched = TRUE, !.defect = IF Old THEN h.defect ELSE FALSE])
+           [h EXCEPT !.switched = TRUE, !.defect = IF Old THEN h.defect ELSE FALSE,
+                     !.screenOk = FALSE])
 
 \*   作業に分ける条件に当たる → tasks で分けてから作業ごとに fix（旧: この道が無い）
 FixSplit == pc = "fix" /\ ~(FixNeedsDesign /\ ~h.switched)
@@ -211,7 +290,7 @@ UpdateBaseline == pc = "baseline-update" /\ Go(IF Old /\ r.evidence THEN "eviden
 \* sizing-after-implement（規模を判定し直す。実際の差分で）。承認し直しが要れば req へ
 SizingAfterImplement == pc = "sizing-after-implement"
     /\ IF r.rework = "reapprove" /\ ~h.reapproved
-         THEN GoH("req", [h EXCEPT !.sized = TRUE, !.reapproved = TRUE])
+         THEN GoH("req", [h EXCEPT !.sized = TRUE, !.reapproved = TRUE, !.screenOk = FALSE])
          ELSE GoH(IF Ops THEN "ops-artifacts" ELSE IF ~Old /\ r.evidence THEN "evidence" ELSE "review-round",
                   [h EXCEPT !.sized = TRUE])
 
@@ -224,7 +303,7 @@ OpsMake == pc = "ops-artifacts"
        ELSE IF r.ops = "fix" /\ ~h.opsFixed
          THEN GoH(IF h.defect THEN "fix" ELSE "implement", [h EXCEPT !.opsFixed = TRUE])
        ELSE IF r.ops = "decision" /\ ~h.opsDecided
-         THEN GoH("req", [h EXCEPT !.opsDecided = TRUE, !.defect = FALSE])
+         THEN GoH("req", [h EXCEPT !.opsDecided = TRUE, !.defect = FALSE, !.screenOk = FALSE])
        ELSE Go("ops-ok")
 
 \* ops-ok（運用の成果物を承認する。人）。承認しないなら ops-artifacts で直す（1回まで）
@@ -265,7 +344,9 @@ Resume == pc = "R" /\ \E ch \in BOOLEAN :
 ResumeHuman == pc = "HR" /\ GoH(h.savedPc, [h EXCEPT !.humanChecked = TRUE])
 
 Next == Intake \/ Sizing \/ Survey \/ Formal \/ DataAudit \/ SurveyAsk \/ Baseline
-        \/ Requirements \/ Primary \/ Model \/ Confirm \/ DesignToExt \/ Design \/ Approve
+        \/ Requirements \/ Primary \/ Model \/ Confirm
+        \/ ScreenDesign \/ WireframeMake \/ ScreenApprove
+        \/ DesignToExt \/ DesignToScreen \/ DesignToReqScreen \/ Design \/ Approve
         \/ SizingAfterDesign \/ TestDesign \/ Breakdown \/ Implement \/ FixToDesign
         \/ FixSplit \/ FixCode \/ UpdateBaseline \/ SizingAfterImplement \/ OpsMake
         \/ OpsApprove \/ Evidence \/ Review
@@ -283,8 +364,23 @@ BaselineBeforeCode == (pc \in {"fix", "implement"} /\ A) => h.baseline
 \* 設計の判断に人の決定待ちが残っている作業は、始めない
 NoImplementWithPending == pc = "implement" => ~h.pending
 
-\* 仮説・未確定の業務規則を残したまま、設計や試験の設計へ進まない
-NoHypothesisIntoDesign == pc \in {"design", "test-design"} => ~h.hypo
+\* 仮説・未確定の業務規則を残したまま、画面、設計、試験の設計へ進まない
+NoHypothesisIntoDesign == pc \in {"screen", "wireframe", "screen-ok", "design",
+                                  "test-design"} => ~h.hypo
+
+\* 画面の工程は、要件を書き終えた後にだけ入る
+ScreenAfterRequirements == pc \in {"screen", "wireframe", "screen-ok"} => h.req
+
+\* 画面の契機があれば、設計と試験の設計の前に、今の要件に追随して採られた画面の設計がある
+ScreenBeforeDownstream == (pc \in {"design", "test-design"} /\ Screens /\ h.req) => h.screenOk
+
+\* 振り分けの済んでいない画面への意見があるうちは、要件の工程の外へ出ない
+FeedbackRoutedFirst == h.fbPending => pc = "req"
+
+\* 設計で画面が古くなったら（設計の判断、design-ok の決定、設計で初めて画面が要ると分かった）、
+\* 設計の承認の前に、画面を直して採り直す
+ScreenRevisitedAfterDesignChange ==
+    pc = "design-ok" => (~h.dsPending /\ ~h.decPending /\ (r.screen = "late" => h.lateScreen))
 
 \* 規則が変わるなら、モデルを直してから設計や試験の設計へ進む
 ModelBeforeDesign == (pc \in {"design", "test-design"} /\ Changes /\ h.req) => h.modelDone

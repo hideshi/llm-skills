@@ -83,7 +83,14 @@ flowchart TD
     PrimarySource["primary-source<br/>一次情報を調べる<br/>dev-external-domain-survey<br/>dev-statutory-grounding"]
     DomainModel["domain-model<br/>モデルを直す<br/>dev-domain-model"]
     ReqAsk["req-ask<br/>人に確かめる（人）<br/>仮説・未確定の規則"]
-    Design["design<br/>設計する（要る観点だけ）<br/>dev-responsibility-design<br/>dev-authorization-design<br/>dev-api-contract<br/>dev-error-design<br/>dev-data-design<br/>dev-async-execution-design<br/>dev-cross-system-design<br/>dev-logging-design<br/>dev-entry-safety-design<br/>dev-agent-contract"]
+    JScreen{"画面が済んでいるか"}
+    Screen["screen<br/>画面を設計する<br/>dev-screen-design<br/>（踏襲する範囲を人と合意）"]
+    JWire{"人に画面を見せて<br/>確かめたいか"}
+    Wireframe["wireframe<br/>ワイヤーを作る<br/>dev-wireframe"]
+    ScreenOk(["screen-ok<br/>画面の設計を採る（人）"])
+    JScreenOk{"意見があるか・採るか"}
+    JReqDesign{"設計の観点が要るか"}
+    Design["design<br/>設計する（要る観点だけ）<br/>dev-responsibility-design<br/>dev-authorization-design<br/>dev-api-contract<br/>dev-error-design<br/>dev-data-design<br/>dev-async-execution-design<br/>dev-cross-system-design<br/>dev-logging-design<br/>dev-entry-safety-design<br/>dev-agent-contract<br/>dev-design-system"]
     DesignOk["design-ok<br/>設計を承認する（人）<br/>決定待ちを決め、担当の案を採る"]
     SizingAfterDesign["sizing-after-design<br/>規模を判定し直す<br/>dev-change-sizing"]
     Fix["fix<br/>不具合を是正する<br/>dev-defect-fix"]
@@ -135,13 +142,27 @@ flowchart TD
     ReqAsk -->|"業務規則の回答: 一覧に反映する"| DomainModel
     ReqAsk -->|"要件・画面の回答"| Req
     ReqAsk -.->|"台帳の回答"| OpsArtifacts
-    Design -.->|"新しく外部に依存する・完了条件に無い業務の決定が要る"| Req
-    Req -->|"完了条件の一覧<br/>設計の観点が要る"| Design
-    Req -->|"完了条件の一覧<br/>設計は要らない"| TestDesign
+    Design -.->|"新しく外部に依存する・完了条件に無い業務の決定が要る・画面の契機が無いのに画面が要る"| Req
+    Design -.->|"画面の契機があり、認可・エラー・デザインシステムで画面が変わる"| Screen
+    Req -->|"完了条件の一覧"| JScreen
+    JScreen -->|"済んでいない"| Screen
+    JScreen -->|"済んでいる"| JReqDesign
+    Screen -.->|"受入条件の案・確認事項の候補・入力情報か判断の欠け"| Req
+    Screen -->|"画面の設計"| JWire
+    JWire -->|"はい"| Wireframe
+    JWire -->|"いいえ"| ScreenOk
+    Wireframe -->|"ワイヤー"| ScreenOk
+    Wireframe -.->|"画面の設計を変える案"| Screen
+    ScreenOk --> JScreenOk
+    JScreenOk -.->|"意見がある・採らない: 確認事項の記録で振り分ける"| Req
+    JScreenOk -->|"採った（設計から戻った画面。先に見る）"| Design
+    JScreenOk -->|"採った: 採った版の所在"| JReqDesign
+    JReqDesign -->|"要る"| Design
+    JReqDesign -->|"要らない"| TestDesign
     Design -->|"設計の判断"| DesignOk
     DesignOk -->|"設計の判断（決定済み）"| SizingAfterDesign
     SizingAfterDesign -->|"規模の判定"| TestDesign
-    DesignOk -.->|"反例を受けて設計を直す"| Design
+    DesignOk -.->|"反例・決定待ちの決定・人の直しの求めで設計を直す"| Design
     TestDesign -->|"テストケース表"| JTasks
     TestDesign -.->|"受入条件の書き直しの案を採る"| Req
     JTasks -->|"当たる"| Tasks
@@ -195,7 +216,7 @@ flowchart TD
 | C. 仕様書が無い・信用できない、または原因の切り分けに今の動きの把握が要るか | 当たれば `survey`。仕様書が無いときは、人が確かめた問題台帳と現状の振る舞いの記録を、その後の工程の原典の参照にする |
 | 作業に分ける条件 | 通常の道、B が両方、設計の判断に波及や順序の制約がある、同じ形の箇所をまとめて直す承認がある、並べて進める。どれかに当たれば `tasks` |
 
-`formal-check`・`data-audit`・`survey-ask` は `survey` から寄り道して `survey` に戻り、`primary-source`・`domain-model`・`req-ask` は `req` から寄り道して `req` に戻る。`design` は、規模の判定が要るとした観点の単位だけを、責務の配置 → 認可 → システム間の連携 → データ → エラー → 非同期の実行 → 呼ばれる契約 → エージェント向けの契約 の順に使う。是正（`fix`）の方針が契約・エラー・データ・非同期の実行・システム間の連携を変えると分かったら、是正を止め、B を機能の変更に切り替えて `req` へ進む。是正で作業に分ける条件に当たったら、`tasks` で分けてから作業ごとに `fix` を進める。モデルの検査（`formal-check`）は、今の実装を対象なら `survey` の中で、`design` の設計を対象なら `design` の後に行い、反例の扱いは `design-ok` で人が決める。`test-design` の `dev-acceptance-e2e` は、画面をまたぐ流れが変わるか、既存の E2E がある処理の状態や導線を変えるときに使う。
+`formal-check`・`data-audit`・`survey-ask` は `survey` から寄り道して `survey` に戻り、`primary-source`・`domain-model`・`req-ask` は `req` から寄り道して `req` に戻る。`screen`・`wireframe`・`screen-ok` は本線で、要件を書き終え、仕様化を終えるときの検査を通した後にだけ入り、`screen` の後は必ず `screen-ok` を通る。既存の画面を踏襲するときは、`screen` で踏襲する範囲の表を人と合意してから差分だけを設計する。`screen-ok` の意見はどれも `req` で確認事項の記録の行にして振り分ける。`design` は、規模の判定が要るとした観点の単位だけを、責務の配置 → 認可 → システム間の連携 → データ → エラー → デザインシステム → 非同期の実行 → ログ → 呼ばれる契約 → 応答と入口の安全 → エージェント向けの契約 の順に使う。是正（`fix`）の方針が契約・エラー・データ・非同期の実行・システム間の連携を変えると分かったら、是正を止め、B を機能の変更に切り替えて `req` へ進む。是正で作業に分ける条件に当たったら、`tasks` で分けてから作業ごとに `fix` を進める。モデルの検査（`formal-check`）は、今の実装を対象なら `survey` の中で、`design` の設計を対象なら `design` の後に行い、反例の扱いは `design-ok` で人が決める。`test-design` の `dev-acceptance-e2e` は、画面をまたぐ流れが変わるか、既存の E2E がある処理の状態や導線を変えるときに使う。
 
 決まり:
 
@@ -218,6 +239,9 @@ flowchart TD
 | 「既存システムに新しい機能を足したい」 | `intake` → `sizing` → `req` → `design`（要るとき）→ `test-design` → `tasks`（条件に当たれば）→ `implement`（A に当たれば `survey`・`baseline` を先に） |
 | 「この変更の要件を書いて」「要望との差を要件にして」 | `req` |
 | 「既存のコードから業務規則を洗い出して」 | `survey`（業務規則の抽出） |
+| 「今の画面を踏襲して差分だけ設計して」「この画面の流れを変えたい」 | `intake` → `sizing` → `req` → `screen`（今の画面の記録が無ければ `survey` を先に） |
+| 「ワイヤーを作って」「画面のたたき台を見せられる形にして」 | `wireframe`（画面の設計が無ければ `screen` から） |
+| 「既存のデザインシステムに合わせて」「この部品の仕様を決めて」 | `design`（デザインシステム） |
 | 「既存のデータが規則を守っているか調べて」 | `data-audit` |
 | 「この権限を変えたい」「組織をまたいでデータが見えないようにしたい」 | `intake` → `sizing` → `survey` → `req` → `design`（認可） |
 | 「既存のアプリに MCP サーバーを組み込みたい」 | `intake` → `sizing` → `req` → `design`（認可とエージェント向けの契約） |
@@ -243,10 +267,16 @@ flowchart TD
     PrimarySource["primary-source<br/>一次情報を調べる<br/>dev-external-domain-survey<br/>dev-statutory-grounding"]
     DomainModel["domain-model<br/>モデルを作る<br/>dev-domain-model"]
     ReqAsk["req-ask<br/>人に確かめる（人）<br/>仮説・未確定の規則"]
+    JScreen{"画面が済んでいるか"}
+    Screen["screen<br/>画面を設計する<br/>dev-screen-design"]
+    JWire{"人に画面を見せて<br/>確かめたいか"}
+    Wireframe["wireframe<br/>ワイヤーを作る<br/>dev-wireframe"]
+    ScreenOk(["screen-ok<br/>画面の設計を採る（人）"])
+    JScreenOk{"意見があるか・採るか"}
     JAcceptance{"画面をまたぐ流れか<br/>判定できるか疑わしい"}
     Acceptance["acceptance<br/>受入条件を確かめる<br/>dev-acceptance-e2e"]
     JDesign{"設計の観点が要るか"}
-    Design["design<br/>設計する（要る観点だけ）<br/>dev-responsibility-design<br/>dev-authorization-design<br/>dev-api-contract<br/>dev-error-design<br/>dev-data-design<br/>dev-async-execution-design<br/>dev-cross-system-design<br/>dev-logging-design<br/>dev-entry-safety-design<br/>dev-agent-contract"]
+    Design["design<br/>設計する（要る観点だけ）<br/>dev-responsibility-design<br/>dev-authorization-design<br/>dev-api-contract<br/>dev-error-design<br/>dev-data-design<br/>dev-async-execution-design<br/>dev-cross-system-design<br/>dev-logging-design<br/>dev-entry-safety-design<br/>dev-agent-contract<br/>dev-design-system"]
     FormalCheck["formal-check<br/>モデルで検査する<br/>dev-formal-model-check<br/>（人が依頼したとき）"]
     DesignOk["design-ok<br/>設計を承認する（人）<br/>決定待ちを決め、担当の案を採る"]
     SizingAfterDesign["sizing-after-design<br/>規模を判定し直す<br/>dev-change-sizing"]
@@ -280,12 +310,25 @@ flowchart TD
     ReqAsk -->|"業務規則の回答: 一覧に反映する"| DomainModel
     ReqAsk -->|"要件・画面の回答"| Req
     ReqAsk -.->|"台帳の回答"| OpsArtifacts
-    Req -->|"要件を書き終えた: 完了条件の一覧"| JAcceptance
+    Req -->|"要件を書き終えた: 完了条件の一覧"| JScreen
+    JScreen -->|"済んでいない"| Screen
+    JScreen -->|"済んでいる"| JAcceptance
+    Screen -.->|"受入条件の案・確認事項の候補・入力情報か判断の欠け"| Req
+    Screen -->|"画面の設計"| JWire
+    JWire -->|"はい"| Wireframe
+    JWire -->|"いいえ"| ScreenOk
+    Wireframe -->|"ワイヤー"| ScreenOk
+    Wireframe -.->|"画面の設計を変える案"| Screen
+    ScreenOk --> JScreenOk
+    JScreenOk -.->|"意見がある・採らない: 確認事項の記録で振り分ける"| Req
+    JScreenOk -->|"採った（設計から戻った画面。先に見る）"| Design
+    JScreenOk -->|"採った: 採った版の所在"| JAcceptance
     JAcceptance -->|"はい"| Acceptance
     JAcceptance -->|"いいえ"| JDesign
     Acceptance -->|"テストケース表（E2E）"| JDesign
     Acceptance -.->|"受入条件の書き直しの案を採る"| Req
-    Design -.->|"新しく外部に依存する・完了条件に無い業務の決定が要る"| Req
+    Design -.->|"新しく外部に依存する・完了条件に無い業務の決定が要る・画面の契機が無いのに画面が要る"| Req
+    Design -.->|"画面の契機があり、認可・エラー・デザインシステムで画面が変わる"| Screen
     JDesign -->|"要る"| Design
     JDesign -->|"要らない"| TestCases
     Design -->|"設計の判断"| DesignOk
@@ -293,7 +336,7 @@ flowchart TD
     FormalCheck -->|"検証の記録・問題台帳"| DesignOk
     DesignOk -->|"設計の判断（決定済み）"| SizingAfterDesign
     SizingAfterDesign -->|"規模の判定"| TestCases
-    DesignOk -.->|"反例を受けて設計を直す"| Design
+    DesignOk -.->|"反例・決定待ちの決定・人の直しの求めで設計を直す"| Design
     TestCases -->|"テストケース表・追跡表"| JTasks
     JTasks -->|"はい"| Tasks
     JTasks -->|"いいえ（軽い道）"| Implement
@@ -331,7 +374,8 @@ flowchart TD
 
 - 完了条件の一覧には、項目ごとの識別子を書き、道はどの規模の判定に従うかを指す（道の正本は最新の規模の判定）。
 - `primary-source`・`domain-model`・`req-ask` は `req` から寄り道して `req` に戻る。業務規則が変わるときは、モデルを先に作り（`domain-model`）、要件はそれを根拠に書く。仮説・未確定の業務規則（一次情報から推定したものを含む）を要件と設計の根拠にせず、`domain-model`・`req-ask` で確定させる。業務規則の回答は、どの結果でも `domain-model` で一覧に反映する。`req` を終える前に型の一覧の「仕様化を終えるときの検査」を、`design` を終える前に「設計を終えるときの検査」を通す。
-- `design` の単位は、要るものを 責務の配置 → 認可 → システム間の連携 → データ → エラー → 非同期の実行 → 呼ばれる契約 → エージェント向けの契約 の順に使う。後の単位が前の判断の前提を変えたら、前の判断を直して承認の状態を戻す。
+- `design` の単位は、要るものを 責務の配置 → 認可 → システム間の連携 → データ → エラー → デザインシステム → 非同期の実行 → ログ → 呼ばれる契約 → 応答と入口の安全 → エージェント向けの契約 の順に使う。後の単位が前の判断の前提を変えたら、前の判断を直して承認の状態を戻す。
+- 画面の工程（`screen`・`wireframe`・`screen-ok`）には、要件を書き終え、仕様化を終えるときの検査を通した後にだけ入る。`screen` の後は必ず `screen-ok` を通る。`screen-ok` の意見はどれも `req` で確認事項の記録の行にして振り分け、画面やワイヤーだけで直さない。採った版の所在を、原典の参照として下流に渡す。
 - 設計の判断に人の決定待ちが残っている作業は始めない。モデルの検査は人が依頼するまで始めない。反例の扱いは `design-ok` で人が決める。
 - 道が軽い道から通常の道に変わったら（`sizing-after-design`、作業に分けた後、軽い道の実装中のどれでも）、実装を止めて `design` と `tasks` を通す。
 - `sizing-after-implement` で完了条件の承認し直しが要るとなったら、実装を止めて `req` に戻る。道が変わったのに作業の一覧が無い、要る観点に設計の判断が無い、と出たら `design` か `tasks` に戻る。
@@ -348,6 +392,9 @@ flowchart TD
 | 「要望から要件を起こして」「受入条件を書いて」 | `req` |
 | 「ドメインモデルを作って」「業務の用語と規則を整理して」 | `domain-model` |
 | 「この外部 API の仕様を調べて」「この計算が法令どおりか確かめて」 | `primary-source` |
+| 「画面設計をして」「画面一覧を作って」「画面遷移を決めて」 | `screen`（完了条件の一覧が無ければ `sizing` から） |
+| 「ワイヤーを作って」「画面のたたき台を見せられる形にして」 | `wireframe`（画面の設計が無ければ `screen` から） |
+| 「デザインシステムを作って」「トークンを整理して」「この部品の仕様を決めて」 | `design`（デザインシステム） |
 | 「タスクに分けて」「作業計画を立てて」 | `tasks`（テストケース表が無く通常の道なら `test-cases` を先に） |
 | 「この機能のテストを洗い出して」 | `test-cases` |
 | 「テストを先に書いて実装して」 | `implement` |
@@ -626,7 +673,9 @@ flowchart TD
 | 単位 | 必須の入力 | 条件付き・任意の入力 | 出力 |
 |---|---|---|---|
 | `dev-change-sizing` | — | 改修の範囲（既存を変えるとき）、完了条件の一覧、原典の参照、作業の一覧、設計の判断、変更の事実（終わる時） | 規模の判定 |
-| `dev-requirements` | 原典の参照 | ドメインモデル、業務規則の一覧、一次情報の記録（公的な規則や外部の仕様が基準のとき）、現状の振る舞いの記録（既存を変えるとき）、問題台帳、規模の判定、確認事項の記録、完了条件の一覧（直すとき・受けるとき） | 完了条件の一覧、確認事項の記録、問題台帳 |
+| `dev-requirements` | 原典の参照 | ドメインモデル、業務規則の一覧、一次情報の記録（公的な規則や外部の仕様が基準のとき）、現状の振る舞いの記録（既存を変えるとき）、問題台帳、規模の判定、確認事項の記録、完了条件の一覧（直すとき・受けるとき）、画面の設計（返された案を採否するとき） | 完了条件の一覧、確認事項の記録、問題台帳 |
+| `dev-screen-design` | 完了条件の一覧 | 原典の参照、ドメインモデル、業務規則の一覧、設計の判断（認可・エラー・デザインシステムの判断があるとき）、現状の振る舞いの記録（既存の画面を踏襲するとき）、確認事項の記録、画面の設計（直すとき） | 画面の設計 |
+| `dev-wireframe` | 画面の設計 | 設計の判断、原典の参照 | ワイヤー |
 | `dev-domain-model` | 原典の参照 | 規模の判定、一次情報の記録、現状の振る舞いの記録（既存を変えるとき）、業務規則の一覧、確認事項の記録 | ドメインモデル、業務規則の一覧、確認事項の記録、問題台帳 |
 | `dev-rule-extraction` | 改修の範囲 | 業務規則の一覧、原典の参照 | 業務規則の一覧、問題台帳、検証の記録 |
 | `dev-code-search` | — | 改修の範囲、ドメインモデル、原典の参照 | 現状の振る舞いの記録 |
@@ -638,6 +687,7 @@ flowchart TD
 | `dev-api-contract` | 完了条件の一覧 | 原典の参照、設計の判断 | 設計の判断 |
 | `dev-agent-contract` | 完了条件の一覧 | 原典の参照、設計の判断、一次情報の記録、現状の振る舞いの記録（既にある道具を変えるとき） | 設計の判断 |
 | `dev-error-design` | 完了条件の一覧 | 原典の参照、設計の判断、業務規則の一覧 | 設計の判断 |
+| `dev-design-system` | — | 原典の参照、完了条件の一覧、画面の設計、設計の判断 | 設計の判断 |
 | `dev-logging-design` | 完了条件の一覧 | 原典の参照、設計の判断、現状の振る舞いの記録（既存の処理のログを変えるとき） | 設計の判断 |
 | `dev-entry-safety-design` | 完了条件の一覧 | 原典の参照、設計の判断、現状の振る舞いの記録（既存の入口や応答の設定を変えるとき） | 設計の判断 |
 | `dev-data-design` | 完了条件の一覧、原典の参照 | 現状の振る舞いの記録（既存の表を変えるとき）、業務規則の一覧、問題台帳（既存のデータの監査の結果）、ドメインモデル、設計の判断 | 設計の判断、検証の記録 |
@@ -647,7 +697,7 @@ flowchart TD
 | `dev-task-breakdown` | 完了条件の一覧 | テストケース表（通常の道では必須）、設計の判断、原典の参照、問題台帳、回帰の基準、是正の対応表、方針外の課題の記録、作業の一覧 | 作業の一覧、追跡表 |
 | `dev-review-brief` | 変更の事実、原典の参照 | 検証の記録、レビュー結果（再依頼のとき） | レビュー依頼文 |
 | `dev-review-conduct` | レビュー依頼文、または変更の事実と原典の参照 | — | レビュー結果、方針外の課題の記録 |
-| `dev-completion-audit` | 完了の主張、完了条件の一覧、検証の記録 | 追跡表、作業の一覧、テストケース表、レビュー結果、方針外の課題の記録、設計の判断、規模の判定、受入の証拠、業務規則の一覧、ドメインモデル | 作業状態の控え、完了判定 |
+| `dev-completion-audit` | 完了の主張、完了条件の一覧、検証の記録 | 追跡表、作業の一覧、テストケース表、レビュー結果、方針外の課題の記録、設計の判断、規模の判定、受入の証拠、業務規則の一覧、ドメインモデル、画面の設計 | 作業状態の控え、完了判定 |
 | `dev-work-continuity` | 再開するとき: 引継ぎの記録、作業状態の控え／委任の結果を統合するとき: 完了の主張 | 作業の一覧、完了条件の一覧、設計の判断、確認事項の記録、問題台帳、変更の事実、検証の記録、レビュー結果、規模の判定、方針外の課題の記録、原典の参照、委任の依頼文 | 引継ぎの記録、作業状態の控え、委任の依頼文 |
 | `dev-isolated-workspace` | 原典の参照、作業状態の控え | 作業の一覧、作業場所の台帳、検証の記録 | 作業場所の台帳、作業状態の控え、検証の記録 |
 | `dev-conflict-resolution` | 変更の事実、原典の参照、作業状態の控え | 設計の判断、業務規則の一覧、ドメインモデル、完了条件の一覧 | 統合の判断表、変更の事実、検証の記録 |
@@ -681,7 +731,9 @@ flowchart TD
     primary["dev-external-domain-survey<br/>dev-statutory-grounding<br/>一次情報を調べる"]
     model["dev-domain-model<br/>モデルを作る・直す"]
     req["dev-requirements<br/>要件を書く"]
-    design["設計の単位<br/>dev-responsibility-design<br/>dev-authorization-design<br/>dev-api-contract<br/>dev-error-design<br/>dev-data-design<br/>dev-async-execution-design<br/>dev-cross-system-design<br/>dev-logging-design<br/>dev-entry-safety-design<br/>dev-agent-contract"]
+    screen["dev-screen-design<br/>画面を設計する"]
+    wire["dev-wireframe<br/>ワイヤーを作る"]
+    design["設計の単位<br/>dev-responsibility-design<br/>dev-authorization-design<br/>dev-api-contract<br/>dev-error-design<br/>dev-data-design<br/>dev-async-execution-design<br/>dev-cross-system-design<br/>dev-logging-design<br/>dev-entry-safety-design<br/>dev-agent-contract<br/>dev-design-system"]
     formal["dev-formal-model-check<br/>モデルで検査する"]
     tcd["dev-test-case-design<br/>テストケースを導く"]
     e2e["dev-acceptance-e2e<br/>受入条件と E2E を設計する"]
@@ -718,6 +770,14 @@ flowchart TD
     model -->|"業務規則の一覧"| tcd
     model -->|"業務規則の一覧"| baseline
     req -->|"完了条件の一覧"| design
+    req -->|"完了条件の一覧"| screen
+    model -->|"業務規則の一覧・ドメインモデル"| screen
+    screen -.->|"画面の設計（受入条件の案・確認事項の候補）"| req
+    screen -->|"画面の設計"| wire
+    screen -->|"画面の設計"| design
+    design -.->|"設計の判断（認可・エラー・デザインシステム）"| screen
+    design -->|"設計の判断（デザインシステム）"| wire
+    screen -->|"画面の設計"| audit
     req -->|"完了条件の一覧"| tcd
     req -->|"完了条件の一覧"| e2e
     req -->|"完了条件の一覧"| plan

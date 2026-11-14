@@ -66,7 +66,7 @@ description: 画面の写し、録画、帳票などの受入の証拠が、人�
 
 録画の見やすさの作り方は [録画の見やすさ](references/recording-visibility.md) を見る。
 
-画面の操作と録画、動画の組み立てと検査を道具で行うときは、道具の資料（[Playwright](references/tools/playwright.md)、[ffmpeg](references/tools/ffmpeg.md)）があれば読む。無ければ公式の資料で確かめる。フォントの欠け、録画の縮小、切り出しや連結の崩れなど、成功で終わるのに証拠が壊れる落とし穴は、道具ごとに違う。
+画面の操作と録画、動画の組み立てと検査を道具で行うときは、道具の資料（[Playwright](references/tools/playwright.md)、[ffmpeg](references/tools/ffmpeg.md)、部品のカタログを証拠に使うなら [Storybook](references/tools/storybook.md)）があれば読む。無ければ公式の資料で確かめる。フォントの欠け、録画の縮小、切り出しや連結の崩れなど、成功で終わるのに証拠が壊れる落とし穴は、道具ごとに違う。
 
 ### 5. 確定する
 

@@ -106,6 +106,26 @@
 | R7 | 「この計算が法令どおりか確かめて」 | 消費税の端数処理 | `dev-statutory-grounding` | `primary-source`（新規開発・既存の改修とも） |
 | R8 | 「受入条件を書いて」 | 要件の文書がある | `dev-requirements` か `dev-acceptance-e2e`（取り合いの記録） | `req` か `dev-profile-new-feature` の工程 `acceptance` |
 
+## 画面の単位（`dev-profile-new-feature` と `dev-profile-existing-system` の工程。ほかのプロファイルの工程は所属を書く。単位が直接選ばれてもよい）
+
+| ID | 依頼の例 | 状況 | 期待するスキル | 期待する工程 |
+|---|---|---|---|---|
+| U1 | 「この要件の画面一覧を作って」 | 要件と受入条件の文書がある | `dev-screen-design` | `screen` |
+| U2 | 「関係者に見せたいので、ワイヤーを作って」 | 画面の設計がある | `dev-wireframe` | `wireframe` |
+| U3 | 「トークンを整理して」 | 色や余白の値が画面ごとにばらばら | `dev-design-system` | `design` |
+| U4 | 「部品のカタログを仕様と照らして」 | 部品の仕様の文書とカタログがある | `dev-design-system` | `design` |
+| U5 | 「画面遷移を決めて」 | 要件の文書がある | `dev-screen-design`（受入の試験の単位に取られない） | `screen` |
+| U6 | 「このモックから要件を起こして」 | 取引先からモックの画像が届いた | `dev-requirements`（画面の設計やワイヤーに取られない） | `req` |
+| U7 | 「エラーメッセージを決めて」 | 要件の文書がある | `dev-error-design`（画面の設計に取られない） | `design` |
+| U8 | 「誰にどの画面を見せるか決めて」 | 管理者と一般の利用者がいる | `dev-authorization-design`（画面の設計に取られない） | `design` |
+| U9 | 「今の画面がどう動いているか調べて」 | 改修の前 | `dev-current-behavior-survey`（画面の設計に取られない） | `dev-profile-existing-system` の工程 `survey` |
+| U10 | 「ロゴを作って」 | 新しいサービス | `dev-design-system` は起動しない | — |
+| U11 | 「このボタンの部品の story を書いて」 | 部品の仕様の文書がある | `dev-design-system`・`dev-wireframe`・`dev-screen-design` は起動しない（実装。テストを先に書く単位は可） | — |
+| U12 | 「この画面を実装して」 | 画面の設計が人に採られている | `dev-wireframe`・`dev-screen-design` は起動しない | — |
+| U13 | 「このデモ動画を確認して」 | 受入の証拠の録画がある | `dev-evidence-check`（ワイヤーに取られない） | `evidence` |
+
+「アクセシビリティを確認して」（実装した画面の点検）の起動の先は、まだ決めていない。デザインシステムの単位の使わない場面に入れてあり、受入の証拠か完了前の監査に寄せるかは、使ってみてから決める。
+
 ## 作業の制御の単位（`dev-profile-existing-system` の工程。中断と再開の工程は所属を書く。単位が直接選ばれてもよい）
 
 | ID | 依頼の例 | 状況 | 期待するスキル | 期待する工程 |
@@ -225,3 +245,4 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 | 2026-11-13 | Claude Code（Sonnet 5.5）、独立レビュー（P-294・P-295）の反映と V8・V9 の禁止対象への `dev-profile-version-control` 追加後（V1〜V11 と C5・C6・D7・D26、各2回、計30回） | 30/30（V1〜V8・V10・V11・D7・D26・C6 は直接 2/2、C5 は直接 1・経由 1、V9 は不使用 2/2） | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5）、工程の識別子への置き換えと、`dev-history-recovery` の description の言い方（「破壊度に応じた」→「取り返せない操作への」）を変えた後（V3・V4・V6・V10、各1回、`tests/trigger` の隔離） | 4/4（どれも `dev-history-recovery` を直接選んだ） | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5）、運用と安全の群の起動の試験 O12〜O16 を足した後（O12〜O16、各1回、`tests/trigger` の隔離） | 5/5。O12（引き継いだシステムの現状の把握）はプロファイルを経て、O13（改修の前の今の仕様）は `dev-current-behavior-survey`、O14 は `dev-credential-catalog`、O15 は `dev-personal-info-ledger` を直接選んだ。O16（プライバシーポリシーは適法？）は台帳の単位を使わなかった | なし |
+| 2026-11-14 | Claude Code（Sonnet 5.5）、画面の群（3単位）を足し、新規開発と既存システムの改修の description に「画面の設計」を足した後。U1〜U13 を各2回（計26回）と、全件（開発作業の群 116件と Cloudflare の群 8件）を各1回、`tests/trigger` の隔離 | U1〜U13 は 26/26。U1・U5 は `dev-screen-design`、U2 は `dev-wireframe`、U3・U4 は `dev-design-system` を直接選んだ。対照（U6 モックから要件、U7 エラーメッセージ、U8 誰にどの画面を見せるか、U9 今の画面を調べて、U13 デモ動画）は、どれも期待する単位を直接選び、画面の単位に取られた回は無かった。U10〜U12 は禁じた単位を使わなかった。全件では D32（外部の CDN のスクリプトを読み込んで大丈夫？）だけが外れた（スキルを使わずに要件の文書を読み始めた）。D32 を3回流し直すと 2/3 で、外れた1回も同じ外れ方だった。画面の単位を選んだ回は無い | なし。D32 は前の全件の記録に外れが無いので、記録に留めて、全件を3回流すときに見る |

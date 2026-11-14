@@ -31,7 +31,7 @@ SKILL.md は150行前後を目安にし、詳しい手順は `references/` に�
 
 - 置き場は `references/tools/<道具>.md`。本文の手順には道具の名前を入れず、「道具の資料があれば読む。無ければ公式の資料で確かめる」と書いて、資料へのリンクを張る。
 - 中身は、本文の決まりを守るのに要る最小限にする（入れ方、動かし方、結果の読み方、落とし穴）。公式の手引きを写さない。
-- 資料ごとに、確かめた版、確かめた日、公式の資料へのリンクを書く。実際に動かして確かめたことと、資料で読んだだけのことを分けて書く。
+- 資料ごとに、確かめた版、確かめた日、公式の資料へのリンクを書く。実際に動かして確かめたこと（【実行】）と、資料で読んだだけのこと（【資料】）を分けて書く。実案件で起きたが、その版では確かめていないことは【経験】と書く。印の無い項は、資料の勧め（作り方の決まり）として読む。
 - 道具の版が変わって中身が違っていたら、資料を直し、確かめた版と日を更新する。
 - 道具ではなく、契約の形やプロトコル（HTTP、CLI、MCP など）に依存する具体は、`references/<形>.md` か、資料が複数なら `references/<形>/` に置く。本文の決まりは形に依存しない言い方で書き、形の資料はその読み替えだけを書く。
 
@@ -193,8 +193,8 @@ description: どんな目的で使うか。どの依頼の言い方で起動す�
 
 | プロファイル | 番号 → 識別子 |
 |---|---|
-| `dev-profile-new-feature` | 1 → `sizing`、2 → `req`、2a → `primary-source`、2b → `domain-model`、2c → `req-ask`、3 → `acceptance`、4 → `design`、4b → `formal-check`、5 → `design-ok`、5b → `sizing-after-design`、6 → `test-cases`、7 → `tasks`、8 → `implement`、9 → `sizing-after-implement`、9b → `ops-artifacts`、9c → `ops-ok`、10 → `evidence`、11 → `review-round`、12 → `audit`、13 → `final-ok` |
-| `dev-profile-existing-system` | 1 → `intake`、1b → `sizing`、2 → `survey`、2b → `formal-check`、2c → `data-audit`、3 → `survey-ask`、4 → `baseline`、5 → `req`、5a → `primary-source`、5b → `domain-model`、5c → `req-ask`、5d → `design`、5e → `design-ok`、5f → `sizing-after-design`、6a → `fix`、6b → `test-design`、6c → `tasks`、6d → `implement`、7 → `baseline-update`、7b → `sizing-after-implement`、7d → `ops-artifacts`、7e → `ops-ok`、7c → `evidence`、8 → `review-round`、9 → `audit`、10 → `final-ok` |
+| `dev-profile-new-feature` | 1 → `sizing`、2 → `req`、2a → `primary-source`、2b → `domain-model`、2c → `req-ask`、3 → `acceptance`、4 → `design`、4b → `formal-check`、5 → `design-ok`、5b → `sizing-after-design`、6 → `test-cases`、7 → `tasks`、8 → `implement`、9 → `sizing-after-implement`、9b → `ops-artifacts`、9c → `ops-ok`、10 → `evidence`、11 → `review-round`、12 → `audit`、13 → `final-ok`、— → `screen`、— → `wireframe`、— → `screen-ok` |
+| `dev-profile-existing-system` | 1 → `intake`、1b → `sizing`、2 → `survey`、2b → `formal-check`、2c → `data-audit`、3 → `survey-ask`、4 → `baseline`、5 → `req`、5a → `primary-source`、5b → `domain-model`、5c → `req-ask`、5d → `design`、5e → `design-ok`、5f → `sizing-after-design`、6a → `fix`、6b → `test-design`、6c → `tasks`、6d → `implement`、7 → `baseline-update`、7b → `sizing-after-implement`、7d → `ops-artifacts`、7e → `ops-ok`、7c → `evidence`、8 → `review-round`、9 → `audit`、10 → `final-ok`、— → `screen`、— → `wireframe`、— → `screen-ok` |
 | `dev-profile-review-cycle` | 0 → `evidence`、1 → `brief`、2 → `review`、3 → `rework`、4 → `re-review-round`、5 → `audit`、6 → `final-ok` |
 | `dev-profile-interrupt-resume` | 1 → `handoff`、2 → `receipt`、3 → `resume`、3b → `delegate-result`、4 → `resume-ask`、5 → `return` |
 | `dev-profile-version-control` | 1 → `workspace`、2 → `work`、3 → `integrate`、3b → `resolve`、3c → `contract-ask`、4 → `recover`、4b → `destructive-ok`、5 → `cleanup` |
