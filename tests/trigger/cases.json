@@ -1,0 +1,1363 @@
+{
+  "suites": [
+    {
+      "name": "dev",
+      "doc": "docs/dev-skills-trigger-cases.md",
+      "overlay": "fixtures/change",
+      "docOnly": [
+        "SA"
+      ],
+      "cases": [
+        {
+          "id": "A",
+          "prompt": "（いま自分でこの変更を作り終えたところ）この変更をレビューに出したい",
+          "accept": [
+            "dev-review-brief",
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ],
+          "note": "新しいセッションは自分が作ったと確かめられないので、独立レビューに進んでも合格"
+        },
+        {
+          "id": "B",
+          "prompt": "（いま自分でこの変更を作り終えたところ）レビューして",
+          "accept": [
+            "dev-review-brief",
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ],
+          "note": "A と同じ"
+        },
+        {
+          "id": "C",
+          "prompt": "レビューして\n\n---\nレビュー依頼: 別の人が作った変更です。対象は作業ツリーにある price.py の未コミットの変更（git diff で見られます）。要件は REQUIREMENTS.md の 1〜3。実行した検証: 手元で total を数件の入力で呼んで確かめた。未実施: 自動の試験。観点: 要件の各項目が満たされているか、失敗する入力が無いか。",
+          "accept": [
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ]
+        },
+        {
+          "id": "D",
+          "prompt": "（同僚が作った変更について）このPRを見て",
+          "accept": [
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ]
+        },
+        {
+          "id": "E",
+          "prompt": "（前回のレビュー結果を受けて）指摘を直したので再レビューして",
+          "accept": [
+            "dev-review-brief"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ]
+        },
+        {
+          "id": "F",
+          "prompt": "（実装とレビューが済んだ後）もう終わりでいい？人に見せてよい？",
+          "accept": [
+            "dev-completion-audit"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle",
+            "dev-profile-existing-system",
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "N",
+          "prompt": "（不具合の是正を終えたところ）直したのでレビューして",
+          "accept": [
+            "dev-review-brief",
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle",
+            "dev-profile-existing-system"
+          ],
+          "note": "A と同じ"
+        },
+        {
+          "id": "O",
+          "prompt": "（いま自分でこの変更を作り終えたところ）レビュー依頼文を書いて",
+          "accept": [
+            "dev-review-brief",
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ],
+          "note": "A と同じ"
+        },
+        {
+          "id": "P",
+          "prompt": "（いま自分でこの変更を作り終えたところ）別のモデルにレビューを頼みたい",
+          "accept": [
+            "dev-review-brief",
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ],
+          "note": "A と同じ"
+        },
+        {
+          "id": "Q",
+          "prompt": "（実装とレビューが済んだ後）終わったか確認して",
+          "accept": [
+            "dev-completion-audit"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle",
+            "dev-profile-existing-system",
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "X",
+          "prompt": "（同僚が作った変更について）PR #123 をレビューして",
+          "accept": [
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ]
+        },
+        {
+          "id": "H",
+          "prompt": "（利用者から、単価に小数を含む明細で合計が10000円を超えると、値引き後の金額が 9000.0 のように小数で返ると報告があった）この不具合を直して",
+          "accept": [
+            "dev-defect-fix"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "I",
+          "prompt": "（利用者の報告に対して、再現しないと言われた）もう直ってるはず",
+          "accept": [
+            "dev-defect-fix"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "J",
+          "prompt": "（既存システムの請求の機能について）今どう動いているか調べて",
+          "accept": [
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "K",
+          "prompt": "（既存システムの改修に入る前）改修前に今の動きを固めておきたい",
+          "accept": [
+            "dev-regression-baseline",
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "L",
+          "prompt": "（複数の画面が使っている日付計算の処理について）この共通処理を変えたい",
+          "accept": [
+            "dev-change-sizing",
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "M",
+          "prompt": "（改修の後、回帰のテストが1件落ちた）期待値が変わったけどテストを直していい？",
+          "accept": [
+            "dev-regression-baseline"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R",
+          "prompt": "（不具合の是正とレビューが済んだ後）もう閉じていい？",
+          "accept": [
+            "dev-completion-audit"
+          ],
+          "profiles": [
+            "dev-profile-existing-system",
+            "dev-profile-review-cycle"
+          ]
+        },
+        {
+          "id": "S",
+          "prompt": "（既存システムの請求の機能について）現状の仕様を洗い出して",
+          "accept": [
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "T",
+          "prompt": "（いま動いている受発注のシステムについて）既存システムを改修したい",
+          "accept": [
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "U",
+          "prompt": "（いま動いている受発注のシステムについて）既存の動きを壊さずに直したい",
+          "accept": [
+            "dev-regression-baseline",
+            "dev-current-behavior-survey",
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "V",
+          "prompt": "（登録画面の不具合を直した後）同じような不具合がほかにないか見て",
+          "accept": [
+            "dev-defect-fix"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "Z",
+          "prompt": "（いま動いている受発注のシステムについて）既存システムに新しい機能を足したい",
+          "accept": [
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "T1",
+          "prompt": "（REQUIREMENTS.md の要件について）この機能のテストを洗い出して",
+          "accept": [
+            "dev-test-case-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "T2",
+          "prompt": "（price.py の実装と REQUIREMENTS.md について）テストが足りているか確認して",
+          "accept": [
+            "dev-test-case-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "T3",
+          "prompt": "（会員登録から確認メールまで画面をまたぐ機能について）受入テストを設計して",
+          "accept": [
+            "dev-acceptance-e2e"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "T4",
+          "prompt": "（「登録がうまくいくこと」という受入条件の案について）この受入条件で合否を判定できる？",
+          "accept": [
+            "dev-acceptance-e2e"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "T5",
+          "prompt": "（REQUIREMENTS.md の要件 4 は、まだ実装していない）テストを先に書いて実装して",
+          "accept": [
+            "dev-test-first"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "T6",
+          "prompt": "（利用者から、単価に小数を含む明細で合計が10000円を超えると、値引き後の金額が 9000.0 のように小数で返ると報告があった）再現テストを書いてから直して",
+          "accept": [
+            "dev-test-first",
+            "dev-defect-fix"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "T7",
+          "prompt": "（自分で取った会員登録の受入の録画について）この録画を提出していい？",
+          "accept": [
+            "dev-evidence-check"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle",
+            "dev-profile-existing-system",
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "T8",
+          "prompt": "（同僚が取った会員登録の受入の録画について）デモ動画を確認して",
+          "accept": [
+            "dev-evidence-check"
+          ],
+          "profiles": [
+            "dev-profile-review-cycle"
+          ]
+        },
+        {
+          "id": "D1",
+          "prompt": "（REQUIREMENTS.md に要件のメモがある）新しい機能を作りたい",
+          "accept": [
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "D2",
+          "prompt": "（price.py に割引の判定を足しているところ）この処理はどこに書くべき？",
+          "accept": [
+            "dev-responsibility-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D3",
+          "prompt": "（REQUIREMENTS.md の要件について）API を設計して",
+          "accept": [
+            "dev-api-contract"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "D4",
+          "prompt": "（REQUIREMENTS.md の要件について）どんなエラーに分けるか決めて",
+          "accept": [
+            "dev-error-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "D5",
+          "prompt": "（既存の注文テーブルについて）この列を足したい。マイグレーションの進め方を決めて",
+          "accept": [
+            "dev-data-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D6",
+          "prompt": "（注文の確定時に確認メールを送る機能について）メールを送る処理を設計して。二重送信が怖い",
+          "accept": [
+            "dev-async-execution-design",
+            "dev-cross-system-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D7",
+          "prompt": "（REQUIREMENTS.md の要件について）タスクに分けて",
+          "accept": [
+            "dev-task-breakdown"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ]
+        },
+        {
+          "id": "D8",
+          "prompt": "（price.py の割引の規則を変える案について）この変更はどのくらいの規模？設計まで要る？",
+          "accept": [
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D9",
+          "prompt": "（price.py と別の画面に、似た税込み計算が2か所ある）この計算を共通化していい？",
+          "accept": [
+            "dev-responsibility-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D10",
+          "prompt": "（在庫の引き当てで行ロックを使う処理について）このロックの設計をモデル検査して",
+          "accept": [
+            "dev-formal-model-check"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D11",
+          "prompt": "（毎晩、前日の注文を集計して売上の表を作る処理について）バッチを設計して。途中で落ちたらどうする？",
+          "accept": [
+            "dev-async-execution-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D12",
+          "prompt": "（運用者が手で流す、請求書を確定するコマンドについて）CLI の引数と終了コードを決めて",
+          "accept": [
+            "dev-api-contract"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D13",
+          "prompt": "（注文の確定時に、外部の決済サービスで支払いを確定したい）外部の決済サービスと連携したい",
+          "accept": [
+            "dev-cross-system-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D14",
+          "prompt": "（取り込みのバッチで、一部の行だけ不正なデータがある）エラーの扱いを決めて",
+          "accept": [
+            "dev-error-design",
+            "dev-async-execution-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D15",
+          "prompt": "（注文の API について）API のエラーレスポンスの形を決めて",
+          "accept": [
+            "dev-api-contract"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D16",
+          "prompt": "（決済サービスから支払い完了の通知が届く）Webhook を受けたい",
+          "accept": [
+            "dev-cross-system-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D17",
+          "prompt": "（外部の決済 API の呼び出しが時々時間切れになる）リトライの方針を決めて",
+          "accept": [
+            "dev-cross-system-design",
+            "dev-async-execution-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D18",
+          "prompt": "（同じリポジトリの中だけで使っている price.py の total について）この共通関数の引数を変えたい。互換性はどうする？",
+          "accept": [
+            "dev-responsibility-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D19",
+          "prompt": "（これから作る会員登録の機能について。まだコードは無い）同じメールアドレスで二重に登録されるのを防ぐ設計にしたい",
+          "accept": [
+            "dev-data-design",
+            "dev-api-contract",
+            "dev-async-execution-design",
+            "dev-defect-fix",
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "どの層で防ぐかで受け持ちが変わる。取り合いの記録のための試験。新規開発のプロファイルは設計の依頼を工程 sizing（規模の判定）から始めるので、規模の判定も合格とする"
+        },
+        {
+          "id": "D20",
+          "prompt": "（REQUIREMENTS.md の要件 4 を足す作業について）この作業の規模を見積もって",
+          "accept": [
+            "dev-change-sizing",
+            "dev-task-breakdown"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D21",
+          "prompt": "（これから作る請求書の機能。複数の会社が同じシステムを使う）他社の請求書が見えないようにしたい",
+          "accept": [
+            "dev-authorization-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D22",
+          "prompt": "（請求書の機能について）請求書の確定を、誰ができるか決めて",
+          "accept": [
+            "dev-authorization-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D23",
+          "prompt": "（運用者が利用者の画面で操作を手伝いたい）ほかの利用者として操作する機能の権限の設計をして",
+          "accept": [
+            "dev-authorization-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D24",
+          "prompt": "（いま動いている記事の管理アプリ）このアプリに MCP サーバーを組み込んで、エージェントから記事を読めるようにしたい",
+          "accept": [
+            "dev-agent-contract",
+            "dev-change-sizing"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "プロファイルから入ると工程 sizing（規模の判定）から始まるので、規模の判定も合格とする"
+        },
+        {
+          "id": "D25",
+          "prompt": "（記事の管理アプリの MCP サーバー）エージェントが記事を書き換える道具を足したい。利用者が知らないうちに書き換わらないようにしたい",
+          "accept": [
+            "dev-agent-contract"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D26",
+          "prompt": "（REQUIREMENTS.md の要件 4 の作業の実装を、いま自分で終えたところ）コミットの前に、この作業の差分が設計どおりか点検して",
+          "accept": [
+            "dev-diff-check",
+            "dev-review-brief"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system",
+            "dev-profile-review-cycle"
+          ],
+          "note": "作業の終わりの点検は dev-diff-check。レビューの一巡に入って依頼文を書く判断も、自分でレビューしない決まりに沿うので合格とする"
+        },
+        {
+          "id": "D27",
+          "prompt": "（REQUIREMENTS.md の要件 4 の作業の実装を、いま自分で終えたところ）PR を出す前に自分で一度見て",
+          "accept": [
+            "dev-diff-check",
+            "dev-review-brief"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system",
+            "dev-profile-review-cycle"
+          ],
+          "note": "D26 と同じ。レビューの一巡から依頼文へ進むのも、自分でレビューしない決まりに沿うので合格"
+        },
+        {
+          "id": "D28",
+          "prompt": "（REQUIREMENTS.md の要件 4 の作業の実装を、いま自分で終えたところ）セルフレビューして",
+          "accept": [
+            "dev-diff-check",
+            "dev-review-brief",
+            "dev-review-conduct"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system",
+            "dev-profile-review-cycle"
+          ],
+          "note": "取り合いの記録。差分の点検か、レビューの一巡から依頼文へ進めば合格。新しいセッションは自分が作ったと確かめられないので、A と同じく独立レビューへ進んでも合格"
+        },
+        {
+          "id": "D29",
+          "prompt": "（夜間に会員へメールを送るバッチを新しく作る。REQUIREMENTS.md がある）ログに何を出すか決めて。出力の量も抑えたい",
+          "accept": [
+            "dev-logging-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D30",
+          "prompt": "（外部へ送る処理のログを作り直す。REQUIREMENTS.md がある）失敗の理由のコードを決めたい",
+          "accept": [
+            "dev-logging-design",
+            "dev-error-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "取り合いの記録。ログの段と失敗の種類の語ならログの設計、エラーの種類の分け方ならエラーの設計"
+        },
+        {
+          "id": "D31",
+          "prompt": "（これから公開する管理画面。REQUIREMENTS.md がある）応答のヘッダと Cookie の方針を決めて",
+          "accept": [
+            "dev-entry-safety-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "D32",
+          "prompt": "（新しい画面を作っている。REQUIREMENTS.md がある）外部の CDN のスクリプトを読み込んで大丈夫？",
+          "accept": [
+            "dev-entry-safety-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R1",
+          "prompt": "（顧客から「会員ランクに応じて値引き率を変えたい」と要望のメールが来た）この要望から要件を起こして",
+          "accept": [
+            "dev-requirements"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R2",
+          "prompt": "（これから作る予約の機能について。業務の説明のメモがある）ドメインモデルを作って",
+          "accept": [
+            "dev-domain-model"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R3",
+          "prompt": "（値引きの計算について、人によって言葉の使い方が違う）業務の用語と規則を整理して",
+          "accept": [
+            "dev-domain-model"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R4",
+          "prompt": "（仕様書が無い。値引きの決まりは price.py の中にしか無い）既存のコードから業務規則を洗い出して",
+          "accept": [
+            "dev-rule-extraction"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R5",
+          "prompt": "（本番の注文データの複製がある）既存のデータが値引きの規則を守っているか調べて",
+          "accept": [
+            "dev-rule-violation-audit"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R6",
+          "prompt": "（配送業者の API とつなぐ予定）この外部 API の仕様を調べて",
+          "accept": [
+            "dev-external-domain-survey"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R7",
+          "prompt": "（請求書の消費税の端数処理について）この計算が法令どおりか確かめて",
+          "accept": [
+            "dev-statutory-grounding"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "R8",
+          "prompt": "（REQUIREMENTS.md の要件 4 について）受入条件を書いて",
+          "accept": [
+            "dev-requirements",
+            "dev-acceptance-e2e"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "受入条件を書くのは要件の単位、判定できる形に整えるのは受入条件の単位。取り合いの記録のための試験"
+        },
+        {
+          "id": "C1",
+          "prompt": "（動いている既存システム。注文を確定したときの在庫の引当を変えたい）在庫を引き当てている処理はどこ？",
+          "accept": [
+            "dev-code-search"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "C2",
+          "prompt": "（動いている既存システム）この関数 calcTotal を変えると、どこに影響する？",
+          "accept": [
+            "dev-code-search"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ],
+          "note": "規模の判定と取り合いうる。場所と波及を探すだけの問いは探索の単位"
+        },
+        {
+          "id": "C4",
+          "prompt": "（前のセッションで既存システムの改修を進めていて、引継ぎの記録 HANDOFF.md がある）続きから再開して",
+          "accept": [
+            "dev-work-continuity"
+          ],
+          "profiles": [
+            "dev-profile-interrupt-resume"
+          ]
+        },
+        {
+          "id": "C5",
+          "prompt": "（新規開発の実装の途中。会話が長くなってきた）ここで区切って、続きは次のセッションでやれるように引き継いで",
+          "accept": [
+            "dev-work-continuity"
+          ],
+          "profiles": [
+            "dev-profile-interrupt-resume"
+          ]
+        },
+        {
+          "id": "C6",
+          "prompt": "（新規開発の途中。作業の一覧がある）CSV の書き出しの作業だけ、別の担当に頼みたい",
+          "accept": [
+            "dev-work-continuity"
+          ],
+          "profiles": [
+            "dev-profile-interrupt-resume"
+          ],
+          "note": "委任の依頼文を書く。レビューの依頼（P）と取り合わないかも見る"
+        },
+        {
+          "id": "C7",
+          "prompt": "（来月からこのシステムの保守を別のチームが担当する）保守の引継ぎ資料を作って。運用の手順と過去の障害もまとめたい",
+          "forbidPrefixes": [
+            "dev-work-continuity",
+            "dev-profile-interrupt-resume"
+          ],
+          "note": "システムの保守の担当の交代は、作業の中断と再開ではない。中断と再開の単位とプロファイルを使わなければ合格"
+        },
+        {
+          "id": "C8",
+          "prompt": "（前に途中までやっていたらしいが、引継ぎの記録は見当たらない）続きをやって",
+          "accept": [
+            "dev-work-continuity"
+          ],
+          "profiles": [
+            "dev-profile-interrupt-resume"
+          ],
+          "note": "記録が無いときは、版管理の履歴から推定して人に確かめる道に入る"
+        },
+        {
+          "id": "C3",
+          "prompt": "（動いている既存システム。画面に「お届け予定日」と出ている）この文言はどこで作ってる？",
+          "accept": [
+            "dev-code-search"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "V1",
+          "prompt": "（作業の一覧にある 2 つの機能を並べて進めたい）worktree で並列に安全に作業したい",
+          "accept": [
+            "dev-isolated-workspace"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ]
+        },
+        {
+          "id": "V2",
+          "prompt": "（作業用の枝を main へ rebase したら衝突した）コンフリクトを解消して",
+          "accept": [
+            "dev-conflict-resolution"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ]
+        },
+        {
+          "id": "V3",
+          "prompt": "（直前のコミットに大きいファイルが入っていて push が拒否された）大きいファイルを取り除いて出し直せるようにして",
+          "accept": [
+            "dev-history-recovery"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ]
+        },
+        {
+          "id": "V4",
+          "prompt": "（誤って API キーをコミットに含めてしまった）秘密を取り除いて直して",
+          "accept": [
+            "dev-history-recovery"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ]
+        },
+        {
+          "id": "V5",
+          "prompt": "（main への統合と確認が終わった）作業用の worktree を片付けて",
+          "accept": [
+            "dev-isolated-workspace"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ]
+        },
+        {
+          "id": "V6",
+          "prompt": "（さっき作ったコミットに別の変更が混ざっていた）直前のコミットを取り消したい",
+          "accept": [
+            "dev-history-recovery"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ]
+        },
+        {
+          "id": "V7",
+          "prompt": "（作業用の枝で実装と検証が終わった）作業用の枝を main に取り込んで。まだ衝突しているかは見ていない",
+          "accept": [
+            "dev-profile-version-control"
+          ],
+          "forbidPrefixes": [
+            "dev-conflict-resolution",
+            "dev-history-recovery",
+            "dev-isolated-workspace"
+          ],
+          "note": "衝突前の通常の統合は dev-profile-version-control の工程 integrate（取り込む）に入り、dev-conflict-resolution 等に飛ばなければ合格"
+        },
+        {
+          "id": "V8",
+          "prompt": "（完了条件の一覧がある）認証と通知の 2 つの機能を並列で実装できるよう、作業を分けて順番を決めて",
+          "accept": [
+            "dev-task-breakdown"
+          ],
+          "profiles": [
+            "dev-profile-new-feature"
+          ],
+          "forbidPrefixes": [
+            "dev-isolated-workspace",
+            "dev-profile-version-control"
+          ],
+          "note": "並列実装に向けた作業分割は dev-task-breakdown に入り、worktree 確保の dev-isolated-workspace や版管理のプロファイルに取られなければ合格"
+        },
+        {
+          "id": "V9",
+          "prompt": "（まだコミットしていない編集中のファイルが 1 つだけある）さっき書き換えた未コミットの変更だけ元に戻して",
+          "forbidPrefixes": [
+            "dev-history-recovery",
+            "dev-conflict-resolution",
+            "dev-isolated-workspace",
+            "dev-profile-version-control"
+          ],
+          "note": "履歴や誤コミットに関わらない未コミット変更の単純な破棄では、版管理の復旧や衝突解消の単位と版管理のプロファイルを使わなければ合格"
+        },
+        {
+          "id": "V10",
+          "prompt": "（HEAD がどの枝も指さず切り離された状態でコミットしてしまった）変更を消さずに枝へ戻して",
+          "accept": [
+            "dev-history-recovery"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ],
+          "note": "detached HEAD 状態の言い換え表現でも履歴・状態復旧の単位に入れれば合格"
+        },
+        {
+          "id": "V11",
+          "prompt": "（main を取り込んだらマージ自体は自動で通ったが、片方が消した関数を別ファイルが呼んでいてコンパイルが通らない）統合後の食い違いを直して",
+          "accept": [
+            "dev-conflict-resolution"
+          ],
+          "profiles": [
+            "dev-profile-version-control"
+          ],
+          "note": "衝突マーカーの出ない隠れ衝突でも dev-conflict-resolution に入れれば合格"
+        },
+        {
+          "id": "O1",
+          "prompt": "（動いている Web アプリ。使っている部品の脆弱性の告知が今朝公表された）この脆弱性の告知はうちに当たる？",
+          "accept": [
+            "dev-advisory-check"
+          ],
+          "profiles": [
+            "dev-profile-dependency-upkeep"
+          ]
+        },
+        {
+          "id": "O2",
+          "prompt": "（動いている Web アプリ）依存の脆弱性を定期的に点検して",
+          "accept": [
+            "dev-advisory-check"
+          ],
+          "profiles": [
+            "dev-profile-dependency-upkeep"
+          ]
+        },
+        {
+          "id": "O3",
+          "prompt": "（動いている Web アプリ。直すと決めた告知があり、行き先の版も決まっている）この部品を決めた版に上げて",
+          "accept": [
+            "dev-dependency-bump"
+          ],
+          "profiles": [
+            "dev-profile-dependency-upkeep"
+          ]
+        },
+        {
+          "id": "O4",
+          "prompt": "（動いている Web アプリ。告知は特に無い）依存を定期的に更新したい",
+          "accept": [
+            "dev-dependency-bump",
+            "dev-advisory-check"
+          ],
+          "profiles": [
+            "dev-profile-dependency-upkeep"
+          ],
+          "note": "定期の更新は版上げから入る。告知を先に照らす判断で点検へ進んでも合格"
+        },
+        {
+          "id": "O5",
+          "prompt": "（これからつなぐ配送業者の API がある）この外部 API の仕様の変更点を調べて",
+          "accept": [
+            "dev-external-domain-survey"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "告知の点検との境目。これから使う相手の仕様は外部の仕様の調査で、dev-advisory-check ではない"
+        },
+        {
+          "id": "O6",
+          "prompt": "（動いている管理画面。検証の環境のホストへ読むだけの要求を送ることは、運用の担当から許されている）今動いている管理画面の応答のヘッダと Cookie を点検して",
+          "accept": [
+            "dev-entry-safety-check"
+          ],
+          "profiles": [
+            "dev-profile-exposure-sweep"
+          ]
+        },
+        {
+          "id": "O7",
+          "prompt": "（動いている Web アプリ。手元で流した走査の道具の結果が届いている）走査の道具の指摘を仕分けて",
+          "accept": [
+            "dev-entry-safety-check"
+          ],
+          "profiles": [
+            "dev-profile-exposure-sweep"
+          ]
+        },
+        {
+          "id": "O8",
+          "prompt": "（前任者から保守を引き継いだばかりの、ドキュメントの少ない動いているシステム）前任者から引き継いだシステムの、どこに何があるかを把握したい",
+          "accept": [
+            "dev-system-map"
+          ],
+          "profiles": [
+            "dev-profile-inherited-system"
+          ],
+          "note": "受け取った側の現状の把握。作業の中断と再開（dev-work-continuity）ではない"
+        },
+        {
+          "id": "O9",
+          "prompt": "（動いている Web アプリ。設定のファイルと設定の雛形がある）このシステムが使っている秘密を、値を見ずに一覧にして",
+          "accept": [
+            "dev-credential-catalog"
+          ],
+          "profiles": [
+            "dev-profile-inherited-system"
+          ]
+        },
+        {
+          "id": "O11",
+          "prompt": "（DB の列を足す変更を作り終えたところ。本番では人が作業する）この変更の本番の手順を作って。戻し方も入れて",
+          "accept": [
+            "dev-production-procedure"
+          ],
+          "profiles": [
+            "dev-profile-existing-system",
+            "dev-profile-new-feature",
+            "dev-profile-dependency-upkeep"
+          ]
+        },
+        {
+          "id": "O10",
+          "prompt": "（会員の情報を扱う、動いている Web アプリ）個人情報の台帳を作って、プライバシーポリシーの草案も付けて",
+          "accept": [
+            "dev-personal-info-ledger"
+          ],
+          "profiles": [
+            "dev-profile-inherited-system"
+          ]
+        },
+        {
+          "id": "O12",
+          "prompt": "（前任者から保守を引き継いだばかりで、文書がほとんど無い動いているシステム）前任者から引き継いだシステムの現状を把握したい",
+          "accept": [
+            "dev-system-map"
+          ],
+          "profiles": [
+            "dev-profile-inherited-system"
+          ],
+          "note": "O8 の言い換え。受け取った側の把握なので、今の動きを調べる単位（dev-current-behavior-survey）や作業の中断と再開ではない"
+        },
+        {
+          "id": "O13",
+          "prompt": "（自分たちが保守している既存システム。注文の取り消しの画面を改修する前）改修の前に、取り消しの今の仕様を洗い出して",
+          "accept": [
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ],
+          "note": "改修の前の今の動きの調べ。引き継いだシステムの地図（dev-system-map）ではない"
+        },
+        {
+          "id": "O14",
+          "prompt": "（秘密の目録がもうあるシステム。決済の外部サービスの API キーを設定に足した）新しいキーを足したので、秘密の目録を直して",
+          "accept": [
+            "dev-credential-catalog"
+          ],
+          "profiles": [
+            "dev-profile-existing-system",
+            "dev-profile-inherited-system"
+          ],
+          "note": "目録の更新の起動"
+        },
+        {
+          "id": "O15",
+          "prompt": "（個人情報の台帳がもうある会員制の Web アプリ。保存する項目に生年月日を足し、メールの送信を別の外部サービスに替えた）保存する項目と外部サービスを変えたので、台帳を見直したい",
+          "accept": [
+            "dev-personal-info-ledger"
+          ],
+          "profiles": [
+            "dev-profile-existing-system",
+            "dev-profile-inherited-system"
+          ],
+          "note": "台帳の更新の起動"
+        },
+        {
+          "id": "O16",
+          "prompt": "（会員制の Web アプリで公開しているプライバシーポリシーの文面がある）このプライバシーポリシーは適法？",
+          "forbidPrefixes": [
+            "dev-personal-info-ledger"
+          ],
+          "note": "適法かの判断は台帳の単位の外。台帳の単位を使わなければ合格"
+        },
+        {
+          "id": "U1",
+          "prompt": "（予約の機能の要件と受入条件の文書がある）この要件の画面一覧を作って",
+          "accept": ["dev-screen-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U2",
+          "prompt": "（予約の機能の画面の設計がある）関係者に見せたいので、ワイヤーを作って",
+          "accept": ["dev-wireframe"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U3",
+          "prompt": "（画面ごとに色や余白の値がばらばらに書かれている）トークンを整理して",
+          "accept": ["dev-design-system"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U4",
+          "prompt": "（部品の仕様の文書と、部品のカタログがある）部品のカタログを仕様と照らして",
+          "accept": ["dev-design-system"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U5",
+          "prompt": "（申し込みの機能の要件の文書がある）画面遷移を決めて",
+          "accept": ["dev-screen-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "受入の試験の単位に取られない"
+        },
+        {
+          "id": "U6",
+          "prompt": "（取引先から画面のモックの画像が届いた）このモックから要件を起こして",
+          "accept": ["dev-requirements"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "画面の設計やワイヤーに取られない"
+        },
+        {
+          "id": "U7",
+          "prompt": "（申し込みの機能の要件の文書がある）エラーメッセージを決めて",
+          "accept": ["dev-error-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "画面の設計に取られない"
+        },
+        {
+          "id": "U8",
+          "prompt": "（管理者と一般の利用者がいる業務アプリ）誰にどの画面を見せるか決めて",
+          "accept": ["dev-authorization-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "画面の設計に取られない"
+        },
+        {
+          "id": "U9",
+          "prompt": "（動いている業務アプリの改修の前）今の画面がどう動いているか調べて",
+          "accept": ["dev-current-behavior-survey"],
+          "profiles": ["dev-profile-existing-system"],
+          "note": "画面の設計に取られない"
+        },
+        {
+          "id": "U10",
+          "prompt": "（新しいサービスを始める）ロゴを作って",
+          "forbidPrefixes": ["dev-design-system"],
+          "note": "ブランドそのものはデザインシステムの単位の外"
+        },
+        {
+          "id": "U11",
+          "prompt": "（部品の仕様の文書がある）このボタンの部品の story を書いて",
+          "forbidPrefixes": ["dev-design-system", "dev-wireframe", "dev-screen-design"],
+          "note": "story のコードを書くのは実装。テストを先に書く単位は使ってよい"
+        },
+        {
+          "id": "U12",
+          "prompt": "（画面の設計が人に採られている）この画面を実装して",
+          "forbidPrefixes": ["dev-wireframe", "dev-screen-design"],
+          "note": "実装の依頼。ワイヤーや画面の設計に取られない"
+        },
+        {
+          "id": "U13",
+          "prompt": "（受入の証拠として、申し込みの画面を操作した録画がある）このデモ動画を確認して",
+          "accept": ["dev-evidence-check"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "ワイヤーに取られない"
+        },
+        {
+          "id": "G",
+          "prompt": "この機能を実装して",
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "dev- のスキルを一つも使わなければ合格"
+        },
+        {
+          "id": "W",
+          "prompt": "（同僚の変更について）セキュリティを見て",
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "組み込みのセキュリティの点検は使ってよい"
+        }
+      ]
+    },
+    {
+      "name": "cloudflare",
+      "doc": "docs/cloudflare-trigger-cases.md",
+      "cases": [
+        {
+          "id": "CF1",
+          "prompt": "Workers の CPU 時間の上限は？",
+          "accept": [
+            "cloudflare-product-survey"
+          ]
+        },
+        {
+          "id": "CF2",
+          "prompt": "Cloudflare でメールアドレスを持てる？",
+          "accept": [
+            "cloudflare-product-survey"
+          ]
+        },
+        {
+          "id": "CF3",
+          "prompt": "（docs/requirements.md に会員向けの予約サービスの要件がある）この要件を Cloudflare で組むための制約を整理して",
+          "accept": [
+            "cloudflare-requirements-framing"
+          ]
+        },
+        {
+          "id": "CF4",
+          "prompt": "（docs/constraints.md に Cloudflare 向けの制約シートがある）この制約シートで構成案を出して",
+          "accept": [
+            "cloudflare-architecture-advisor"
+          ]
+        },
+        {
+          "id": "CF5",
+          "prompt": "ローカル LLM を選びたい",
+          "accept": [
+            "model-requirements-analyzer",
+            "local-llm-researcher",
+            "hardware-compatibility-checker",
+            "llm-selection-advisor"
+          ],
+          "forbidPrefixes": [
+            "cloudflare-"
+          ]
+        },
+        {
+          "id": "CF6",
+          "prompt": "Jev の監視基盤を Cloudflare で",
+          "accept": [
+            "jev-monitoring-platform"
+          ]
+        },
+        {
+          "id": "CF7",
+          "prompt": "（price.py の合計の計算について）今どう動いているか調べて",
+          "accept": [
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ],
+          "forbidPrefixes": [
+            "cloudflare-"
+          ]
+        },
+        {
+          "id": "CF8",
+          "prompt": "（price.py の合計の計算について）現状の仕様を洗い出して",
+          "accept": [
+            "dev-current-behavior-survey"
+          ],
+          "profiles": [
+            "dev-profile-existing-system"
+          ],
+          "forbidPrefixes": [
+            "cloudflare-"
+          ]
+        }
+      ]
+    }
+  ]
+}
