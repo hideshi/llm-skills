@@ -24,6 +24,8 @@
     Markdown のすべての書き方は見ない（書く形は規約で決める）。例の見出しが型の欄に合うか、
     識別子が実在するかは見ない。案件の成果物には当てない
 13. 型の一覧の「語彙の表」がそろい、語彙の表の外の表の行に語彙を通さない「／」の並びが残っていない。
+    型の一覧の表の列を指す語彙（寿命）は、どの型の行の値も語彙の語で始まり、「今回作って反映する」には
+    反映先の括弧がある。「続けて使う文書」の寿命の表と語彙がそろう。
     埋めた例の、語彙を使う欄の値が、その語彙の語で始まり、語の直後が値の終わりか区切りか（規約 §5 の 13）
 
 使い方: python3 -I scripts/check_dev_skills.py [--grounding-warnings] [リポジトリのルート]
@@ -381,17 +383,19 @@ def type_sections(text):
 
 
 def check_type_column(text, column, vname, words):
-    """型の一覧の最初の表で、見出しが column で始まる列の値を、どの行も語彙の語で始まるかを見る。"""
-    errors, header, in_table = [], None, False
-    for line in text.splitlines():
+    """型の一覧の最初の表で、見出しが column（括弧の前まで）の列の値を、どの行も語彙の語で始まるかを見る。"""
+    errors, header, idx = [], None, None
+    lines = text.splitlines()
+    start = next((k for k, ln in enumerate(lines) if ln.strip().startswith("|")), None)
+    if start is None:
+        return [f"語彙の表: 語彙「{vname}」の列「{column}」が型の一覧の表に無い"]
+    for line in lines[start:]:
         if not line.strip().startswith("|"):
-            if in_table:
-                break
-            continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            break
+        cells = split_cells(line)
         if header is None:
-            header, in_table = cells, True
-            idx = next((i for i, h in enumerate(header) if h.startswith(column)), None)
+            header = cells
+            idx = next((i for i, h in enumerate(header) if field_key(h) == column), None)
             if idx is None:
                 return [f"語彙の表: 語彙「{vname}」の列「{column}」が型の一覧の表に無い"]
             if f"語彙「{vname}」" not in header[idx]:
@@ -399,9 +403,19 @@ def check_type_column(text, column, vname, words):
             continue
         if all(re.fullmatch(r":?-+:?", c) for c in cells):
             continue
-        v = cells[idx] if idx < len(cells) else ""
+        if len(cells) != len(header):
+            errors.append(f"型の一覧: 型「{cells[0]}」の行の列の数が見出しと違う")
+            continue
+        v = cells[idx]
         if not starts_with_word(v, words):
             errors.append(f"型の一覧: 型「{cells[0]}」の列「{column}」の値「{v[:20]}」が語彙「{vname}」の語で始まらない")
+        elif v.startswith("今回作って反映する") and "（" not in v:
+            # 反映する型は、反映先の分類を括弧に書く（型の一覧の「続けて使う文書」）
+            errors.append(f"型の一覧: 型「{cells[0]}」の寿命に、反映先の分類の括弧が無い")
+    if vname == "型の寿命":
+        meaning = table_rows(text, "続けて使う文書")
+        if meaning is None or [r_[0] for r_ in meaning] != words:
+            errors.append("型の一覧: 「続けて使う文書」の寿命の表と、語彙「型の寿命」の語がそろっていない")
     return errors
 
 
