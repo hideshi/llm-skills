@@ -1276,6 +1276,112 @@
             "dev-"
           ],
           "note": "組み込みのセキュリティの点検は使ってよい"
+        },
+        {
+          "id": "TX1",
+          "prompt": "（注文の確定の要件と受入条件の文書がある）注文確定の通知メールの文面を決めて",
+          "accept": [
+            "dev-message-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "TX2",
+          "prompt": "（請求の要件と業務規則の一覧がある）請求書（帳票）の項目と見せ方を決めて",
+          "accept": [
+            "dev-message-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "TX3",
+          "prompt": "（画面の設計があり、隔離した環境で画面が動く）利用者向けの操作マニュアルを作って",
+          "accept": [
+            "dev-user-manual"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "TX4",
+          "prompt": "（利用者向けの操作マニュアルがある。登録の画面が変わった）画面が変わったので操作マニュアルを直して",
+          "accept": [
+            "dev-user-manual"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ]
+        },
+        {
+          "id": "TX5",
+          "prompt": "（エラーの一覧がある）このエラーメッセージで大丈夫？",
+          "accept": [
+            "dev-error-design"
+          ],
+          "forbidPrefixes": [
+            "dev-message-design"
+          ],
+          "note": "エラーの文言は文面の単位に取られない"
+        },
+        {
+          "id": "TX6",
+          "prompt": "（注文の確定時に確認メールを送る機能について）メールの再送の仕組みを設計して。二重送信が怖い",
+          "accept": [
+            "dev-async-execution-design"
+          ],
+          "forbidPrefixes": [
+            "dev-message-design"
+          ],
+          "note": "送る仕組みは文面の単位に取られない"
+        },
+        {
+          "id": "TX7",
+          "prompt": "（請求の機能について）請求書の金額の端数処理を決めて",
+          "forbidPrefixes": [
+            "dev-message-design"
+          ],
+          "note": "計算と端数処理は業務規則の側。文面の単位に取られない"
+        },
+        {
+          "id": "TX8",
+          "prompt": "（リリースの予定がある）本番の手順を書いて",
+          "accept": [
+            "dev-production-procedure"
+          ],
+          "forbidPrefixes": [
+            "dev-user-manual"
+          ],
+          "note": "本番の手順は操作マニュアルに取られない"
+        },
+        {
+          "id": "TX9",
+          "prompt": "（前任者から引き継いだシステム）引継ぎの資料を作って",
+          "accept": [
+            "dev-system-map",
+            "dev-profile-inherited-system"
+          ],
+          "forbidPrefixes": [
+            "dev-user-manual"
+          ],
+          "note": "保守の地図は操作マニュアルに取られない"
+        },
+        {
+          "id": "TX10",
+          "prompt": "（画面の設計がある）この画面の文言を直して",
+          "forbidPrefixes": [
+            "dev-message-design",
+            "dev-user-manual"
+          ],
+          "note": "画面の中の文言は文面にもマニュアルにも取られない"
         }
       ]
     },

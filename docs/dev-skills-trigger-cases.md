@@ -124,6 +124,21 @@
 | U12 | 「この画面を実装して」 | 画面の設計が人に採られている | `dev-wireframe`・`dev-screen-design` は起動しない | — |
 | U13 | 「このデモ動画を確認して」 | 受入の証拠の録画がある | `dev-evidence-check`（ワイヤーに取られない） | `evidence` |
 
+## 文面の単位（`dev-profile-new-feature` と `dev-profile-existing-system` の工程。単位が直接選ばれてもよい）
+
+| ID | 依頼の例 | 状況 | 期待するスキル | 期待する工程 |
+|---|---|---|---|---|
+| TX1 | 「注文確定の通知メールの文面を決めて」 | 注文の確定の要件と受入条件の文書がある | `dev-message-design` | `design` |
+| TX2 | 「請求書（帳票）の項目と見せ方を決めて」 | 請求の要件と業務規則の一覧がある | `dev-message-design` | `design` |
+| TX3 | 「利用者向けの操作マニュアルを作って」 | 画面の設計があり、隔離した環境で画面が動く | `dev-user-manual` | `ops-artifacts` |
+| TX4 | 「画面が変わったので操作マニュアルを直して」 | 利用者向けの操作マニュアルがある。登録の画面が変わった | `dev-user-manual` | `ops-artifacts` |
+| TX5 | 「このエラーメッセージで大丈夫？」 | エラーの一覧がある | `dev-error-design`（`dev-message-design` は使わない） | `design` |
+| TX6 | 「メールの再送の仕組みを設計して。二重送信が怖い」 | 注文の確定時に確認メールを送る機能 | `dev-async-execution-design`（`dev-message-design` は使わない） | `design` |
+| TX7 | 「請求書の金額の端数処理を決めて」 | 請求の機能 | `dev-message-design` は使わない | — |
+| TX8 | 「本番の手順を書いて」 | リリースの予定がある | `dev-production-procedure`（`dev-user-manual` は使わない） | `ops-artifacts` |
+| TX9 | 「引継ぎの資料を作って」 | 前任者から引き継いだシステム | `dev-system-map` か `dev-profile-inherited-system`（`dev-user-manual` は使わない） | — |
+| TX10 | 「この画面の文言を直して」 | 画面の設計がある | `dev-message-design`・`dev-user-manual` は使わない | — |
+
 「アクセシビリティを確認して」（実装した画面の点検）の起動の先は、まだ決めていない。デザインシステムの単位の使わない場面に入れてあり、受入の証拠か完了前の監査に寄せるかは、使ってみてから決める。
 
 ## 作業の制御の単位（`dev-profile-existing-system` の工程。中断と再開の工程は所属を書く。単位が直接選ばれてもよい）
