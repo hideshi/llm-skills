@@ -35,3 +35,4 @@
 - 2026-11-13: Brooker・CWE-598/602・Standard Webhooks・StranglerFigApplication・ParallelChange の公開原典を確認して水準・URL・CWE-598 正式題を更新し、独自の判断5件を反証可能な確かめ方へ改めた。
 - 2026-11-13: 独立レビューを受け、Helland/DDIA と Brooker、EIP と Standard Webhooks v1.0.0 の混在行を分割し、初出・転送先注記と独自の判断の確かめ方を修正した。
 - 2026-11-13: 独立レビューを受け、Standard Webhooks と EIP の問い番号対応（問い 12・問い 16）を正し、StranglerFigApplication の未確認の初出年表記を除き、確かめ方の記録先と「手間」表現を改めた。
+- 2026-11-14: 実案件で使ってきた書式を見直して、案件の既定の決定（設計の判断を反映した後に続けて使う文書）の例を `references/standing-defaults-example.md` に足した。設計の判断とは別のものと明記した。

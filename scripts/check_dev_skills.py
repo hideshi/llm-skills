@@ -17,7 +17,8 @@
     SKILL.md からの参照がそろい、手順の箇所の節番号と DOI/URL の形式が合っている
 12. 単位の references/ にある埋めた例（行頭が「型: 」の行で始まる部分）が、型の一覧にある型で、
     その単位の出力の表にあり、決まり文句があり、チェックボックスと空のセルが無く、SKILL.md から
-    リンクされている。例の見出しが型の欄に合うか、識別子が実在するかは見ない。案件の成果物には当てない
+    リンクされている。「型: なし（…）」は型の外の文書の例で、型の検査の代わりに型の外の決まり文句を見る。
+    例の見出しが型の欄に合うか、識別子が実在するかは見ない。案件の成果物には当てない
 
 使い方: python3 -I scripts/check_dev_skills.py [--grounding-warnings] [リポジトリのルート]
 """
@@ -43,6 +44,8 @@ PROFILE_SECTIONS = ("工程", "振り分け", "工程の間の決まり", "終�
 GROUNDING_LEVELS = ("原典を読んだ", "書誌と二次資料で確かめた", "未確認")
 GROUNDING_SECTIONS = ("先行の手法", "独自の判断", "改善の記録")
 EXAMPLE_PHRASE = "形の一例。正本は型の一覧の欄。形式・節名・置き場所は任意で、案件に既に形があればその形に従う。値はすべて作り物。"
+EXAMPLE_PHRASE_OUTSIDE = "形の一例。型の外の文書で、正本は案件の文書。形式・節名・置き場所は任意で、案件に既に形があればその形に従う。値はすべて作り物。"
+EXAMPLE_OUTSIDE = "なし"
 EXAMPLE_DECL = re.compile(r"^型: (.+)$", re.M)
 FALSIFY_HINTS = ("見直す", "件数", "比べる", "比較", "しきい値", "記録で", "再検討", "差し戻", "推移", "割合", "差分", "実測", "起きなかったか")
 
@@ -213,19 +216,25 @@ def check_examples(name, path, skill_text, types, outputs):
         for i, m in enumerate(decls):
             part = text[m.start():decls[i + 1].start() if i + 1 < len(decls) else len(text)]
             type_name = re.split(r"[（(]", m.group(1), maxsplit=1)[0].strip()
-            if type_name not in types:
-                errors.append(f"{where}: 例の型「{type_name}」が型の一覧に無い")
-            elif type_name not in outputs:
-                errors.append(f"{where}: 例の型「{type_name}」が単位の出力の表に無い")
-            if EXAMPLE_PHRASE not in part:
-                errors.append(f"{where}: 例「{type_name}」に決まり文句が無い")
+            if type_name == EXAMPLE_OUTSIDE:
+                # 型の外の文書の例（継続の文書など）。型の検査はせず、型の外の決まり文句を求める
+                if EXAMPLE_PHRASE_OUTSIDE not in part:
+                    errors.append(f"{where}: 型の外の例に、型の外の決まり文句が無い")
+            else:
+                if type_name not in types:
+                    errors.append(f"{where}: 例の型「{type_name}」が型の一覧に無い")
+                elif type_name not in outputs:
+                    errors.append(f"{where}: 例の型「{type_name}」が単位の出力の表に無い")
+                if EXAMPLE_PHRASE not in part:
+                    errors.append(f"{where}: 例「{type_name}」に決まり文句が無い")
             if re.search(r"^\s*[-*] \[[ xX]\]", part, re.M):
                 errors.append(f"{where}: 例「{type_name}」にチェックボックスがある")
             for line in part.splitlines():
                 s = line.strip()
                 if not s.startswith("|") or re.fullmatch(r"\|[\s:|-]+\|", s):
                     continue
-                cells = [c.strip() for c in s.strip("|").split("|")]
+                # `\|` はセルの中の縦棒なので、区切りとして扱わない
+                cells = [c.strip() for c in re.split(r"(?<!\\)\|", s.strip("|"))]
                 if any(c == "" for c in cells):
                     errors.append(f"{where}: 例「{type_name}」の表に空のセルがある: {s[:60]}")
     return errors

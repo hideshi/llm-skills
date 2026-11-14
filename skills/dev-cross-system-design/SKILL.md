@@ -19,6 +19,8 @@ description: 外部サービスや別のシステムとの連携を設計する�
 
 型の中身は [型の一覧](../dev-shared/references/artifact-types.md) を見る。
 
+案件の既定の決定の形の一例は [案件の既定の決定の例](references/standing-defaults-example.md)（設計の判断とは別の、続けて使う文書）。
+
 相手の契約が分からない項目は「未確認」とし、選ぶ分岐に影響する未確認があれば、その分岐の判断を保留する。
 
 ## 出力
