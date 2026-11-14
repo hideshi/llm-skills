@@ -36,6 +36,6 @@ TLC は、既定では CPU を全部使い、メモリも大きく取る。手�
 java -Xmx1g -XX:+UseParallelGC -cp tla2tools.jar tlc2.TLC -workers 2 -config X.cfg X.tla
 ```
 
-突き合わせの検査は、既定で `-Xmx1g`、2並び、10分の上限で TLC を流す（`TLC_HEAP`、`TLC_WORKERS`、`TLC_TIMEOUT` で変えられる）。依頼ごとの違いを足すと状態の数は掛け算で増えるので、意味の無い組み合わせを作らないよう、関係する違いは一つの値にまとめる。
+突き合わせの検査は、既定で `-Xmx1g`、2並び、20分の上限で TLC を流す（2026-11-14 に10分から上げた。既存システムの改修のモデルだけで約10分かかるため）（`TLC_HEAP`、`TLC_WORKERS`、`TLC_TIMEOUT` で変えられる）。依頼ごとの違いを足すと状態の数は掛け算で増えるので、意味の無い組み合わせを作らないよう、関係する違いは一つの値にまとめる。
 
 動かし方と結果の読み方は `skills/dev-formal-model-check/references/tools/tla-plus.md` を見る。

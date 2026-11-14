@@ -178,9 +178,10 @@ flowchart TD
     JBaselineUpdate -->|"ない"| SizingAfterImplement
     BaselineUpdate -->|"回帰の基準（区分と根拠つき）"| SizingAfterImplement
     SizingAfterImplement -->|"規模の判定"| JOps
-    SizingAfterImplement -.->|"完了条件の承認し直しが要る"| Req
-    SizingAfterImplement -.->|"要る観点に設計の判断が無い（実際の差分で）"| Design
-    SizingAfterImplement -.->|"作業に分ける道に変わり、作業の一覧が無い"| Tasks
+    SizingAfterImplement -.->|"①完了条件の承認し直しが要る。または是正で設計が要る（B を切り替える）"| Req
+    SizingAfterImplement -.->|"②機能の変更で、要る観点に設計の判断が無い"| Design
+    SizingAfterImplement -.->|"③機能の変更で、作業に分ける条件に当たり、作業の一覧が無い"| Tasks
+    SizingAfterImplement -.->|"③是正で、作業に分ける条件に当たり、作業の一覧が無い"| Fix
     JOps -->|"当たる"| OpsArtifacts
     JOps -->|"当たらない"| JEvidence
     OpsArtifacts -->|"本番の手順・目録・台帳"| JOpsResult
@@ -347,9 +348,9 @@ flowchart TD
     Implement -.->|"軽い道の実装中に作業が増えた（観点は要らない）"| Tasks
     Implement -->|"変更の事実・作業の一覧"| SizingAfterImplement
     SizingAfterImplement -->|"規模の判定"| JOps
-    SizingAfterImplement -.->|"完了条件の承認し直しが要る"| Req
-    SizingAfterImplement -.->|"要る観点に設計の判断が無い（実際の差分で）"| Design
-    SizingAfterImplement -.->|"作業に分ける道に変わり、作業の一覧が無い"| Tasks
+    SizingAfterImplement -.->|"①完了条件の承認し直しが要る"| Req
+    SizingAfterImplement -.->|"②要る観点に設計の判断が無い（実際の差分で）"| Design
+    SizingAfterImplement -.->|"③通常の道に変わり、作業の一覧が無い"| Tasks
     JOps -->|"当たる"| OpsArtifacts
     JOps -->|"当たらない"| JEvidence
     OpsArtifacts -->|"本番の手順・目録・台帳"| JOpsResult
@@ -382,7 +383,7 @@ flowchart TD
 - 画面の工程（`screen`・`wireframe`・`screen-ok`）には、要件を書き終え、仕様化を終えるときの検査を通した後にだけ入る。`screen` の後は必ず `screen-ok` を通る。`screen-ok` の意見はどれも `req` で確認事項の記録の行にして振り分け、画面やワイヤーだけで直さない。採った版の所在を、原典の参照として下流に渡す。
 - 設計の判断に人の決定待ちが残っている作業は始めない。モデルの検査は人が依頼するまで始めない。反例の扱いは `design-ok` で人が決める。
 - 道が軽い道から通常の道に変わったら（`sizing-after-design`、作業に分けた後、軽い道の実装中のどれでも）、実装を止めて `design` と `tasks` を通す。
-- `sizing-after-implement` で完了条件の承認し直しが要るとなったら、実装を止めて `req` に戻る。道が変わったのに作業の一覧が無い、要る観点に設計の判断が無い、と出たら `design` か `tasks` に戻る。
+- `sizing-after-implement` の判定は、承認し直し（①）→ 要る観点の設計（②）→ 作業の一覧（③）→ 通常の続行 の順に見る（図の矢印の番号）。
 - 受入の証拠は確定してから `review-round` と `audit` に回す。E2E の範囲を縮めることは、人の承認を待つ。
 - 型の一覧の「道に応じた検査」が通らない項目が残っていれば、`audit` で「進めてよい」にしない。
 - `implement` の差分の点検は、実装した側の点検で、`review-round` のレビューの代わりにしない。依頼文に写すのは、点検した範囲と見なかった観点だけ。設計の判断と違う実装は判断に合わせ、判断を見直すと人が決めたら `design` に戻る。

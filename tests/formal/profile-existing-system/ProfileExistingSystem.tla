@@ -51,8 +51,9 @@ OpsKinds == {"none", "ok", "ledgerQ", "fix", "decision", "reject"}
 ScreenKinds == {"none", "plain", "wireNo", "fbReq", "fbModel", "fbScreen", "fbShared", "late"}
 ScreenReworks == {"screenAc", "designScreen", "wireQ", "decisionScreen"}
 \* 実装の後の規模の判定し直し（実際の差分）で分かる手戻り。lateGrow は作業に分ける条件に
-\* 当たり作業の一覧が要る、lateDesign は要る観点に設計の判断が無い。状態の数を抑えるため、
-\* 調べの寄り道・画面・運用・モデルの検査・決定待ちの無い機能の変更にだけ掛ける
+\* 当たり作業の一覧が要る（是正なら fix → test-design → tasks を通す）、lateDesign は要る観点に
+\* 設計の判断が無い（機能の変更だけ）。状態の数を抑えるため、調べの寄り道・画面・運用・
+\* モデルの検査・決定待ちの無い依頼にだけ掛ける
 LateReworks == {"lateGrow", "lateDesign"}
 Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
                      kind: {"feature", "featureDesign", "defect", "defectNeedsDesign"},
@@ -78,7 +79,7 @@ Requests == {rr \in [survey: {"none", "a", "c", "aDetours", "cDetours"},
                                                /\ rr.ops = "none" /\ rr.formal = "none"
                                                /\ ~rr.pending /\ rr.external \in {"none", "ok"}
                                                /\ rr.spec \in {"none", "model"}
-                                               /\ rr.kind \in {"feature", "featureDesign"}
+                                               /\ rr.kind \in {"feature", "featureDesign", "defect"}
               /\ rr.rework = "lateGrow" => ~rr.tasks
               /\ rr.rework = "lateDesign" => rr.kind = "feature"}
 
@@ -291,11 +292,11 @@ FixToDesign == pc = "fix" /\ FixNeedsDesign /\ ~h.switched
 \*   作業に分ける条件に当たる → test-design でテストケース表を作り、tasks で分けてから
 \*   作業ごとに fix（旧: この道が無い。2026-11-14 の全体のレビューの前は、fix から tasks へ直接）
 FixSplit == pc = "fix" /\ ~(FixNeedsDesign /\ ~h.switched)
-    /\ ~Old /\ r.tasks /\ ~h.taskList
+    /\ ~Old /\ (r.tasks \/ h.lateGrown) /\ ~h.taskList
     /\ Go("test-design")
 
 FixCode == pc = "fix" /\ ~(FixNeedsDesign /\ ~h.switched)
-    /\ (Old \/ ~r.tasks \/ h.taskList)
+    /\ (Old \/ ~(r.tasks \/ h.lateGrown) \/ h.taskList)
     /\ GoH(AfterChange, [h EXCEPT !.sized = FALSE, !.evidenceFixed = FALSE,
                                    !.opsApproved = FALSE])
 
@@ -309,7 +310,7 @@ SizingAfterImplement == pc = "sizing-after-implement"
        ELSE IF r.rework = "lateDesign" /\ ~h.lateDesigned
          THEN GoH("design", [h EXCEPT !.sized = TRUE, !.lateDesigned = TRUE])
        ELSE IF r.rework = "lateGrow" /\ ~h.lateGrown
-         THEN GoH("tasks", [h EXCEPT !.sized = TRUE, !.lateGrown = TRUE])
+         THEN GoH(IF h.defect THEN "fix" ELSE "tasks", [h EXCEPT !.sized = TRUE, !.lateGrown = TRUE])
          ELSE GoH(IF Ops THEN "ops-artifacts" ELSE IF ~Old /\ r.evidence THEN "evidence" ELSE "review-round",
                   [h EXCEPT !.sized = TRUE])
 
@@ -420,10 +421,13 @@ EvidenceBeforeReview == (pc = "review-round" /\ r.evidence) => h.evidenceFixed
 SizingBeforeAudit == pc = "audit" => h.sized
 
 \* 作業に分ける条件に当たるなら、監査の前に作業の一覧がある
-TasksBeforeAudit == (pc = "audit" /\ (r.tasks \/ h.lateGrown)) => h.taskList
+TasksBeforeAudit == (pc = "audit" /\ (r.tasks \/ r.rework = "lateGrow")) => h.taskList
 
 \* 実装の後の判定で要る観点に設計の判断が無いと分かったら、設計し直してから証拠・レビューへ
-LateDesignBeforeReview == (pc \in {"evidence", "review-round", "audit"} /\ h.lateDesigned) => h.lateRedesigned
+\* 前提は依頼の側（r.rework）に置く（戻る枝の旗を前提にすると、枝ごと消した写しで空に成り立つ）。
+\* 設計し直した後の design-ok と実装のやり直しは、矢印の突き合わせが縛る
+LateDesignBeforeReview == (pc \in {"ops-artifacts", "ops-ok", "evidence", "review-round", "audit"}
+                           /\ r.rework = "lateDesign") => h.lateRedesigned
 
 \* 確定した受入の証拠を、要件の書き直し（工程 req）で無駄にしない
 EvidenceNotWasted == ~(pc = "req" /\ h.evidenceFixed)

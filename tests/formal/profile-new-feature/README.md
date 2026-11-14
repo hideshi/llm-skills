@@ -38,7 +38,7 @@
 - 手戻りは、それぞれ1回まで起きうるとする。レビュー・承認し直し・監査の手戻りは、一つの依頼で一種類まで。
 - 寄り道（`primary-source`・`domain-model`・`req-ask`）は、工程 `req` が「済んでいない寄り道があれば先にする」順で表す。どの順でも戻る先は `req` なので、確かめる性質には影響しない。
 - 表していないもの: テストを先に書くのを外す場合、一言の依頼で途中の工程から入る場合（入口は工程 `sizing` だけ）。監査が「止める」ときの戻り先は `implement` だけを表す。
-- 工程 `sizing-after-implement` で「通常の道なのに作業の一覧が無い」「要る観点に設計の判断が無い」と出て戻る流れは、プロファイルの決まりにあるが、工程 `sizing` から順に進むかぎり起きない（安全のための決まり）。モデルでもたどり着かないので、遷移の表には載せていない。
+- 工程 `sizing-after-implement` で「通常の道に変わったのに作業の一覧が無い」「要る観点に設計の判断が無い」と出て戻る流れは、手戻り `lateGrow`・`lateDesign` で表す。限定: 画面・運用・モデルの検査・決定待ちが無く、一次情報は無しか確定だけ、`spec` は無しかモデルだけ（仮説、要件の未回答なし）の依頼に限る。`lateGrow` は元が軽い道の依頼（途中で通常の道に変わらず、実装中の発見も無い）、`lateDesign` は元から設計が要らなかった依頼だけ（一部の観点だけ設計が欠けていた場合は表していない）。設計と作業の一覧が両方欠ける同時の場合、手戻りの後に画面・一次情報・決定待ち・反例が新たに生じる組み合わせは表していない。設計し直した後の `design-ok` と実装のやり直しは、性質ではなく矢印の突き合わせが縛る。
 
 ## 検査の記録
 
@@ -54,6 +54,6 @@
 | 2026-11-14 | 同上 | 工程の番号を識別子に置き換えた版: 3,558,144 状態（全 3,892,224 生成、深さ 52、約1分）で違反なし。置き換えの前と状態数・深さが同じで、EdgeProbe の矢印も対応表で写すと一致した。モデルを対応表で旧い番号に戻すと、動作の名前を除いて、前の版と字句が一致した。規模の判定から運用の成果物を飛ばすと `OpsApprovedBeforeReview` が破れることを確かめ直した |
 | 2026-11-14 | 同上 | 画面の工程（`screen`・`wireframe`・`screen-ok`）と、`ScreenBeforeDownstream`・`FeedbackRoutedFirst`・`ScreenRevisitedAfterDesignChange` を足した版。6,647,024 状態（全 7,241,424 生成、深さ 54、2分26秒）で違反なし、`Terminates` と `ResumeReturnsToSaved` が成り立つ。崩した写しで次を確かめた: 意見を `req` を通さず `screen` へ戻すと `FeedbackRoutedFirst`（と、意見がモデルのときは `NoHypothesisIntoDesign`）が、画面の契機があるのに `screen` を飛ばすと `ScreenBeforeDownstream` が、設計で画面が変わっても `design-ok` へ進むと `ScreenRevisitedAfterDesignChange` が、仮説の規則を残したまま `screen` へ進むと `NoHypothesisIntoDesign` が破れる |
 | 2026-11-14 | 同上 | レビュー（別のモデル2つ）を受けた版。設計で初めて画面が要ると分かる依頼（`screen` の "late"）、`design-ok` の決定で画面に及ぶ直し（`rework` の "decisionScreen"）、画面と運用の業務の決定・設計の途中の一次情報の組み合わせを足し、運用の業務の決定から `req` へ戻るときも画面の採用を外した。依頼は 204,160 通り。11,148,288 状態（全 12,074,448 生成、深さ 69、5分54秒）で違反なし、`Terminates` と `ResumeReturnsToSaved` が成り立つ。初めの `ScreenRevisitedAfterDesignChange` は設計の判断で画面が変わる旗しか見ておらず、足した2つの道の迂回を見ない形だった（読んで導いた。強める前の性質で崩した写しは流していない）ので、`design-ok` の時点で決定の直しと設計で分かった画面が済んでいることも求める形に強めた。強めた後は、決定の直しで `screen` を飛ばすと、設計で画面が要ると分かっても `req` に戻らないと、どちらも `ScreenRevisitedAfterDesignChange` が破れることを確かめた |
-| 2026-11-14 | 実装の後の規模の判定し直しから `design`・`tasks` へ戻る道を足した版（手戻り `lateGrow`・`lateDesign` と `LateDesignBeforeReview` を足した。画面・運用・モデルの検査・決定待ちの無い依頼にだけ掛ける） | 同上 | 突き合わせ（`TLC_TIMEOUT` 1500）で違反なし。状態の数は控えていない。設計し直さずにレビューへ進む写しは `LateDesignBeforeReview` が、作業に分けずに証拠かレビューへ進む写しは `TasksBeforeAudit` が破れることを確かめた |
+| 2026-11-14 | 同上 | 実装の後の規模の判定し直しから `design`・`tasks` へ戻る道を足した版（手戻り `lateGrow`・`lateDesign` と `LateDesignBeforeReview`。限定は上の「仮定と範囲」）。11,156,224 状態で違反なし（TLC だけで約4分半）。レビュー（別のモデル2つ）を受けて、`LateDesignBeforeReview` と `TasksBeforeAudit` の前提を依頼の側（`r.rework`）に替えた。設計し直す枝を消した写しは `LateDesignBeforeReview` が、作業に分けずに証拠かレビューへ進む写しは `TasksBeforeAudit` が破れることを確かめた |
 
 2026-11-14 に工程の番号を識別子に置き換えた。これより前の記録にある番号は、[対応表](../../../docs/dev-skills-conventions.md#付録-工程の識別子の対応表)で読み替える。

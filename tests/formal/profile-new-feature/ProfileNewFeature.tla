@@ -243,6 +243,8 @@ SizingAfterImplement == pc = "sizing-after-implement"
          THEN GoH("design", [h EXCEPT !.sized = TRUE, !.lateDesigned = TRUE, !.designDone = FALSE])
        ELSE IF r.rework = "lateGrow" /\ ~h.lateGrown
          THEN GoH("tasks", [h EXCEPT !.sized = TRUE, !.lateGrown = TRUE, !.normal = TRUE])
+       \* 次の枝は、今の依頼の組み合わせではたどり着かない（通常の道は test-cases から tasks を通る）。
+       \* 守りとして残す
        ELSE IF h.normal /\ ~h.taskList
          THEN GoH("tasks", [h EXCEPT !.sized = TRUE])
        ELSE GoH(IF Ops THEN "ops-artifacts" ELSE IF r.evidence THEN "evidence" ELSE "review-round",
@@ -361,10 +363,13 @@ EvidenceBeforeReview == (pc = "review-round" /\ r.evidence) => h.evidenceFixed
 OpsApprovedBeforeReview == (pc \in {"evidence", "review-round"} /\ Ops) => h.opsApproved
 
 \* 通常の道なら、監査の前に作業の一覧がある
-TasksBeforeAudit == (pc = "audit" /\ h.normal) => h.taskList
+TasksBeforeAudit == (pc = "audit" /\ (h.normal \/ r.rework = "lateGrow")) => h.taskList
 
 \* 実装の後の判定で要る観点に設計の判断が無いと分かったら、設計し直してから証拠・レビューへ
-LateDesignBeforeReview == (pc \in {"evidence", "review-round", "audit"} /\ h.lateDesigned) => h.designDone
+\* 前提は依頼の側（r.rework）に置く（戻る枝の旗を前提にすると、枝ごと消した写しで空に成り立つ）。
+\* 設計し直した後の design-ok と実装のやり直しは、矢印の突き合わせが縛る
+LateDesignBeforeReview == (pc \in {"ops-artifacts", "ops-ok", "evidence", "review-round", "audit"}
+                           /\ r.rework = "lateDesign") => h.designDone
 
 \* 中断の間に人が承認した成果物が変わったら、人に確かめてから工程に戻る
 ApprovedChangeNeedsHuman == (h.resumed /\ h.apChanged /\ pc \in Steps) => h.humanChecked

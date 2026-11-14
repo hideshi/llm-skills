@@ -165,7 +165,7 @@ def model_flow(model_dir, jar):
                "-config", str(probe_cfg), str(probe_tla)]
         try:
             res = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True,
-                                 timeout=int(os.environ.get("TLC_TIMEOUT", "600")))
+                                 timeout=int(os.environ.get("TLC_TIMEOUT", "1200")))
         except subprocess.TimeoutExpired:
             return steps, excluded, "TLC が時間の上限までに終わらなかった（TLC_TIMEOUT）"
         if res.returncode != 0 or "Model checking completed" not in res.stdout:
