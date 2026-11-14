@@ -1382,6 +1382,38 @@
             "dev-user-manual"
           ],
           "note": "画面の中の文言は文面にもマニュアルにも取られない"
+        },
+        {
+          "id": "TX11",
+          "prompt": "（注文の確定をほかのシステムへ知らせる）キューに流すメッセージの形を決めて",
+          "accept": [
+            "dev-api-contract",
+            "dev-cross-system-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "forbidPrefixes": [
+            "dev-message-design"
+          ],
+          "note": "機械が受ける知らせは文面の単位に取られない"
+        },
+        {
+          "id": "TX12",
+          "prompt": "（取引先のシステムへ状態の変化を知らせる）Webhook で送る通知の形を決めて",
+          "accept": [
+            "dev-api-contract",
+            "dev-cross-system-design"
+          ],
+          "profiles": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "forbidPrefixes": [
+            "dev-message-design"
+          ],
+          "note": "機械が受ける知らせは文面の単位に取られない"
         }
       ]
     },

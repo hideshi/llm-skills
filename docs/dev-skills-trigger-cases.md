@@ -124,7 +124,9 @@
 | U12 | 「この画面を実装して」 | 画面の設計が人に採られている | `dev-wireframe`・`dev-screen-design` は起動しない | — |
 | U13 | 「このデモ動画を確認して」 | 受入の証拠の録画がある | `dev-evidence-check`（ワイヤーに取られない） | `evidence` |
 
-## 文面の単位（`dev-profile-new-feature` と `dev-profile-existing-system` の工程。単位が直接選ばれてもよい）
+「アクセシビリティを確認して」（実装した画面の点検）の起動の先は、まだ決めていない。デザインシステムの単位の使わない場面に入れてあり、受入の証拠か完了前の監査に寄せるかは、使ってみてから決める。
+
+## 文面と操作マニュアルの単位（`dev-profile-new-feature` と `dev-profile-existing-system` の工程。単位が直接選ばれてもよい）
 
 | ID | 依頼の例 | 状況 | 期待するスキル | 期待する工程 |
 |---|---|---|---|---|
@@ -138,8 +140,8 @@
 | TX8 | 「本番の手順を書いて」 | リリースの予定がある | `dev-production-procedure`（`dev-user-manual` は使わない） | `ops-artifacts` |
 | TX9 | 「引継ぎの資料を作って」 | 前任者から引き継いだシステム | `dev-system-map` か `dev-profile-inherited-system`（`dev-user-manual` は使わない） | — |
 | TX10 | 「この画面の文言を直して」 | 画面の設計がある | `dev-message-design`・`dev-user-manual` は使わない | — |
-
-「アクセシビリティを確認して」（実装した画面の点検）の起動の先は、まだ決めていない。デザインシステムの単位の使わない場面に入れてあり、受入の証拠か完了前の監査に寄せるかは、使ってみてから決める。
+| TX11 | 「キューに流すメッセージの形を決めて」 | 注文の確定をほかのシステムへ知らせる | `dev-api-contract` か `dev-cross-system-design`（`dev-message-design` は使わない） | `design` |
+| TX12 | 「Webhook で送る通知の形を決めて」 | 取引先のシステムへ状態の変化を知らせる | `dev-api-contract` か `dev-cross-system-design`（`dev-message-design` は使わない） | `design` |
 
 ## 作業の制御の単位（`dev-profile-existing-system` の工程。中断と再開の工程は所属を書く。単位が直接選ばれてもよい）
 
@@ -261,3 +263,4 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 | 2026-11-14 | Claude Code（Sonnet 5.5）、工程の識別子への置き換えと、`dev-history-recovery` の description の言い方（「破壊度に応じた」→「取り返せない操作への」）を変えた後（V3・V4・V6・V10、各1回、`tests/trigger` の隔離） | 4/4（どれも `dev-history-recovery` を直接選んだ） | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5）、運用と安全の群の起動の試験 O12〜O16 を足した後（O12〜O16、各1回、`tests/trigger` の隔離） | 5/5。O12（引き継いだシステムの現状の把握）はプロファイルを経て、O13（改修の前の今の仕様）は `dev-current-behavior-survey`、O14 は `dev-credential-catalog`、O15 は `dev-personal-info-ledger` を直接選んだ。O16（プライバシーポリシーは適法？）は台帳の単位を使わなかった | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5）、画面の群（3単位）を足し、新規開発と既存システムの改修の description に「画面の設計」を足した後。U1〜U13 を各2回（計26回）と、全件（開発作業の群 116件と Cloudflare の群 8件）を各1回、`tests/trigger` の隔離 | U1〜U13 は 26/26。U1・U5 は `dev-screen-design`、U2 は `dev-wireframe`、U3・U4 は `dev-design-system` を直接選んだ。対照（U6 モックから要件、U7 エラーメッセージ、U8 誰にどの画面を見せるか、U9 今の画面を調べて、U13 デモ動画）は、どれも期待する単位を直接選び、画面の単位に取られた回は無かった。U10〜U12 は禁じた単位を使わなかった。全件では D32（外部の CDN のスクリプトを読み込んで大丈夫？）だけが外れた（スキルを使わずに要件の文書を読み始めた）。D32 を3回流し直すと 2/3 で、外れた1回も同じ外れ方だった。画面の単位を選んだ回は無い | なし。D32 は前の全件の記録に外れが無いので、記録に留めて、全件を3回流すときに見る |
+| 2026-11-14 | Claude Code（Sonnet 5.5・Haiku）、文面と操作マニュアルの単位（`dev-message-design`、`dev-user-manual`）を足した後。TX1〜TX10 と近い既存のケース（U1〜U13、D4、D6、O1、O7、C8）を各3回、`tests/trigger` の隔離 | Sonnet: TX2・TX9 が 2/3、ほかは 3/3。近い既存のケースで新しい単位に取られた回は無い。Haiku: TX1 1/3、TX2・TX6・TX9 0/3（スキルを使わない）。独立レビュー（別のモデル2つ）を受けて直した後、TX11・TX12（機械が受け取るメッセージと Webhook の対照）を足し、Sonnet で TX1〜TX6・TX9・TX11・TX12・D6 を各3回: TX11 が 0/3（文面の単位に取られた）、ほかは 3/3。文面の単位の description に機械が受け取るメッセージ・イベント・Webhook を使わない場面として足し、TX1・TX2・TX11・TX12・D6 を各3回流し直して、どれも 3/3 | Haiku で文面の依頼にスキルを使わない回が多い（記録だけ） |
