@@ -1,0 +1,37 @@
+# 根拠と変えたところ
+
+システム間の連携を設計する手順が、どの先行の手法に基づき、どこを変え、どこが独自の判断かを書く。手順そのものは SKILL.md が正本で、ここは読む人が元の考え方をたどるための別紙。
+
+- 確かめた日: 2026-11-13
+- 確かめた水準: 「原典を読んだ」「書誌と二次資料で確かめた」「未確認」
+
+## 先行の手法
+
+| 手順の箇所 | 手法 | 出典 | 確かめた水準 | 同じところ | 変えた・足したところ |
+|---|---|---|---|---|---|
+| 2、問い 1・3（正本と語の分離） | 境界づけられたコンテキスト（Bounded Context）とユビキタス言語 | Eric Evans『Domain-Driven Design: Tackling Complexity in the Heart of Software』Addison-Wesley、2003（Part IV Strategic Design） | 書誌と二次資料で確かめた | システムごとにモデルの境界を引き、同じ語が違う意味を持つなら名前を分けて混同を防ぐ | システムごとの「責務・持たないもの・どの関心事の正本か」の表と、相手の識別子を持つかを機能ごとに決める手順にした |
+| 4、外の失敗の分け方（2段の分け方とタイムアウト・再試行） | 分散呼び出しの不確実性 | Pat Helland「Life beyond Distributed Transactions: an Apostate's Opinion」CIDR、2007／ACM Queue、2016。Martin Kleppmann『Designing Data-Intensive Applications』O'Reilly、2017（第8章「The Trouble with Distributed Systems」） | 書誌と二次資料で確かめた（本文は未読） | 送った後の時間切れや接続断では相手で実行されたか分からないことを前提にし、重複しても壊れない設計で臨む | 同期・裏のどちらでも同じ「2段の分け方（実行されたか → 再試行してよいか）」で分類し、照会で見つからない場合も反映遅延がありうるため相手の確定条件を調べる規則を足した |
+| 4、外の失敗の分け方（タイムアウト・再試行・ジッター） | タイムアウトと指数バックオフ（上限付き） | Marc Brooker「Timeouts, retries, and backoff with jitter」AWS Builders' Library、2019（https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/ 、builder.aws.com へ転送・2019-12-05 公開） | 原典を読んだ（2026-11-13 に公開記事の本文を確認） | タイムアウトを設け、一律の再試行を避けて冪等性と回数上限・ジッター付き指数バックオフで再試行を行う | 相手での実行成否に応じた再試行可否を 2 段の分け方で明示してから適用する順にした |
+| 5、問い 7・8（失敗と補償） | サガ（Saga）と補償トランザクション | Hector Garcia-Molina, Kenneth Salem「Sagas」ACM SIGMOD '87、249–259、1987（DOI 10.1145/38713.38742） | 書誌と二次資料で確かめた | システムをまたぐ処理で全部が一度に成功する前提を置かず、途中の失敗に対して取り消しの補償で整合を回復する | 取り消せない資源（お金、在庫、外部発行ID）を先に特定し、取り消しも外部呼び出しとして失敗しうる点と、補償時に認可を緩めない原則を足した |
+| 6、問い 10・11（利用者の受け渡しと URL） | URL・画面入力への機微情報非搭載と信頼境界の再検証 | MITRE「CWE-598: Use of HTTP Request With Sensitive Query String」（https://cwe.mitre.org/data/definitions/598.html ）、「CWE-602: Client-Side Enforcement of Server-Side Security」（https://cwe.mitre.org/data/definitions/602.html ） | 原典を読んだ（2026-11-13 に両定義本文を確認） | 利用者を別のシステムへ渡すとき URL に載せた値や画面から渡された操作者の識別子を認可に使わず、個人情報や秘密の値を URL に載せない | 渡された側での認可の再検証と、相手の管理画面やログに残る内容も「外部へ送る内容」に含めて個人情報の範囲を決める観点を足した |
+| 6、問い 12・16（通知の受け方と追跡） | べき等受信（Idempotent Receiver）と相関識別子（Correlation Identifier） | Gregor Hohpe, Bobby Woolf『Enterprise Integration Patterns』Addison-Wesley、2003 | 書誌と二次資料で確かめた（本文は未読） | 重複と順不同を前提に受け（問い 16）、システムをまたいで操作を追える相関識別子を付ける（問い 12） | 古い通知で新しい状態を上書きしないことと、通知が届かない場合（欠落時の照会）まで問い 16 に含めた |
+| 6、問い 16（送り主の検証・再生防御・重複排除） | Webhook の署名検証と再生防御 | Standard Webhooks「Standard Webhooks Specification v1.0.0」（https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md 、関連サイト https://www.standardwebhooks.com/ ） | 原典を読んだ（2026-11-13 に GitHub 仕様本文 v1.0.0 を確認） | `webhook-signature` による署名検証、`webhook-timestamp` による再生防御、`webhook-id` を冪等キーとして使う重複排除を採る | 通知欠落時の照会手段と古い状態の上書き禁止を合わせて問い 16 で確かめる |
+| 7、問い 14・15（既存の流用・廃止・並行と切り替え） | ストラングラーフィグ（Strangler Fig）と並行変更（Parallel Change） | Martin Fowler「StranglerFigApplication」（https://martinfowler.com/bliki/StranglerFigApplication.html 、2024-08-22 改稿版）、Danilo Sato「ParallelChange」（https://martinfowler.com/bliki/ParallelChange.html 、2014） | 原典を読んだ（2026-11-13 に両記事の本文を確認） | 既存の導線を一度に置き換えず、流用・廃止・並行を見極めて段階的に切り替える | 既存側の変更を「今の姿＋足す／変える／触らない」で書かせて触らない既存物を1件以上明示し、読む側より先に正本を置く順序制約を課した |
+
+## 独自の判断
+
+| 決まり | 理由 | 確かめ方 |
+|---|---|---|
+| 16個の「問いの一覧」を全行埋め、当たらない行も理由を書く | 連携で漏れやすい論点（時計の正本、取り消せない資源、補償時の認可など）を暗黙に飛ばさないため | 16個の問いで事前に論点を拾えた指摘件数と、全行埋めても後続のレビュー結果・問題台帳（あれば）で後から露見した連携漏れ件数を数え、質問項目を見直す |
+| 「相手に届くこと」と「相手の業務への反映」の保証を別々に正直に宣言する | 送信の成功を業務完了と誤認し、過大な到達・反映保証を約束するのを防ぐため | 連携設計後に相手側反映遅延や到達保証の食い違いで起きた手戻り・問い合わせ件数を記録し、宣言の項目を見直す |
+| 相手の契約が分からない項目を「未確認」とし、分岐に影響する未確認があれば判断を保留する | 冪等キー保持期間やエラー体系を推測して壊れる再試行・補償を組むのを防ぐため | 未確認項目を残した設計で相手仕様と合わず差し戻された件数と、保留による確認待ち件数を確認事項の記録・レビュー結果で比べ、保留の基準を見直す |
+| 結果が分からないまま利用者へ返すとき、二重実行の可能性と確認主体を隠さない | 「確認中」などあいまいな文言で利用者に二重送信や誤解を起こさせないため | 結果不明画面からの二重送信発生件数やサポート問い合わせ数を計測し、表示方針を見直す |
+| 別作業場所の最初の作業を実装ではなく範囲の要約にし、既存導線の扱いは人の決定にする | 複数リポジトリをまたぐ作業での手戻りや、不要な並行運用の抱え込みを防ぐため | 事前要約と確認を経ても発生した他作業場所との認識違い・手戻りの件数を問題台帳で数え、着手前の区切り方を見直す |
+
+## 改善の記録
+
+- 2026-11-13: 初版。先行の手法6つと独自の判断5つを書いた。
+- 2026-11-13: 境界の安全の手法を SKILL.md（URL の値と画面からの操作者識別子を認可に使わず個人情報を載せない）に合わせて CWE-601 から CWE-598・CWE-602 に修正し、既存導線と順序制約の確かめ方を具体化した。
+- 2026-11-13: Brooker・CWE-598/602・Standard Webhooks・StranglerFigApplication・ParallelChange の公開原典を確認して水準・URL・CWE-598 正式題を更新し、独自の判断5件を反証可能な確かめ方へ改めた。
+- 2026-11-13: 独立レビューを受け、Helland/DDIA と Brooker、EIP と Standard Webhooks v1.0.0 の混在行を分割し、初出・転送先注記と独自の判断の確かめ方を修正した。
+- 2026-11-13: 独立レビューを受け、Standard Webhooks と EIP の問い番号対応（問い 12・問い 16）を正し、StranglerFigApplication の未確認の初出年表記を除き、確かめ方の記録先と「手間」表現を改めた。

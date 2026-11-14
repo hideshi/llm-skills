@@ -1,4 +1,0 @@
-interface:
-  display_name: "アプリのMCPサーバーの組み込み"
-  short_description: "Webアプリに組み込みHTTPで公開するMCPサーバーの要件・設計・実装・試験を、不変条件と仕様の版の確認に沿って進める"
-  default_prompt: "$app-mcp-server-integration を使って、使う仕様の版を確かめてから、このアプリに組み込むMCPサーバーの要件と不変条件を整理してください。"

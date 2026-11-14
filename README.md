@@ -1,101 +1,27 @@
-# LLM Skills (LLM選定・裏取り、時代考証、Jev設計、エージェント連携の実装、振り返り & Cloudflareの基盤選定のスキル群)
+# LLM Skills
 
-以下の6つのスキル群からなるエージェントスキル集です。
+LLM の選定と裏取り、Jev の設計、時代考証、エージェント連携の実装、開発作業の進め方、Cloudflare の基盤選定、会話の一区切りの振り返りを支える、エージェントスキル集です。**Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
 
-1. **LLM選定・裏取り**: 目的やシステム要件に応じて、客観的な外部ベンチマークや最新モデルカードの裏取りを行った上で、最適なLLM（主にローカルLLM）を提案
-2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマ・フォールバック設計、評価セット freeze、閾値較正（shadow 記録まで）を支援
-3. **歴史・文化背景の裏取り**: 人物や制度の判断を史料・研究と照合し、出来事の記録、当時や後世の評価、創作上の仮定を分ける。歴史的な振る舞いの評価やシミュレーション設計に利用
-4. **エージェント連携の実装**: 既存のWebアプリにMCPサーバーを組み込み、HTTPでエージェントに公開する際の要件定義・設計・実装・試験を、言語・SDKに依存せず支援
-5. **会話の一区切りの振り返り**: コーディングの会話の区切りで、摩擦を専門用語と情報処理技術者試験（基本情報から高度試験まで）の概念につなげ、利用者の個人用スキルを育てるかを判定
-6. **Cloudflareの基盤選定**: 要件を Cloudflare 前提の制約に整理し、製品の仕様・制限・価格を毎回公式資料で裏取りして、構成案を出す
+スキルは目的ごとの「群」に分かれています。まず下の表で群を選び、入口のスキルから始めてください。
 
-**Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
+| 群 | 何に使うか | 入口のスキル |
+| :--- | :--- | :--- |
+| [1. LLM選定・裏取り](#1-llm選定裏取り) | 目的やシステム要件に応じて、外部ベンチマークやモデルカードを裏取りしたうえで、最適なLLM（主にローカルLLM）を提案する | `model-requirements-analyzer` |
+| [2. Jev 設計](#2-jev-system-one-model-設計) | 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、TCO試算、型付きのスキーマとフォールバック設計、評価セットの freeze、閾値較正（shadow 記録まで）、監視設計を支援する | `jev-candidate-detector` |
+| [3. 歴史・文化背景の裏取り](#3-歴史文化背景の裏取り) | 人物や制度の判断を史料・研究と照合し、出来事の記録、当時や後世の評価、創作上の仮定を分ける | `historical-context-grounding` |
+| [4. エージェント連携の実装](#4-エージェント連携の実装) | 既存のWebアプリにMCPサーバーを組み込み、HTTPでエージェントに公開する際の契約を、言語・SDKに依存せず設計する（開発作業の群の単位に移した） | `dev-agent-contract` |
+| [5. 開発作業](#5-開発作業) | コードや文書の変更のレビューの一巡、新規開発、既存システムの改修・不具合の是正を、設計・試験・作業の分割まで含めて進める。単位を組み合わせるプロファイルで工程を選ぶ | `dev-profile-review-cycle`、`dev-profile-existing-system`、`dev-profile-new-feature`、`dev-profile-dependency-upkeep`、`dev-profile-exposure-sweep`、`dev-profile-inherited-system` |
+| [6. Cloudflare の基盤選定](#6-cloudflare-の基盤選定) | 要件を Cloudflare 前提の制約に整理し、製品の仕様・制限・価格を毎回公式資料で裏取りして、構成案を出す | `cloudflare-requirements-framing`（一問一答は `cloudflare-product-survey`） |
+| [7. 会話の一区切りの振り返り](#7-会話の一区切りの振り返り) | コーディングの会話の区切りで、摩擦を専門用語と情報処理技術者試験（基本情報から高度試験まで）の概念につなげ、利用者の個人用スキルを育てるかを判定する | `post-task-retrospective` |
 
----
-
-## ディレクトリ構成
-
-```text
-llm-skills/
-├── README.md
-│
-├── skills/                                    # [本体] スキル実体
-│   ├── historical-context-grounding/          # 歴史・文化背景の裏取り（Jev以外でも利用可）
-│   │   ├── SKILL.md
-│   │   ├── references/source-workflows.md      # 資料の取得・判定の手順と記録
-│   │   └── agents/openai.yaml
-│   ├── model-requirements-analyzer/           # 1. 要件定義 & 制約整理
-│   │   ├── SKILL.md
-│   │   └── templates/requirements-template.md
-│   ├── local-llm-researcher/                  # 2. 候補モデル探索 & 外部裏取り
-│   │   ├── SKILL.md
-│   │   └── references/trusted-sources.md
-│   ├── hardware-compatibility-checker/        # 3. VRAM/KV Cache/推論エンジン適合性検証
-│   │   ├── SKILL.md
-│   │   └── references/vram-calculator-formula.md
-│   ├── llm-selection-advisor/                 # 4. 比較レポート & 導入手順の生成
-│   │   ├── SKILL.md
-│   │   └── templates/evaluation-report-template.md
-│   ├── jev-candidate-detector/                # 5. [Jev] ドメイン/要件からの候補抽出 & コスト試算
-│   │   ├── SKILL.md
-│   │   ├── references/cost-estimation-reference.md
-│   │   └── templates/jev-candidate-report-template.md
-│   ├── jev-logic-architect/                   # 6. [Jev] 詳細設計(design.md)向けスキーマ & フォールバック設計
-│   │   ├── SKILL.md
-│   │   ├── references/jev-design-patterns.md
-│   │   └── templates/jev-logic-spec-template.md
-│   ├── jev-eval-set/                          # 7. [Jev] 評価セット整備 & freeze
-│   │   ├── SKILL.md
-│   │   ├── references/sampling-and-leakage-guide.md
-│   │   └── templates/jev-eval-set-report-template.md
-│   ├── jev-calibration/                       # 8. [Jev] 閾値較正 & validationStatus / shadow 記録
-│   │   ├── SKILL.md
-│   │   ├── references/evaluation-metrics.md
-│   │   └── templates/jev-calibration-report-template.md
-│   ├── jev-observability/                     # 9. [Jev] 監視設計（観測契約）
-│   │   ├── SKILL.md
-│   │   ├── references/decision-event-contract.md
-│   │   └── templates/jev-observability-spec-template.md
-│   ├── jev-monitoring-platform/               # 10. [Jev] 監視基盤要件（CF既定・他クラウド写像）
-│   │   ├── SKILL.md
-│   │   ├── references/cloud-provider-remap.md
-│   │   ├── references/testing-and-local-dev.md
-│   │   ├── templates/jev-monitoring-platform-spec-template.md
-│   │   └── templates/local-dev/                 # Dockerfile / compose 例
-│   ├── jev-shared/                            # [Jev] 共有語彙・定形結果レポート
-│   │   ├── references/jev-lifecycle-status.md
-│   │   ├── references/judgment-input-and-sensitivity.md
-│   │   ├── references/historical-judgment-evaluation.md
-│   │   └── templates/jev-pipeline-result-report-template.md
-│   ├── app-mcp-server-integration/            # アプリに組み込むMCPサーバー（要件・設計・実装・試験）
-│   │   ├── SKILL.md
-│   │   ├── references/                        # 要件・認可・書き込みの安全・実装・試験・仕様の追従
-│   │   └── agents/openai.yaml
-│   ├── post-task-retrospective/               # 会話の一区切りの振り返り（用語化・個人用スキルの判定）
-│   │   ├── SKILL.md
-│   │   ├── references/                        # 試験の概念へのつなぎ方・導入・改善PRの手順
-│   │   └── agents/openai.yaml
-│   ├── cloudflare-requirements-framing/       # [Cloudflare] 要件から制約シートへ（入口）
-│   │   └── SKILL.md
-│   ├── cloudflare-product-survey/             # [Cloudflare] 仕様・制限・価格の公式資料での裏取り
-│   │   ├── SKILL.md
-│   │   ├── references/official-sources.md
-│   │   └── templates/survey-result-template.md
-│   └── cloudflare-architecture-advisor/       # [Cloudflare] 本命・軽量・拡張の構成案
-│       ├── SKILL.md
-│       └── references/fit-checklist.md
-│
-├── .cursor/skills/                            # Cursor 向け (symlink)
-├── .claude/skills/                            # Claude Code 向け (symlink)
-├── .agent/skills/                             # Antigravity 向け (symlink)
-└── codex/skills/                              # Codex 向け (symlink)
-```
+群どうしは独立していて、必要な群だけを使えます。群をまたいで使う場合は、各群の節にある説明に従ってください。
 
 ---
 
-## スキル一覧 & 責務
+## 1. LLM選定・裏取り
 
-### 1. LLM 選定 & 外部裏取りスキル群
+要件の整理 → 候補の探索と裏取り → ハードへの適合確認 → 比較と提案、の順に使います。
+
 | スキル名 | 責務・役割 | 主な参照・裏取りリソース |
 | :--- | :--- | :--- |
 | **`model-requirements-analyzer`** | システム要件、タスク分類（コーディング/RAG/エージェント）、言語要件、ライセンス、レイテンシ、ハードウェア前提のヒアリングと定義 | システム要求仕様、コンプライアンス要件 |
@@ -103,7 +29,10 @@ llm-skills/
 | **`hardware-compatibility-checker`** | パラメータ規模、コンテキスト長、KV Cache、量子化（GGUF, AWQ等）のメモリ計算と推論エンジン選定 | VRAM計算式、vLLM / Ollama / llama.cpp の仕様 |
 | **`llm-selection-advisor`** | 上記を統合し、本命案・軽量案・拡張案の比較マトリクスと起動コマンドを含む提案レポートを作成 | 総合評価レポートテンプレート |
 
-### 2. Jev (System One Model) アーキテクチャ設計スキル群
+## 2. Jev (System One Model) 設計
+
+候補の抽出 → ロジック設計 → 評価セット → 閾値較正 → 監視設計 → 監視基盤、の順に使います。共有の語彙と定形の結果レポートは `jev-shared` にあります。
+
 | スキル名 | 責務・役割 | 主な参照・裏取りリソース |
 | :--- | :--- | :--- |
 | **`jev-candidate-detector`** | Kiro/cc-sddの`requirements.md`または同等の要件定義書を一次資料とし、`design.md` / `tasks.md`、ドメインモデル・ユースケース・画面/API/テーブル設計等で補完してJev適用候補を検出、期待TCOとレイテンシを試算 | 最新の公式価格、実測レイテンシ、業務・上位成果物への影響 |
@@ -113,7 +42,7 @@ llm-skills/
 | **`jev-observability`** | 判定イベント・時系列メトリクス・アラート意図・保持/プライバシー境界の観測契約を設計する（実装はしない） | 目標値はプロジェクト入力、実装は SRE/MLOps |
 | **`jev-monitoring-platform`** | 観測契約を監視インフラ／監視アプリ要件に落とす。既定 Cloudflare、AWS/GCP/Azure 写像 | 制限値は出典付き裏取り／入力。実装は SRE/MLOps |
 
-### 3. 歴史・文化背景の裏取り
+## 3. 歴史・文化背景の裏取り
 
 | スキル名 | 責務・役割 | 主な参照・裏取りリソース |
 | :--- | :--- | :--- |
@@ -123,25 +52,81 @@ llm-skills/
 
 Jevの人物判断では `jev-logic-architect`、`jev-eval-set`、`jev-calibration` から必要な手順だけを参照する。個別案件の調査・実測はこのリポジトリに置かない。責務と保守範囲は[時代考証スキルの責務](docs/skill-responsibilities.md)を参照。
 
-### 4. エージェント連携の実装
+## 4. エージェント連携の実装
 
-| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+この群にあった `app-mcp-server-integration` は、[5. 開発作業](#5-開発作業)の単位 **`dev-agent-contract`**（エージェント向けの契約を設計する）に移した。不変条件（INV-1〜15）の識別子と中身は変えておらず、道具の経路でも1件ごとに触ってよいかを確かめる INV-16 を末尾に足した。要件・実装・試験の段は、開発作業の群の単位（要件、テストケースの導出、テストを先に書く実装）が受け持ち、`dev-agent-contract` は契約の設計と、確かめる観点の対応表を渡す。
+
+MCPクライアントの実装、既存のMCPサーバーを使うだけの作業、stdio のサーバーの認可は対象外。仕様の版ごとの仕組みの違いは[仕様の追従](skills/dev-agent-contract/references/mcp/spec-tracking.md)で確かめる。
+
+## 5. 開発作業
+
+`dev-` で始まるスキルは、一つの仕事を単独でこなす「単位」と、目的に合わせて単位を組み合わせる「プロファイル」に分かれる。単位どうしは互いを名指しせず、受け取る成果物と渡す成果物の型でつながる。単位だけを入れても使える。
+
+扱わないもの: 監視と警告の設計、障害の対応、退避と復旧（災害時の戻し）、ライセンスの確かめ。本番の作業は人が流し、エージェントは手順を作るまでを受け持つ。
+
+| 種類 | スキル名 | 責務・役割 |
 | :--- | :--- | :--- |
-| **`app-mcp-server-integration`** | 既存のWebアプリに組み込み、HTTPで公開するMCPサーバーについて、読み取りと書き込みの分離、機能ごとの有効・無効、ロールによる絞り込み、リソースサーバーとしての認可、書き込み前の利用者の確認を、不変条件と試験の対応表で設計・検証する | MCP公式仕様（使う前に版と変更履歴を確認）、OAuth関連のRFC |
+| プロファイル | **`dev-profile-review-cycle`** | レビューの一巡（依頼文を書く、独立してレビューする、直して再レビューする、完了前に監査する）を進める。「レビューして」「このPRを見て」などの一言から、どの工程から始めるかを振り分ける |
+| 単位 | **`dev-review-brief`** | 別の担当に渡すレビュー依頼文を書く。作った側の解釈を渡さず、原典への参照、事実、発見を求める観点だけを渡す |
+| 単位 | **`dev-review-conduct`** | 他人の変更を独立してレビューする。読む順序を固定し、検証と探索を別の回で行い、すべての指摘に証拠の種類を付ける |
+| 単位 | **`dev-completion-audit`** | 人の最終確認に回してよいかを、完了報告を信じずに監査する。証拠の強さと新しさ、残作業を確かめ、3つの判定で返す |
+| プロファイル | **`dev-profile-existing-system`** | 動いている既存システムの改修や不具合の是正を、既存の動きを壊さずに進める。規模の判定、今の動きと業務規則の調査、回帰の基準、要件化、設計、是正または改修、レビュー、完了前の監査の工程に振り分ける |
+| プロファイル | **`dev-profile-new-feature`** | 新しい機能を、規模の判定、要件化（モデルと一次情報の確かめを含む）、設計、テストケース、作業の分割、テストを先に書く実装、レビュー、完了前の監査の順に進める。要件・受入条件・テストケース・作業を識別子で結び、抜け漏れを防ぐ |
+| 単位 | **`dev-requirements`** | 要望や今の姿との差から、要件と受入条件を識別子つきで書き、業務規則とモデルを根拠にして、やらないことと人に確かめる事項を分ける |
+| 単位 | **`dev-domain-model`** | 業務の用語、管理するもの、関係、状態と区分、業務規則を、確かさと根拠を付けてモデルにする。仮説と未確定を分け、人に確かめる事項にする |
+| 単位 | **`dev-rule-extraction`** | 文書に無く、コードやデータに散らばっている業務規則を、守っている箇所と守られていない経路ごとに、仮説の候補として抜き出す |
+| 単位 | **`dev-code-search`** | 機能や概念が実装されている場所と、変更が及ぶ場所を、問いの種類に合わせた探し方と言い換えで探し、今のソースで確かめた所在として記録する |
+| 単位 | **`dev-rule-violation-audit`** | 既存のデータが業務規則を守っているかを、隔離した複製のデータで全件監査し、違反を仕分け、違反のデータで何が壊れるかを試験で再現する |
+| 単位 | **`dev-external-domain-survey`** | つなぐ外部のサービスや API の仕様と、業界団体の規格や標準を一次情報で確かめ、出典と取得日を付けて記録し、どの判断を縛るかを示す |
+| 単位 | **`dev-statutory-grounding`** | 法令、告示、公的な基準など公的な規則を原文で確かめ、施行日と条項を付けて業務規則の根拠にする |
+| 単位 | **`dev-change-sizing`** | 変更の大きさを判定し、軽い道か通常の道か、要る設計の観点、続けて使う文書と承認済みの完了条件への影響を決める。着手の時と終わる時（実際の差分で）に使う |
+| 単位 | **`dev-responsibility-design`** | ロジックの置き場所（業務の判断、手順の調整、入出力、具体の仕組み）、横断の関心事の置き場所、純粋な計算の切り出し、共通化の可否、共通の処理の契約の変え方を設計する |
+| 単位 | **`dev-authorization-design`** | 誰が何をできるかを許可の表にし、1件ごとに触ってよいかの確かめ、組織のデータの分離を強制する場所、権限の変更・委任・代行、拒否の見せ方を設計する |
+| 単位 | **`dev-agent-contract`** | アプリの機能を AI エージェントが呼ぶ道具（MCP のツールなど）として公開するときの契約を、読み書きの分離、有効・無効、役割での絞り込み、要求の検証、書き込み前の利用者の確認、仕様の版の追従まで、不変条件と確かめる観点の対応表で設計する |
+| 単位 | **`dev-api-contract`** | プログラムやシェルから呼ばれる契約（HTTP の API、RPC、WebSocket、メッセージ、CLI）の操作、冪等性、後方互換、計算済みの値の扱い、失敗の返し方の形を設計する |
+| 単位 | **`dev-error-design`** | エラーの種類の分け方、業務の誤りと技術の障害、利用者向けの文言と記録の分け方、上への渡し方、一部の件の失敗の扱いを、API・CLI・ジョブ・画面に共通に設計する |
+| 単位 | **`dev-logging-design`** | 調べるためのログの決まり（出来事と欄、段と失敗の種類の決まった語、相関、成功の集約、書かないもの、記録が業務を変えないこと、保持）を設計する。監査の記録の保証は人に確かめる |
+| 単位 | **`dev-entry-safety-design`** | 入口での形の検査、外からの値を危険な処理へ渡す方式、状態を変える要求の出どころの確かめ、応答の安全の設定、セッションの作り直し、使わない窓口の閉じ方を設計する |
+| 単位 | **`dev-data-design`** | 業務の意味から論理と物理のデータ設計を導き、規則を制約と処理のどちらで守るか、同時の更新、索引、移行の段取り、既存のデータの確認を設計する |
+| 単位 | **`dev-async-execution-design`** | ジョブ、キュー、定期のバッチを、意図の保存、実行の権利、再試行と冪等なやり直し、途中からの再開、二重起動の防止、失敗を見せる導線まで設計する |
+| 単位 | **`dev-cross-system-design`** | 外部サービスや別のシステムとの連携を、正本の所在、補償、取り消せない資源、起動の安全、既存の連携の扱いまで設計する |
+| 単位 | **`dev-formal-model-check`** | 人が依頼したときだけ、並行実行や状態遷移の性質を形式モデルで検査し、反例を実装で再現できるかまで確かめる |
+| 単位 | **`dev-task-breakdown`** | 完了条件と設計を、レビューできる大きさの作業に分け、依存、並べてよいか、終わりの条件を決め、要件から作業までの結びつきの抜け漏れを確かめる |
+| 単位 | **`dev-current-behavior-survey`** | 既存システムの今の振る舞いを、事実と推測を分けて記録し、見つけた問題を判断の区分つきの台帳にする |
+| 単位 | **`dev-regression-baseline`** | 改修前の版で今の動きを期待値にした検証点を作り、保持・変更予定・回答待ちの区分を付け、繰り返しと誤りの注入で確かさを確かめる |
+| 単位 | **`dev-defect-fix`** | 不具合を、再現の確認、方針の選択、コード・文書・試験の修正、同じ形の箇所の探索、結果の確認表まで一続きで是正する |
+| 単位 | **`dev-test-case-design`** | 完了条件や仕様から、何をテストするかを導いてテストケース表にする（境界値、前提の違反、業務規則、状態遷移、二重実行、置く層） |
+| 単位 | **`dev-acceptance-e2e`** | 受入条件を合否を判定できる形に整え、画面や外部とのやり取りをまたぐ受入の試験のシナリオを設計し、既存の E2E を棚卸しする |
+| 単位 | **`dev-test-first`** | 落ちるテストを先に書き、正しい理由で落ちたことを確かめてから最小の実装で通し、失敗を隠さずに整える |
+| 単位 | **`dev-diff-check`** | 作業を終えたときに、実装した側がその差分を、作り（置き場所、依存、用語、責務）と仕様（受入条件、規則を守る場所、遷移、横断の関心事、設計の判断）の2つの観点で点検する。独立したレビューの代わりにはしない |
+| 単位 | **`dev-evidence-check`** | 画面の写し・録画・帳票が人に見せて判断できる状態かを、組み立てた成果物で、提出する者が自分で最後まで見て確かめてから確定する |
+| プロファイル | **`dev-profile-interrupt-resume`** | 作業を途中で中断し、次のセッションや別の担当が続きから再開する流れを、引継ぎを書く、受け取りを確かめる、再開して今の状態と照らす、変わっていたら人に確かめる、の工程に振り分ける |
+| 単位 | **`dev-work-continuity`** | 中断するときに引継ぎの記録と作業状態の控えを残し、再開するときに控えと今の状態を照らして、人が承認した成果物の変化は人に確かめる。作業の一部を頼むときは委任の依頼文を書き、受け取りと結果の統合までを受け持つ |
+| プロファイル | **`dev-profile-version-control`** | 版管理の作業（作業場所を分けて隔離する、統合する、衝突の意味を判断して解く、push 拒否や誤コミット・壊れた状態から復旧する、片付ける）の工程に振り分ける |
+| 単位 | **`dev-isolated-workspace`** | 複数の作業を並べて進める、または本線を汚さずに試すときに、作業ごとの隔離された作業場所と専用の実行資源を用意し、統合を確かめてから片付ける |
+| 単位 | **`dev-conflict-resolution`** | 変更の取り込みや付け替えで起きた衝突と、衝突の印に出ない意味の食い違いを、各側の意味と契約の変化から判断して解き、解き終わった状態を確かめる |
+| 単位 | **`dev-history-recovery`** | 押し出し拒否、大きなファイルや秘密情報の誤コミット、切り離された状態、共有作業ツリーでの混在コミットを、控えの保全と、取り返せない操作への人の承認を経て復旧する |
+| プロファイル | **`dev-profile-dependency-upkeep`** | 依存の部品と実行環境の保守を、告知への対応と定期の更新のどちらでも、告知の点検、人の判断（直すか、受け入れるか）、上げる前の基準、版上げ、差分の点検、本番の手順、レビュー、完了前の監査の工程に振り分ける |
+| 単位 | **`dev-advisory-check`** | 使っている部品、実行環境、コンテナの既知の弱点の告知が、版の範囲と使い方の条件の両方で当たるかを点検し、どこまで見たかを点検の記録に、当たるものを問題台帳に残す |
+| 単位 | **`dev-dependency-bump`** | 依存の版を、候補の比べ、ロックの差と範囲内の最新化の戻し、改造の載せ直し、DB の作り替えの見込みと実測、直ったと言う根拠の書き分けまで行い、本番の手順の材料を渡す |
+| プロファイル | **`dev-profile-exposure-sweep`** | 今動いているシステムの安全の状態を、受付（範囲と要求を送ってよい相手の許可）、入口と応答の点検、人の判断、最終確認の工程に振り分ける。直す作業は別の組み合わせとして起こす |
+| 単位 | **`dev-entry-safety-check`** | 今動いているシステムの入口と応答を、許可した自分のホストへの状態を変えない要求とコードと設定の読み取りで点検し、項目ごとに見るか・問題か・直すか受け入れるかを分けて記録する |
+| プロファイル | **`dev-profile-inherited-system`** | 保守を引き継いで受け取った側が、システムの地図、前任者への確かめ、秘密の目録、個人情報の台帳、承認の工程で、読むだけの調べで現状を把握する |
+| 単位 | **`dev-system-map`** | 引き継いだシステムのどこに何があるか（動く単位と版、環境、入口、外部とのつながり、手順と資料の所在）を、確かめ方を分けて地図にし、前任者には合っているかだけを問う |
+| 単位 | **`dev-credential-catalog`** | 秘密の項目を、取り出し方で値を読まないことを保証して目録にし、持ち主・用途・保管先を人に確かめ、直書きの所在を問題として残す |
+| 単位 | **`dev-personal-info-ledger`** | 取る・送る・保存する個人の情報を、根拠の所在つきで台帳にし、公開する文の草案を台帳の事実だけで付け、運営者に問うことをまとめる。法的な判断はしない |
+| 単位 | **`dev-production-procedure`** | 本番で人が流す手順を、始めてよい条件、担当×ホスト×利用者、段ごとの印と確かめ方と止める条件、戻しの組と途中の失敗からの戻し方まで、手元で同じ中身を流して確かめてから作る。担当は本番に接続しない |
+| 共有 | `dev-shared` | 単位とプロファイルが使う[成果物の型の一覧](skills/dev-shared/references/artifact-types.md) |
 
-MCPクライアントの実装、既存のMCPサーバーを使うだけの作業、stdio のサーバーの認可は対象外。仕様の版ごとの仕組みの違いは同スキルの[仕様の追従](skills/app-mcp-server-integration/references/spec-tracking.md)で確かめる。
+- プロファイルごとの工程の順序、受け渡す型、次へ進む条件は[流れ図](docs/dev-skills-flows.md)にまとめている。
+- 単位とプロファイルの書き方、組み合わせ方の決まりは[開発スキル群の規約](docs/dev-skills-conventions.md)を参照。
+- 組み合わせと書式の検査は `python3 -I scripts/check_dev_skills.py` で行う（名指しされた単位の実在、使われない単位、型の名前と受け渡し、単位どうしの名指し、必須の節、各ツール向けのリンクなど）。
+- 一言の依頼でどのスキルが起動するかの試験は[起動の試験](docs/dev-skills-trigger-cases.md)にまとめている。description か振り分けの表を変えたら確かめ直す。
+- **使うモデルの強さ**: 一言の依頼からプロファイルを選ぶことと、自分で作った変更を自分でレビューしないことは、モデルの強さで差が出る。試験では、Claude Sonnet 相当、Grok 4.7、Gemini 3.8 Flash は安定し（隔離した起動の試験で Sonnet 相当は 98%）、Claude Haiku 相当は 91% で、設計の観点を選ぶ一言の依頼でスキルを使わない回や、自分の変更を自分でレビューする回があった。レビューの独立性が大事な場面では、Sonnet 相当以上のモデルで使うか、使うスキルを名前で指定する。
 
-### 5. 会話の一区切りの振り返り
+## 6. Cloudflare の基盤選定
 
-| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
-| :--- | :--- | :--- |
-| **`post-task-retrospective`** | 利用者が結果を受け入れた・作業を区切った・振り返りを頼んだときに一度だけ振り返り、摩擦を専門用語にし、個人用スキルを update / new-thin / discard（既定）で判定する。必要なら次の進め方か新しい技術を一つ示す | IPAの試験要綱・シラバス（基本情報、応用情報、高度試験、情報処理安全確保支援士。使う時点の現行版を確認） |
-
-開発リポジトリへ導入して使う。振り返りのメモやそこから作るスキルは、このリポジトリにも導入したコピーにも書かず、利用者の個人用スキルリポジトリに置く。導入方法は同スキルの[導入ガイド](skills/post-task-retrospective/references/installation.md)を参照。
-
-### 6. Cloudflare の基盤選定
-
-要件を Cloudflare 前提の制約に整理し、製品の仕様を公式資料で裏取りして、構成案を出す。入口は `cloudflare-requirements-framing`。仕様・制限・価格の一問一答だけなら `cloudflare-product-survey` を直接使う。Jev の監視基盤（`jev-monitoring-platform`）で Cloudflare の制限値を裏取りするときも、`cloudflare-product-survey` を使える。
+要件を Cloudflare 前提の制約に整理し、製品の仕様を公式資料で裏取りして、構成案を出します。入口は `cloudflare-requirements-framing` です。仕様・制限・価格の一問一答だけなら `cloudflare-product-survey` を直接使います。Jev の監視基盤（`jev-monitoring-platform`）で Cloudflare の制限値を裏取りするときも、`cloudflare-product-survey` を使えます。
 
 | スキル名 | 責務・役割 | 主な参照・裏取りリソース |
 | :--- | :--- | :--- |
@@ -149,7 +134,42 @@ MCPクライアントの実装、既存のMCPサーバーを使うだけの作�
 | **`cloudflare-product-survey`** | Cloudflare の製品・API の仕様、制限、価格、提供状態を、毎回公式資料で裏取りし、出典 URL と取得日を付けて答える | developers.cloudflare.com、GitHub の cloudflare/cloudflare-docs |
 | **`cloudflare-architecture-advisor`** | 制約シートと裏取りの結果から、本命・軽量・拡張の三案を比べ、製品の役割と経路を示す構成案を出す | 制約シート、裏取りの結果、[適合の点検表](skills/cloudflare-architecture-advisor/references/fit-checklist.md) |
 
-仕様・上限・料金の写しは持たない。仕様は変わり続けるため、毎回公式資料で裏取りする。確かめられなかった事項は利用する案件の文書に残し、スキルのディレクトリには書き込まない。
+- 仕様・上限・料金の写しは持ちません。仕様は変わり続けるため、毎回公式資料で裏取りします。
+- 確かめられなかった事項は、利用する案件の文書に残します。スキルのディレクトリには書き込みません。
+- 一言の依頼でどのスキルが起動するかの試験は[起動の試験](docs/cloudflare-trigger-cases.md)にまとめています。
+
+## 7. 会話の一区切りの振り返り
+
+| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+| :--- | :--- | :--- |
+| **`post-task-retrospective`** | 利用者が結果を受け入れた・作業を区切った・振り返りを頼んだときに一度だけ振り返り、摩擦を専門用語にし、個人用スキルを update / new-thin / discard（既定）で判定する。必要なら次の進め方か新しい技術を一つ示す | IPAの試験要綱・シラバス（基本情報、応用情報、高度試験、情報処理安全確保支援士。使う時点の現行版を確認） |
+
+開発リポジトリへ導入して使います。振り返りのメモやそこから作るスキルは、このリポジトリにも導入したコピーにも書かず、利用者の個人用スキルリポジトリに置きます。導入方法は同スキルの[導入ガイド](skills/post-task-retrospective/references/installation.md)を見てください。
+
+---
+
+## ディレクトリ構成
+
+```text
+llm-skills/
+├── README.md
+├── skills/                      # [本体] スキル実体。1スキル1ディレクトリ
+│   ├── <スキル名>/
+│   │   ├── SKILL.md
+│   │   ├── references/          # 詳しい手順・参照資料（任意）
+│   │   ├── templates/           # 出力のひな形（任意）
+│   │   └── agents/openai.yaml   # Codex での表示名・既定の依頼文（任意）
+│   ├── jev-shared/              # [Jev] 共有語彙・定形結果レポート
+│   └── dev-shared/              # [開発作業] 成果物の型の一覧
+├── docs/                        # 責務の整理、規約、起動の試験
+├── scripts/                     # 検査のスクリプト
+├── .cursor/skills/              # Cursor 向け (symlink)
+├── .claude/skills/              # Claude Code 向け (symlink)
+├── .agent/skills/               # Antigravity 向け (symlink)
+└── codex/skills/                # Codex 向け (symlink)
+```
+
+各ツール向けのディレクトリは `skills/` へのシンボリックリンクで、スキルを足すときは4つすべてにリンクを張ります。
 
 ---
 
