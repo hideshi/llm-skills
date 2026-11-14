@@ -1,0 +1,4 @@
+interface:
+  display_name: "一次情報の裏取り"
+  short_description: "ルール・規格・データシートなどの原典を直接読み、出典・版・引用・状態と縛る判断を項目ごとに記録する"
+  default_prompt: "$primary-source-grounding を使って、設計を縛る値を挙げ、原典の本文で確かめて、一次情報の記録にまとめてください。"

@@ -1,6 +1,6 @@
-# LLM Skills (LLM選定・裏取り、時代考証、Jev設計、エージェント連携の実装、振り返り & Cloudflareの基盤選定のスキル群)
+# LLM Skills (LLM選定・裏取り、時代考証、Jev設計、エージェント連携の実装、振り返り、Cloudflareの基盤選定 & 一次情報の裏取りのスキル群)
 
-以下の6つのスキル群からなるエージェントスキル集です。
+以下の7つのスキル群からなるエージェントスキル集です。
 
 1. **LLM選定・裏取り**: 目的やシステム要件に応じて、客観的な外部ベンチマークや最新モデルカードの裏取りを行った上で、最適なLLM（主にローカルLLM）を提案
 2. **Jev (System One Model) 設計**: 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、期待TCO試算から型付きのJevスキーマ・フォールバック設計、評価セット freeze、閾値較正（shadow 記録まで）を支援
@@ -8,6 +8,7 @@
 4. **エージェント連携の実装**: 既存のWebアプリにMCPサーバーを組み込み、HTTPでエージェントに公開する際の要件定義・設計・実装・試験を、言語・SDKに依存せず支援
 5. **会話の一区切りの振り返り**: コーディングの会話の区切りで、摩擦を専門用語と情報処理技術者試験（基本情報から高度試験まで）の概念につなげ、利用者の個人用スキルを育てるかを判定
 6. **Cloudflareの基盤選定**: 要件を Cloudflare 前提の制約に整理し、製品の仕様・制限・価格を毎回公式資料で裏取りして、構成案を出す
+7. **一次情報の裏取り**: 競技のルール、規格、製品・素材のデータシートなど、設計を縛る外部の事実を原典の本文で確かめ、出典・版・引用・状態と縛る判断を項目ごとに記録する。分野を問わない汎用の手順で、専門の手順がある分野はそちらへ渡す
 
 **Cursor, Claude Code, Antigravity, Codex** のマルチツールに対応しています。
 
@@ -81,9 +82,13 @@ llm-skills/
 │   │   ├── SKILL.md
 │   │   ├── references/official-sources.md
 │   │   └── templates/survey-result-template.md
-│   └── cloudflare-architecture-advisor/       # [Cloudflare] 本命・軽量・拡張の構成案
+│   ├── cloudflare-architecture-advisor/       # [Cloudflare] 本命・軽量・拡張の構成案
+│   │   ├── SKILL.md
+│   │   └── references/fit-checklist.md
+│   └── primary-source-grounding/              # 一次情報の裏取り（分野を問わない汎用の手順）
 │       ├── SKILL.md
-│       └── references/fit-checklist.md
+│       ├── templates/primary-source-record.md  # 一次情報の記録の雛形
+│       └── agents/openai.yaml
 │
 ├── .cursor/skills/                            # Cursor 向け (symlink)
 ├── .claude/skills/                            # Claude Code 向け (symlink)
@@ -150,6 +155,14 @@ MCPクライアントの実装、既存のMCPサーバーを使うだけの作�
 | **`cloudflare-architecture-advisor`** | 制約シートと裏取りの結果から、本命・軽量・拡張の三案を比べ、製品の役割と経路を示す構成案を出す | 制約シート、裏取りの結果、[適合の点検表](skills/cloudflare-architecture-advisor/references/fit-checklist.md) |
 
 仕様・上限・料金の写しは持たない。仕様は変わり続けるため、毎回公式資料で裏取りする。確かめられなかった事項は利用する案件の文書に残し、スキルのディレクトリには書き込まない。
+
+### 7. 一次情報の裏取り
+
+| スキル名 | 責務・役割 | 主な参照・裏取りリソース |
+| :--- | :--- | :--- |
+| **`primary-source-grounding`** | 設計や判断を縛る外部の事実（競技のルール、規格の値、部品・素材・製品のデータシート、参考モデルや作例の作者が示す条件）を、所在を探す段と原典を読んで根拠にする段に分けて確かめ、項目ごとに出典・段・URL・取得日・版・原文の引用・状態（確認済み／未確認／対象外）・縛る判断を記録する | 発行元の原典（競技団体のルールブック、規格の本文、メーカーのデータシート、作者の公開ページ） |
+
+ほかの群の裏取りと重ならないよう、分野の決まった調べものは専門の手順へ渡す。法令や行政の基準は公的な規則の裏取りの手順、歴史は `historical-context-grounding`、Cloudflare は `cloudflare-product-survey`、LLM のモデルやベンチマークは `local-llm-researcher`、システムがつなぐ外部 API の仕様は開発スキル群の外部のドメインの調査を使う。使い分けの表は同スキルの本文にある。記録は利用する案件の場所（`sources.md` など）に置き、このリポジトリには置かない。
 
 ---
 
