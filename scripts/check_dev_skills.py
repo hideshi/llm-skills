@@ -380,6 +380,31 @@ def type_sections(text):
     return rows
 
 
+def check_type_column(text, column, vname, words):
+    """型の一覧の最初の表で、見出しが column で始まる列の値を、どの行も語彙の語で始まるかを見る。"""
+    errors, header, in_table = [], None, False
+    for line in text.splitlines():
+        if not line.strip().startswith("|"):
+            if in_table:
+                break
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if header is None:
+            header, in_table = cells, True
+            idx = next((i for i, h in enumerate(header) if h.startswith(column)), None)
+            if idx is None:
+                return [f"語彙の表: 語彙「{vname}」の列「{column}」が型の一覧の表に無い"]
+            if f"語彙「{vname}」" not in header[idx]:
+                errors.append(f"語彙の表: 型の一覧の表の列「{column}」の見出しに「語彙「{vname}」」が無い")
+            continue
+        if all(re.fullmatch(r":?-+:?", c) for c in cells):
+            continue
+        v = cells[idx] if idx < len(cells) else ""
+        if not starts_with_word(v, words):
+            errors.append(f"型の一覧: 型「{cells[0]}」の列「{column}」の値「{v[:20]}」が語彙「{vname}」の語で始まらない")
+    return errors
+
+
 def load_vocab(text, types):
     """型の一覧の「語彙の表」を読み、(語彙→語のリスト, (型, 欄)→[(語彙, 複数か)], 誤り) を返す。"""
     errors, vocab, uses = [], {}, {}
@@ -408,6 +433,10 @@ def load_vocab(text, types):
             errors.append(f"語彙の表: 語彙「{name}」の使う型と欄が 型「欄」の並びとして読めない: {use_cell[:40]}")
         for m in found:
             t, f = m.group(1).strip(), m.group(2).strip()
+            if t == "型の一覧の表の列":
+                # 型の一覧の最初の表の列（例: 寿命）。どの型の行も、その列の値が語彙の語で始まるかを見る
+                errors.extend(check_type_column(text, f, name, ws))
+                continue
             if t not in types:
                 errors.append(f"語彙の表: 語彙「{name}」の使う型「{t}」が型の一覧に無い")
                 continue
