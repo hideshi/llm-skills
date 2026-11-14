@@ -25,7 +25,8 @@ import (
 //	TRIGGER_MODELS    流すモデル（既定 sonnet,haiku）
 //	TRIGGER_REQUIRED  合格率で失敗にするモデル（既定 sonnet）。TRIGGER_MODELS に含まれていること
 //	TRIGGER_RUNS      1件あたりの回数（既定 3）
-//	TRIGGER_MIN_RATE  合格とみなす合格率の下限（既定 0.66）
+//	TRIGGER_MIN_RATE  1件ごとの合格率の下限（既定 0.66）
+//	TRIGGER_MIN_TOTAL 必須のモデルの、全部の試験を合わせた合格率の下限（既定 0.95）
 //	TRIGGER_SUITES    流すまとまり（既定は全部）
 //	TRIGGER_CASES     流す ID（既定は全部）
 //	TRIGGER_PARALLEL  同時に流す数。試験用リポジトリをこの数だけ作る（既定 2）
@@ -83,6 +84,14 @@ func TestTriggerLive(t *testing.T) {
 			t.Fatalf("TRIGGER_MIN_RATE=%q は0から1の数で書く", v)
 		}
 		minRate = f
+	}
+	minTotal := 0.95
+	if v := os.Getenv("TRIGGER_MIN_TOTAL"); v != "" {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil || f < 0 || f > 1 {
+			t.Fatalf("TRIGGER_MIN_TOTAL=%q は0から1の数で書く", v)
+		}
+		minTotal = f
 	}
 	timeout := 5 * time.Minute
 	if v := os.Getenv("TRIGGER_TIMEOUT"); v != "" {
@@ -201,6 +210,9 @@ func TestTriggerLive(t *testing.T) {
 		}
 	}
 	for _, e := range Gate(tallies, required, minRate) {
+		t.Error(e)
+	}
+	for _, e := range GateTotal(tallies, required, minTotal) {
 		t.Error(e)
 	}
 }

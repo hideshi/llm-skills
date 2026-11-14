@@ -36,7 +36,7 @@ TRIGGER_LIVE=1 TRIGGER_MODELS=sonnet TRIGGER_RUNS=1 TRIGGER_CASES=H,T2 \
   go test -run TestTriggerLive -timeout 0 -v
 ```
 
-- 環境変数は [live_test.go](live_test.go) の冒頭に並べてある。既定では Sonnet と Haiku を各3回流し、Sonnet の合格率が 0.66 を下回った試験を失敗にする。Haiku は記録だけ。
+- 環境変数は [live_test.go](live_test.go) の冒頭に並べてある。既定では Sonnet と Haiku を各3回流し、Sonnet について、1件ごとの合格率が 0.66 を下回った試験と、全部の試験を合わせた合格率が 0.95 を下回ったことを失敗にする（2026-11-14 利用者が決めた基準）。Haiku は記録だけ。
 - 合格率で判定するモデル（`TRIGGER_REQUIRED`）は、流すモデル（`TRIGGER_MODELS`）に含める。含まれないと、始める前に止める。
 - 定義に無い ID やまとまりを指定すると、始める前に止める。
 - `-timeout 0` を付ける。付け忘れても、go test の時間の上限の30秒前に残りを流さずに打ち切り、試験用リポジトリを消す。

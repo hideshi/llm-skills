@@ -166,7 +166,7 @@
 | V4 | 「秘密をコミットに含めてしまった。直して」 | 鍵を含めたコミット | `dev-profile-version-control` か `dev-history-recovery` | `recover` |
 | V5 | 「統合が終わったので worktree を片付けて」 | 作業場所を使っていた | `dev-profile-version-control` か `dev-isolated-workspace` | `cleanup` |
 | V6 | 「直前のコミットを取り消したい」 | 誤ったコミット | `dev-profile-version-control` か `dev-history-recovery` | `recover` |
-| V7 | 「作業用の枝を main に取り込んで。まだ衝突しているかは見ていない」 | 衝突前の通常の統合 | `dev-profile-version-control` に入り、`dev-conflict-resolution` 等に飛ばない | `integrate` |
+| V7 | 「作業用の枝を main に取り込んで。まだ衝突しているかは見ていない」 | 衝突前の通常の統合 | `dev-conflict-resolution`・`dev-history-recovery`・`dev-isolated-workspace` に飛ばない（`dev-profile-version-control` に入っても、スキルを使わずに進めてもよい） | `integrate`（入るなら） |
 | V8 | 「認証と通知を並列で実装できるよう、作業を分けて順番を決めて」 | 完了条件の一覧がある | `dev-task-breakdown` か `dev-profile-new-feature`（`dev-isolated-workspace` と `dev-profile-version-control` に取られない） | `dev-profile-new-feature` の工程 `test-cases` |
 | V9 | 「さっき書き換えた未コミットの変更だけ元に戻して」 | コミット前の単一ファイル編集 | `dev-history-recovery`・`dev-conflict-resolution`・`dev-isolated-workspace`・`dev-profile-version-control` を使わない | — |
 | V10 | 「HEAD がどの枝も指さず切り離された状態でコミットしてしまった。変更を消さずに戻して」 | detached HEAD の言い換え | `dev-profile-version-control` か `dev-history-recovery` | `recover` |
@@ -203,6 +203,21 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 |---|---|---|---|
 | G | 「この機能を実装して」 | 実装の依頼 | dev- は起動しない |
 | W | 「セキュリティを見て」 | 変更の安全性の点検 | dev- は起動しない（組み込みのセキュリティの点検は可） |
+
+## ほかの群との境目
+
+開発の群の単位が、ほかの群の依頼を取らないかを見る。全スキルを置いた試験用リポジトリで流す。
+
+| ID | 依頼の例 | 状況 | 期待するスキル |
+|---|---|---|---|
+| XG1 | 「今日はここまで。振り返りをして」 | 区切りの振り返り | `post-task-retrospective`（中断の引継ぎの `dev-work-continuity`・`dev-profile-interrupt-resume` は使わない） |
+| XG2 | 「Cloudflare の R2 の制限を調べて」 | Cloudflare の一問一答 | `cloudflare-product-survey`（dev- は起動しない） |
+| XG3 | 「この要件を Workers と Durable Objects でどう組むか提案して」 | Cloudflare で動かす予定 | `cloudflare-architecture-advisor` か `cloudflare-requirements-framing`（dev- は起動しない） |
+| XG4 | 「この業務の判断で Jev に置き換えられる候補を探して」 | 要件定義書がある | `jev-candidate-detector`（dev- は起動しない） |
+| XG5 | 「この TPU フィラメントのデータシートの値を裏取りして」 | 連携に関わらない事実 | `primary-source-grounding`（dev- は起動しない） |
+| XG6 | 「連携で使う業界の EDI の形式の仕様を調べて」 | 配送業者の API とつなぐ予定 | `dev-external-domain-survey`（`primary-source-grounding` は使わない） |
+| XG7 | 「この部品を設計して 3D プリントしたい」 | 部品の設計 | `cad-profile-part-design` か `cad-parametric-modeling`（dev- は起動しない） |
+| XG8 | 「ローカルで動かす LLM の候補を比べて」 | LLM の選定 | LLM 選定の群の入口か調査（dev- は起動しない） |
 
 ## 作った本人の流れ
 
@@ -263,4 +278,6 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 | 2026-11-14 | Claude Code（Sonnet 5.5）、工程の識別子への置き換えと、`dev-history-recovery` の description の言い方（「破壊度に応じた」→「取り返せない操作への」）を変えた後（V3・V4・V6・V10、各1回、`tests/trigger` の隔離） | 4/4（どれも `dev-history-recovery` を直接選んだ） | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5）、運用と安全の群の起動の試験 O12〜O16 を足した後（O12〜O16、各1回、`tests/trigger` の隔離） | 5/5。O12（引き継いだシステムの現状の把握）はプロファイルを経て、O13（改修の前の今の仕様）は `dev-current-behavior-survey`、O14 は `dev-credential-catalog`、O15 は `dev-personal-info-ledger` を直接選んだ。O16（プライバシーポリシーは適法？）は台帳の単位を使わなかった | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5）、画面の群（3単位）を足し、新規開発と既存システムの改修の description に「画面の設計」を足した後。U1〜U13 を各2回（計26回）と、全件（開発作業の群 116件と Cloudflare の群 8件）を各1回、`tests/trigger` の隔離 | U1〜U13 は 26/26。U1・U5 は `dev-screen-design`、U2 は `dev-wireframe`、U3・U4 は `dev-design-system` を直接選んだ。対照（U6 モックから要件、U7 エラーメッセージ、U8 誰にどの画面を見せるか、U9 今の画面を調べて、U13 デモ動画）は、どれも期待する単位を直接選び、画面の単位に取られた回は無かった。U10〜U12 は禁じた単位を使わなかった。全件では D32（外部の CDN のスクリプトを読み込んで大丈夫？）だけが外れた（スキルを使わずに要件の文書を読み始めた）。D32 を3回流し直すと 2/3 で、外れた1回も同じ外れ方だった。画面の単位を選んだ回は無い | なし。D32 は前の全件の記録に外れが無いので、記録に留めて、全件を3回流すときに見る |
+| 2026-11-14 | Claude Code（Sonnet 5.5・Haiku）、main への取り込みの後、ほかの群との境目 XG1〜XG8 を足して全件（137件）を各3回、`tests/trigger` の隔離。合格の基準は Sonnet の全体で 0.95 以上・1件ごとに 0.66 以上、Haiku は記録だけ（2026-11-14 利用者が決めた） | Sonnet 406/411（0.988）。外れは V7 0/3、R7 2/3、U4 2/3。XG1〜XG8 はすべて 3/3。Haiku 361/411（0.878）。Haiku で 0/3 は D6・D18・D19・D20・R7・V7・O5・O7。C8 の Haiku は3回ともリポジトリの外（利用者単位の記憶の置き場）を一覧しようとして集計から外れた。外れた3件を Sonnet で流し直すと V7 0/3、R7 2/3、U4 3/3。V7 は版管理のプロファイルの description の例を「作業用の枝を main（本線）に取り込んで」にしても Sonnet 1/3・Haiku 0/3 で、効いたと言えないので戻した | V7（衝突前の通常の取り込み）は、Sonnet でも git の操作から始めてプロファイルを使わない。期待を見直すか、description の境目を直すかを次に決める |
+| 2026-11-14 | Claude Code（Sonnet 5.5）、V7 の期待を、禁じた版管理の単位に飛ばなければ合格の形に戻した後（利用者が決めた。V7、3回、`tests/trigger` の隔離） | 3/3（3回ともスキルを使わずに進めた） | なし |
 | 2026-11-14 | Claude Code（Sonnet 5.5・Haiku）、文面と操作マニュアルの単位（`dev-message-design`、`dev-user-manual`）を足した後。TX1〜TX10 と近い既存のケース（U1〜U13、D4、D6、O1、O7、C8）を各3回、`tests/trigger` の隔離 | Sonnet: TX2・TX9 が 2/3、ほかは 3/3。近い既存のケースで新しい単位に取られた回は無い。Haiku: TX1 1/3、TX2・TX6・TX9 0/3（スキルを使わない）。独立レビュー（別のモデル2つ）を受けて直した後、TX11・TX12（機械が受け取るメッセージと Webhook の対照）を足し、Sonnet で TX1〜TX6・TX9・TX11・TX12・D6 を各3回: TX11 が 0/3（文面の単位に取られた）、ほかは 3/3。文面の単位の description に機械が受け取るメッセージ・イベント・Webhook を使わない場面として足し、TX1・TX2・TX11・TX12・D6 を各3回流し直して、どれも 3/3 | Haiku で文面の依頼にスキルを使わない回が多い（記録だけ） |

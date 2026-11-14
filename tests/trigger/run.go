@@ -273,6 +273,28 @@ func Gate(tallies []Tally, required []string, minRate float64) []string {
 	return errs
 }
 
+// GateTotal は、必須のモデルごとに、全部の試験を合わせた合格率が下限を下回ったら、誤りの文にして返す。
+// 1件ずつの下限（Gate）とは別に、群全体の取りこぼしの割合を見る。
+func GateTotal(tallies []Tally, required []string, minTotal float64) []string {
+	var errs []string
+	for _, m := range required {
+		pass, counted := 0, 0
+		for _, tl := range tallies {
+			if tl.Model == m {
+				pass += tl.Pass
+				counted += tl.Counted
+			}
+		}
+		if counted == 0 {
+			continue
+		}
+		if rate := float64(pass) / float64(counted); rate < minTotal {
+			errs = append(errs, fmt.Sprintf("%s: 全体の合格 %d/%d（%.3f）が下限 %.2f を下回る", m, pass, counted, rate, minTotal))
+		}
+	}
+	return errs
+}
+
 var routeOrder = []Route{RouteDirect, RouteViaRouter, RouteRouteOnly, RouteAbstain}
 
 // Markdown は、集計を表にする。セルは「合格/数えた回」に、合格の経路の内訳と、不合格の理由を添える。

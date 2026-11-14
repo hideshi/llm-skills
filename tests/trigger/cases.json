@@ -948,15 +948,12 @@
         {
           "id": "V7",
           "prompt": "（作業用の枝で実装と検証が終わった）作業用の枝を main に取り込んで。まだ衝突しているかは見ていない",
-          "accept": [
-            "dev-profile-version-control"
-          ],
           "forbidPrefixes": [
             "dev-conflict-resolution",
             "dev-history-recovery",
             "dev-isolated-workspace"
           ],
-          "note": "衝突前の通常の統合は dev-profile-version-control の工程 integrate（取り込む）に入り、dev-conflict-resolution 等に飛ばなければ合格"
+          "note": "衝突前の通常の統合。dev-profile-version-control の工程 integrate に入っても、スキルを使わずに git で進めてもよく、dev-conflict-resolution 等に飛ばなければ合格（2026-11-14 利用者が決めた）"
         },
         {
           "id": "V8",
@@ -1276,6 +1273,99 @@
             "dev-"
           ],
           "note": "組み込みのセキュリティの点検は使ってよい"
+        },
+        {
+          "id": "XG1",
+          "prompt": "今日はここまで。振り返りをして",
+          "accept": [
+            "post-task-retrospective"
+          ],
+          "forbidPrefixes": [
+            "dev-work-continuity",
+            "dev-profile-interrupt-resume"
+          ],
+          "note": "区切りの振り返り。中断の引継ぎに取られない"
+        },
+        {
+          "id": "XG2",
+          "prompt": "Cloudflare の R2 の制限を調べて",
+          "accept": [
+            "cloudflare-product-survey"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "Cloudflare の一問一答。外部の仕様の調査に取られない"
+        },
+        {
+          "id": "XG3",
+          "prompt": "（Cloudflare で動かす予定）この要件を Workers と Durable Objects でどう組むか提案して",
+          "accept": [
+            "cloudflare-architecture-advisor",
+            "cloudflare-requirements-framing"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "Cloudflare の構成。新規開発の設計に取られない"
+        },
+        {
+          "id": "XG4",
+          "prompt": "（要件定義書がある）この業務の判断で Jev に置き換えられる候補を探して",
+          "accept": [
+            "jev-candidate-detector"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "Jev の設計。仕様化の単位に取られない"
+        },
+        {
+          "id": "XG5",
+          "prompt": "この TPU フィラメントのデータシートの値を裏取りして",
+          "accept": [
+            "primary-source-grounding"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "連携に関わらない事実の裏取り。外部の仕様の調査に取られない"
+        },
+        {
+          "id": "XG6",
+          "prompt": "（配送業者の API とつなぐ予定）連携で使う業界の EDI の形式の仕様を調べて",
+          "accept": [
+            "dev-external-domain-survey"
+          ],
+          "forbidPrefixes": [
+            "primary-source-grounding"
+          ],
+          "note": "連携の前提の仕様。汎用の一次情報の裏取りに取られない"
+        },
+        {
+          "id": "XG7",
+          "prompt": "この部品を設計して 3D プリントしたい",
+          "accept": [
+            "cad-profile-part-design",
+            "cad-parametric-modeling"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "部品の設計。新規開発に取られない"
+        },
+        {
+          "id": "XG8",
+          "prompt": "ローカルで動かす LLM の候補を比べて",
+          "accept": [
+            "model-requirements-analyzer",
+            "local-llm-researcher",
+            "llm-selection-advisor"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "LLM の選定。外部の仕様の調査に取られない"
         },
         {
           "id": "TX1",
