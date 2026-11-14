@@ -23,11 +23,8 @@
     プロファイルと dev-shared の例も落とす。コードブロックと HTML のコメントの中は見ない。
     Markdown のすべての書き方は見ない（書く形は規約で決める）。例の見出しが型の欄に合うか、
     識別子が実在するかは見ない。案件の成果物には当てない
-13. 型の一覧の「語彙の表」がそろっている（名前が重ならない、語が「／」で並ぶ、使う型が型の一覧にある、
-    型の行が指す「語彙「名前」」が表にあり、表のどの語彙も型の行から指されている）。型の一覧の表の行の括弧に、
-    語彙の表を通さない「／」の並びが残っていない（「例:」で始まる括弧は除く）。埋めた例の中の、語彙を使う欄
-    （表の列の見出し、「欄 | 中身」の表の1列目、「- 欄: 値」の箇条書き）の値が、その語彙の語のどれかで始まるか、
-    「当てはまらない」「未確認」で始まる。「「、」で並べる」と書いた語彙は、「、」で分けた値をそれぞれ見る
+13. 型の一覧の「語彙の表」がそろい、語彙の表の外の表の行に語彙を通さない「／」の並びが残っていない。
+    埋めた例の、語彙を使う欄の値が、その語彙の語で始まり、語の直後が値の終わりか区切りか（規約 §5 の 13）
 
 使い方: python3 -I scripts/check_dev_skills.py [--grounding-warnings] [リポジトリのルート]
 """
@@ -360,6 +357,27 @@ def looks_like_example(f, text):
 VOCAB_REF = re.compile(r"語彙「([^」]+)」")
 VOCAB_USE = re.compile(r"([^、「」（）]+?)「([^」]+)」")
 GENERAL_VALUES = ("当てはまらない", "未確認")
+WORD_END = "（(、。：: \t　"
+
+
+def type_sections(text):
+    """型の一覧の最初の表の行（型→行の文字列）。設計の判断には「設計の判断の書き方」の節を足す。"""
+    rows, in_table = {}, False
+    for line in text.splitlines():
+        if not line.strip().startswith("|"):
+            if in_table:
+                break
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not in_table:
+            in_table = True
+            continue
+        if cells and not re.fullmatch(r":?-+:?", cells[0]):
+            rows[cells[0]] = line
+    m = re.search(r"^## 設計の判断の書き方\s*$(.*?)(?=^## )", text, re.M | re.S)
+    if m:
+        rows["設計の判断"] = rows.get("設計の判断", "") + m.group(1)
+    return rows
 
 
 def load_vocab(text, types):
@@ -368,6 +386,7 @@ def load_vocab(text, types):
     rows = table_rows(text, "語彙の表")
     if rows is None:
         return vocab, uses, ["型の一覧: 「## 語彙の表」の直後に表が無い"]
+    sections = type_sections(text)
     for row in rows:
         if len(row) < 4:
             errors.append(f"語彙の表: 列が足りない: {row}")
@@ -378,45 +397,82 @@ def load_vocab(text, types):
         ws = [w.strip() for w in words.split("／")]
         if len(ws) < 2 or any(not w for w in ws):
             errors.append(f"語彙の表: 語彙「{name}」の語が「／」で並んでいない")
+        for other, ows in vocab.items():
+            if set(ows) == set(ws):
+                errors.append(f"語彙の表: 語彙「{name}」と「{other}」の語が同じ（一つにまとめる）")
         vocab[name] = ws
         multi = "「、」で並べる" in use_cell
-        for m in VOCAB_USE.finditer(re.sub(r"（[^（）]*）", "", use_cell)):
+        bare = re.sub(r"（[^（）]*）", "", use_cell)
+        found = list(VOCAB_USE.finditer(bare))
+        if not found or re.sub(r"[、\s]", "", VOCAB_USE.sub("", bare)):
+            errors.append(f"語彙の表: 語彙「{name}」の使う型と欄が 型「欄」の並びとして読めない: {use_cell[:40]}")
+        for m in found:
             t, f = m.group(1).strip(), m.group(2).strip()
             if t not in types:
                 errors.append(f"語彙の表: 語彙「{name}」の使う型「{t}」が型の一覧に無い")
+                continue
+            sec = sections.get(t, "")
+            if f"語彙「{name}」" not in sec or f not in sec:
+                errors.append(f"語彙の表: 型「{t}」の行に、欄「{f}」と「語彙「{name}」」がそろっていない")
             uses.setdefault((t, f), []).append((name, multi))
     refs = set(VOCAB_REF.findall(text)) - {"名前"}  # 「語彙「名前」」は書き方の説明
     for ref in sorted(refs - set(vocab)):
         errors.append(f"型の一覧: 語彙「{ref}」が語彙の表に無い")
-    for name in sorted(set(vocab) - refs):
-        errors.append(f"語彙の表: 語彙「{name}」を型の一覧のどこからも指していない")
-    in_table = False
-    for line in text.splitlines():
-        if not line.strip().startswith("|"):
-            if in_table:
-                break
-            continue
-        row = [c.strip() for c in line.strip().strip("|").split("|")]
-        if not in_table:
-            in_table = True
-            continue
-        for m in re.finditer(r"（([^（）]*)）", row[1] if len(row) > 1 else ""):
-            if "／" in m.group(1) and not m.group(1).startswith("例"):
-                errors.append(f"型の一覧: 型「{row[0]}」の括弧に、語彙の表を通さない語の並びがある: {m.group(1)[:30]}")
+    # 語彙の表の外の表のセルに、語彙を通さない「／」の並びが残っていないか（「例:」の括弧は除く）
+    vstart = text.index("## 語彙の表")
+    vend = text.find("\n## ", vstart + 1)
+    rest = text[:vstart] + (text[vend:] if vend >= 0 else "")
+    for line in rest.splitlines():
+        if line.strip().startswith("|") and "／" in re.sub(r"（例[:：][^（）]*）", "", line):
+            errors.append(f"型の一覧: 表の行に、語彙の表を通さない「／」の並びがある: {line.strip()[:40]}")
+    # 段に付ける印の表と、語彙「段の印」がそろっているか
+    marks = table_rows(text, "段に付ける印")
+    if marks is not None and "段の印" in vocab and [r_[0] for r_ in marks] != vocab["段の印"]:
+        errors.append("型の一覧: 「段に付ける印」の表の印と、語彙「段の印」の語がそろっていない")
     return vocab, uses, errors
+
+
+def split_outside_parens(v):
+    """括弧の外の「、」で分ける。"""
+    parts, buf, depth = [], "", 0
+    for c in v:
+        if c in "（(":
+            depth += 1
+        elif c in "）)":
+            depth = max(0, depth - 1)
+        if c == "、" and depth == 0:
+            parts.append(buf.strip())
+            buf = ""
+        else:
+            buf += c
+    parts.append(buf.strip())
+    return parts
+
+
+def starts_with_word(x, words):
+    """値が語のどれかで始まり、語の直後が値の終わりか区切りか。"""
+    return any(x.startswith(w) and (len(x) == len(w) or x[len(w)] in WORD_END) for w in words)
 
 
 def check_value(where, type_name, field, value, vocab, choices):
     """例の欄の値が語彙の語で始まるかを見る。"""
-    v = re.sub(r"`", "", value).strip()
-    if not v or v.startswith(GENERAL_VALUES):
+    v = re.sub(r"[`*]", "", value).strip()
+    if not v:
         return []
     for vname, multi in choices:
-        parts = [x.strip() for x in v.split("、")] if multi else [v]
-        if all(any(x.startswith(w) for w in vocab.get(vname, [])) or x.startswith(GENERAL_VALUES) for x in parts if x):
+        parts = split_outside_parens(v) if multi else [v]
+        if any(not x for x in parts):
+            continue
+        if all(starts_with_word(x, vocab.get(vname, [])) or starts_with_word(x, GENERAL_VALUES) for x in parts):
             return []
     names = "」「".join(n for n, _ in choices)
     return [f"{where}: 例「{type_name}」の欄「{field}」の値「{v[:20]}」が語彙「{names}」の語で始まらない"]
+
+
+def field_key(cell):
+    """表の見出しや箇条書きの欄の名前を、太字・コード・末尾の括弧を外して読む。"""
+    c = re.sub(r"[`*]", "", cell).strip()
+    return re.sub(r"[（(][^（）()]*[）)]\s*$", "", c).strip()
 
 
 def check_example_values(where, type_name, part, vocab, uses):
@@ -426,22 +482,24 @@ def check_example_values(where, type_name, part, vocab, uses):
     if not fields:
         return errors
     for header, rows in md_tables(part):
-        if header and header[0] in ("欄", "項目") and len(header) >= 2:
+        keys = [field_key(h) for h in header]
+        if len(keys) == 2 and keys[0] in ("欄", "項目"):
             for row in rows:
                 cells = split_cells(row)
-                if len(cells) >= 2 and cells[0] in fields:
-                    errors.extend(check_value(where, type_name, cells[0], cells[1], vocab, fields[cells[0]]))
+                if len(cells) >= 2 and field_key(cells[0]) in fields:
+                    k = field_key(cells[0])
+                    errors.extend(check_value(where, type_name, k, cells[1], vocab, fields[k]))
             continue
-        for i, h in enumerate(header):
-            if h in fields:
+        for i, k in enumerate(keys):
+            if k in fields:
                 for row in rows:
                     cells = split_cells(row)
                     if i < len(cells):
-                        errors.extend(check_value(where, type_name, h, cells[i], vocab, fields[h]))
+                        errors.extend(check_value(where, type_name, k, cells[i], vocab, fields[k]))
     for lm in re.finditer(r"^\s*[-*+]\s+([^:：\n|`]{1,30})[:：][ \t]*(.*)$", part, re.M):
-        f = lm.group(1).strip()
-        if f in fields:
-            errors.extend(check_value(where, type_name, f, lm.group(2), vocab, fields[f]))
+        k = field_key(lm.group(1))
+        if k in fields:
+            errors.extend(check_value(where, type_name, k, lm.group(2), vocab, fields[k]))
     return errors
 
 
