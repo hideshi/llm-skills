@@ -15,6 +15,9 @@
     中の単位が受け取るか、「外へ渡す型:」の行にある。順序（どの工程が先か）は見ない
 11. 単位の根拠の別紙（references/grounding.md）に必須の3節・確かめた日・有効な確かめた水準・
     SKILL.md からの参照がそろい、手順の箇所の節番号と DOI/URL の形式が合っている
+12. 単位の references/ にある埋めた例（行頭が「型: 」の行で始まる部分）が、型の一覧にある型で、
+    その単位の出力の表にあり、決まり文句があり、チェックボックスと空のセルが無く、SKILL.md から
+    リンクされている。例の見出しが型の欄に合うか、識別子が実在するかは見ない。案件の成果物には当てない
 
 使い方: python3 -I scripts/check_dev_skills.py [--grounding-warnings] [リポジトリのルート]
 """
@@ -39,6 +42,8 @@ UNIT_SECTIONS = ("入力", "出力", "使わない場面", "手順", "終了条�
 PROFILE_SECTIONS = ("工程", "振り分け", "工程の間の決まり", "終わり方")
 GROUNDING_LEVELS = ("原典を読んだ", "書誌と二次資料で確かめた", "未確認")
 GROUNDING_SECTIONS = ("先行の手法", "独自の判断", "改善の記録")
+EXAMPLE_PHRASE = "形の一例。正本は型の一覧の欄。形式・節名・置き場所は任意で、案件に既に形があればその形に従う。値はすべて作り物。"
+EXAMPLE_DECL = re.compile(r"^型: (.+)$", re.M)
 FALSIFY_HINTS = ("見直す", "件数", "比べる", "比較", "しきい値", "記録で", "再検討", "差し戻", "推移", "割合", "差分", "実測", "起きなかったか")
 
 
@@ -189,6 +194,43 @@ def check_grounding(name, path, skill_text):
     return g_errors, g_warnings, counts
 
 
+def check_examples(name, path, skill_text, types, outputs):
+    """単位の references/ の埋めた例を見る（検査 12）。例の部分は「型: 」の行から、次の「型: 」の行か
+    ファイルの終わりまで。"""
+    errors = []
+    refs = path / "references"
+    if not refs.is_dir():
+        return errors
+    for f in sorted(refs.rglob("*.md")):
+        text = f.read_text(encoding="utf-8")
+        decls = list(EXAMPLE_DECL.finditer(text))
+        if not decls:
+            continue
+        rel = f.relative_to(path).as_posix()
+        where = f"{name}: {rel}"
+        if f"]({rel})" not in skill_text:
+            errors.append(f"{where}: 例が SKILL.md からリンクされていない")
+        for i, m in enumerate(decls):
+            part = text[m.start():decls[i + 1].start() if i + 1 < len(decls) else len(text)]
+            type_name = re.split(r"[（(]", m.group(1), maxsplit=1)[0].strip()
+            if type_name not in types:
+                errors.append(f"{where}: 例の型「{type_name}」が型の一覧に無い")
+            elif type_name not in outputs:
+                errors.append(f"{where}: 例の型「{type_name}」が単位の出力の表に無い")
+            if EXAMPLE_PHRASE not in part:
+                errors.append(f"{where}: 例「{type_name}」に決まり文句が無い")
+            if re.search(r"^\s*[-*] \[[ xX]\]", part, re.M):
+                errors.append(f"{where}: 例「{type_name}」にチェックボックスがある")
+            for line in part.splitlines():
+                s = line.strip()
+                if not s.startswith("|") or re.fullmatch(r"\|[\s:|-]+\|", s):
+                    continue
+                cells = [c.strip() for c in s.strip("|").split("|")]
+                if any(c == "" for c in cells):
+                    errors.append(f"{where}: 例「{type_name}」の表に空のセルがある: {s[:60]}")
+    return errors
+
+
 def main():
     errors = []
     types = first_table_keys(TYPES_FILE.read_text(encoding="utf-8"))
@@ -237,6 +279,7 @@ def main():
                 if heading == "入力" and (len(row) < 2 or not row[1].startswith(REQUIRED_WORDS)):
                     errors.append(f"{name}: 入力「{row[0]}」の必須の列が規約の語でない")
         unit_io[name] = io
+        errors.extend(check_examples(name, path, text, types, io["出力"]))
         g_errs, g_warns, g_counts = check_grounding(name, path, text)
         errors.extend(g_errs)
         grounding_warnings.extend(g_warns)

@@ -31,3 +31,4 @@
 - 2026-11-13: Fowler「Eradicating Non-Determinism in Tests」と xUnitPatterns.com「Test Double Patterns」の本文を確認して水準と URL を補い、独自の判断5件をすべて手戻り・重複・調査超過の実測に基づく反証可能な確かめ方へ改めた。
 - 2026-11-13: 独立レビューを受け、`xUnitPatterns.com` と `Fowler` の行を分離して時計差し替え推奨に対して本手順が逆（データ側調整）を採る理由を明記した。
 - 2026-11-13: 独立レビューを受け、Test Double Patterns 引用ページの記載範囲に合わせて用語（Test Stub / Test Spy / Mock Object / Fake Object 等）と確認範囲注記を修正した。
+- 2026-11-14: 実案件で使ってきた書式を見直して、現状の振る舞いの記録の埋めた例（観察を表と箇条書きの2通り、既存の資料との差）を `references/record-example.md` に足した。
