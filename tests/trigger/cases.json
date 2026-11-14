@@ -948,15 +948,12 @@
         {
           "id": "V7",
           "prompt": "（作業用の枝で実装と検証が終わった）作業用の枝を main に取り込んで。まだ衝突しているかは見ていない",
-          "accept": [
-            "dev-profile-version-control"
-          ],
           "forbidPrefixes": [
             "dev-conflict-resolution",
             "dev-history-recovery",
             "dev-isolated-workspace"
           ],
-          "note": "衝突前の通常の統合は dev-profile-version-control の工程 integrate（取り込む）に入り、dev-conflict-resolution 等に飛ばなければ合格"
+          "note": "衝突前の通常の統合。dev-profile-version-control の工程 integrate に入っても、スキルを使わずに git で進めてもよく、dev-conflict-resolution 等に飛ばなければ合格（2026-11-14 利用者が決めた）"
         },
         {
           "id": "V8",
