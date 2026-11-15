@@ -1347,7 +1347,8 @@
           "prompt": "この部品を設計して 3D プリントしたい",
           "accept": [
             "cad-profile-part-design",
-            "cad-parametric-modeling"
+            "cad-parametric-modeling",
+            "cad-fdm-dfam"
           ],
           "forbidPrefixes": [
             "dev-"

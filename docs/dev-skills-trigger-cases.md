@@ -216,7 +216,7 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 | XG4 | 「この業務の判断で Jev に置き換えられる候補を探して」 | 要件定義書がある | `jev-candidate-detector`（dev- は起動しない） |
 | XG5 | 「この TPU フィラメントのデータシートの値を裏取りして」 | 連携に関わらない事実 | `primary-source-grounding`（dev- は起動しない） |
 | XG6 | 「連携で使う業界の EDI の形式の仕様を調べて」 | 配送業者の API とつなぐ予定 | `dev-external-domain-survey`（`primary-source-grounding` は使わない） |
-| XG7 | 「この部品を設計して 3D プリントしたい」 | 部品の設計 | `cad-profile-part-design` か `cad-parametric-modeling`（dev- は起動しない） |
+| XG7 | 「この部品を設計して 3D プリントしたい」 | 部品の設計 | `cad-profile-part-design`、`cad-parametric-modeling`、`cad-fdm-dfam` のどれか（dev- は起動しない） |
 | XG8 | 「ローカルで動かす LLM の候補を比べて」 | LLM の選定 | LLM 選定の群の入口か調査（dev- は起動しない） |
 
 ## 作った本人の流れ
