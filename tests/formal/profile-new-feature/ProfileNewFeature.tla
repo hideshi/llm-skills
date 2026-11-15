@@ -7,6 +7,13 @@
 (***************************************************************************)
 EXTENDS Naturals, TLC
 
+\* Path は、検査を2つの設定に分けるための定数（2026-11-15）。依頼の needDesign で分け、
+\* "design" は設計が要る依頼、"noDesign" は要らない依頼だけを初期状態に選ぶ。依頼は状態の
+\* 変数なので、2つの設定の状態は重ならず、和が分ける前の全体になる。途中の工程は刈らない
+\* （設計が要らない依頼で途中から設計が要ると分かる道も、noDesign の側で最後まで追う）
+CONSTANT Path
+ASSUME Path \in {"design", "noDesign"}
+
 VARIABLES pc, r, h
 vars == << pc, r, h >>
 
@@ -15,6 +22,7 @@ Steps == {"sizing", "req", "primary-source", "domain-model", "req-ask",
           "screen", "wireframe", "screen-ok", "acceptance",
           "design", "formal-check", "design-ok", "sizing-after-design", "test-cases",
           "tasks", "implement", "sizing-after-implement",
+          "accessibility-check", "accessibility-ask",
           "ops-artifacts", "ops-ok", "evidence", "review-round", "audit", "final-ok"}
 
 \* 依頼ごとの違い。意味の無い組み合わせを作らないよう、関係する違いは一つの値にまとめる
@@ -44,6 +52,16 @@ ScreenReworks == {"screenAc", "designScreen", "wireQ", "decisionScreen"}
 \* 作業の一覧が要る、lateDesign は要る観点に設計の判断が無い。状態の数を抑えるため、画面・
 \* 運用・モデルの検査・決定待ちの無い依頼にだけ掛ける
 LateReworks == {"lateGrow", "lateDesign"}
+\* 画面のアクセシビリティの点検（2026-11-15）。画面の設計の違い（screen）とは別の条件。
+\* none は点検に当たらない、pass は点検で人の決定が要る所見が無い、accept は人が受け入れか
+\* 保留を決めて先へ、human は人の手順の結果を受けて判定し直す、fix は実装で直す、ds は
+\* デザインシステムの判断を変える、req は画面の設計・目標の水準・受入条件を変える。
+\* 点検の後の直しは1回まで
+UiKinds == {"none", "pass", "accept", "human", "fix", "ds", "req"}
+\* 点検の違いを掛ける依頼の限定（状態の数を抑えるため）
+UiLimited(rr) == /\ rr.formal = "none" /\ rr.external \in {"none", "ok"}
+                 /\ rr.spec \in {"none", "model"} /\ ~rr.pending
+                 /\ rr.rework \in {"none", "reject"} /\ rr.ops \in {"none", "ok", "fix"}
 Requests == {rr \in [e2e: BOOLEAN, needDesign: BOOLEAN, formal: {"none", "ok", "cex"},
                      pending: BOOLEAN, normal: BOOLEAN, becomeNormal: BOOLEAN,
                      discover: BOOLEAN, evidence: BOOLEAN,
@@ -52,7 +70,10 @@ Requests == {rr \in [e2e: BOOLEAN, needDesign: BOOLEAN, formal: {"none", "ok", "
                             "reqQuestion"},
                      rework: {"none", "reject", "reapprove", "auditCond", "auditStop",
                               "acRewrite"} \cup ScreenReworks \cup LateReworks,
-                     ops: OpsKinds, screen: ScreenKinds] :
+                     ops: OpsKinds, screen: ScreenKinds, ui: UiKinds] :
+              /\ rr.screen /= "none" => rr.ui /= "none"
+              /\ (rr.screen = "none" /\ rr.ui /= "none") => UiLimited(rr)
+              /\ rr.ui \notin {"none", "pass"} => (UiLimited(rr) /\ rr.screen \in {"none", "plain"})
               /\ rr.ops = "none" \/ (rr.formal = "none" /\ rr.rework \in {"none", "reject"})
               /\ rr.screen = "none" \/ (rr.formal = "none" /\ rr.ops \in {"none", "decision"}
                                         /\ rr.external \in {"none", "ok", "late"})
@@ -68,9 +89,11 @@ Requests == {rr \in [e2e: BOOLEAN, needDesign: BOOLEAN, formal: {"none", "ok", "
               /\ rr.rework = "lateDesign" => ~rr.needDesign}
 
 Ops == r.ops /= "none"
+UI  == r.ui /= "none"
 
 \* 画面の値ごとの性質
-Screens  == r.screen /= "none" /\ (r.screen /= "late" \/ h.lateScreen)
+\* 点検から画面の設計を直すと決めた（a11yScreen）ときも、画面の契機が立つ
+Screens  == (r.screen /= "none" /\ (r.screen /= "late" \/ h.lateScreen)) \/ h.a11yScreen
 Wire     == r.screen \notin {"none", "plain", "late"}
 Feedback == r.screen \in {"fbReq", "fbModel", "fbScreen", "fbShared"}
 NeedDesign == r.needDesign \/ h.needDS \/ h.lateDesigned
@@ -81,7 +104,7 @@ NeedExt == r.external \in {"ok", "hypo"} \/ (r.external = "late" /\ h.lateFound)
 
 Init ==
     /\ pc = "sizing"
-    /\ r \in Requests
+    /\ r \in {rr \in Requests : (Path = "design") = rr.needDesign}
     /\ h = [req |-> FALSE, extDone |-> FALSE, modelDone |-> FALSE, hypo |-> FALSE,
             hypoResolved |-> FALSE, changed |-> FALSE,
             designDone |-> FALSE, designPending |-> FALSE, cexHandled |-> FALSE,
@@ -97,7 +120,9 @@ Init ==
             screenOk |-> FALSE, fbDone |-> FALSE, fbPending |-> FALSE, needDS |-> FALSE,
             screenAcDone |-> FALSE, designScreenDone |-> FALSE, dsPending |-> FALSE,
             fromDesign |-> FALSE, wireQDone |-> FALSE,
-            lateScreen |-> FALSE, decDone |-> FALSE, decPending |-> FALSE]
+            lateScreen |-> FALSE, decDone |-> FALSE, decPending |-> FALSE,
+            a11yOk |-> FALSE, a11yReworked |-> FALSE, a11yRechecked |-> FALSE,
+            a11yDirty |-> FALSE, a11yScreen |-> FALSE, a11yScreenSeen |-> FALSE]
 
 Go(s) == pc' = s /\ UNCHANGED << r, h >>
 GoH(s, h2) == pc' = s /\ h' = h2 /\ UNCHANGED r
@@ -125,7 +150,8 @@ Require == pc = "req"
 ScreenDesign == pc = "screen"
     /\ IF r.rework = "screenAc" /\ ~h.screenAcDone
          THEN GoH("req", [h EXCEPT !.screenAcDone = TRUE])
-       ELSE Go(IF Wire THEN "wireframe" ELSE "screen-ok")
+       ELSE GoH(IF Wire THEN "wireframe" ELSE "screen-ok",
+                [h EXCEPT !.a11yScreenSeen = h.a11yScreenSeen \/ h.a11yReworked])
 
 \* wireframe（ワイヤーを作る）。画面の設計を変える案を返すなら screen へ（1回まで）
 WireframeMake == pc = "wireframe"
@@ -232,7 +258,11 @@ ImplementStop == pc = "implement"
 Implement == pc = "implement"
     /\ ~(~h.normal /\ r.discover /\ ~h.discovered)
     /\ GoH("sizing-after-implement", [h EXCEPT !.sized = FALSE, !.evidenceFixed = FALSE,
-                                               !.opsApproved = FALSE])
+                                               !.opsApproved = FALSE, !.a11yOk = FALSE,
+                                               !.a11yDirty = TRUE])
+
+\* 実装の後の判定で戻りに当たらず、点検も済んだ（か要らない）ときの行き先
+Forward == IF Ops THEN "ops-artifacts" ELSE IF r.evidence THEN "evidence" ELSE "review-round"
 
 \* sizing-after-implement（規模を判定し直す。実際の差分で）。承認し直しが要れば req へ、
 \*    通常の道なのに作業の一覧が無ければ tasks へ
@@ -247,8 +277,27 @@ SizingAfterImplement == pc = "sizing-after-implement"
        \* 守りとして残す
        ELSE IF h.normal /\ ~h.taskList
          THEN GoH("tasks", [h EXCEPT !.sized = TRUE])
-       ELSE GoH(IF Ops THEN "ops-artifacts" ELSE IF r.evidence THEN "evidence" ELSE "review-round",
+       ELSE GoH(IF UI /\ ~h.a11yOk THEN "accessibility-check" ELSE Forward,
                 [h EXCEPT !.sized = TRUE])
+
+\* accessibility-check（アクセシビリティを点検する）。人の決定が要る所見があれば accessibility-ask へ
+A11yCheck == pc = "accessibility-check"
+    /\ IF r.ui \notin {"none", "pass"} /\ ~h.a11yReworked
+         THEN Go("accessibility-ask")
+         ELSE GoH(Forward, [h EXCEPT !.a11yOk = TRUE, !.a11yDirty = FALSE,
+                                     !.a11yRechecked = h.a11yRechecked \/ h.a11yReworked])
+
+\* accessibility-ask（点検の結果を人が決める。人）。人の手順の結果なら判定し直し、直すなら
+\*     直す層の工程へ（画面の設計・目標の水準・受入条件は req、デザインシステムは design、
+\*     実装は implement）、受け入れと保留なら先へ
+A11yAsk == pc = "accessibility-ask"
+    /\ CASE r.ui = "human"  -> GoH("accessibility-check", [h EXCEPT !.a11yReworked = TRUE])
+         [] r.ui = "req"    -> GoH("req", [h EXCEPT !.a11yReworked = TRUE, !.screenOk = FALSE,
+                                                    !.a11yScreen = TRUE])
+         [] r.ui = "ds"     -> GoH("design", [h EXCEPT !.a11yReworked = TRUE, !.designDone = FALSE])
+         [] r.ui = "fix"    -> GoH("implement", [h EXCEPT !.a11yReworked = TRUE])
+         [] OTHER           -> GoH(Forward, [h EXCEPT !.a11yReworked = TRUE, !.a11yOk = TRUE,
+                                                      !.a11yDirty = FALSE])
 
 \* ops-artifacts（運用の成果物を作る）。台帳の確認事項は req-ask で確かめて戻る。手元で流して
 \*     不具合が見つかれば implement へ、業務の決定が要れば req へ（それぞれ1回まで）
@@ -302,7 +351,7 @@ Next == Intake \/ Require \/ Primary \/ Model \/ Confirm
         \/ Acceptance \/ DesignToExt \/ DesignToScreen \/ DesignToReqScreen
         \/ Design \/ Formal \/ Approve \/ SizingAfterDesign
         \/ TestCases \/ Breakdown \/ ImplementStop \/ Implement \/ SizingAfterImplement
-        \/ OpsMake \/ OpsApprove
+        \/ A11yCheck \/ A11yAsk \/ OpsMake \/ OpsApprove
         \/ Evidence \/ Review \/ Audit \/ Final \/ Finished
         \/ Interrupt \/ Resume \/ ResumeHuman
 
@@ -370,6 +419,31 @@ TasksBeforeAudit == (pc = "audit" /\ (h.normal \/ r.rework = "lateGrow")) => h.t
 \* 設計し直した後の design-ok と実装のやり直しは、矢印の突き合わせが縛る
 LateDesignBeforeReview == (pc \in {"ops-artifacts", "ops-ok", "evidence", "review-round", "audit"}
                            /\ r.rework = "lateDesign") => h.designDone
+
+\* 点検に当たる依頼は、最後の実装の後に点検を済ませてから（人の決定が要るなら
+\* accessibility-ask を通ってから）、運用の成果物・証拠・レビュー・監査へ進む。
+\* 行き先を決める旗（a11yOk）とは別の旗（a11yDirty。変更で立ち、点検を済ませると下りる）で見る
+\* （同じ旗で見ると、変更で旗を下ろし忘れる崩し方を見逃すため）
+AccessibilityBeforeReview ==
+    (pc \in {"ops-artifacts", "ops-ok", "evidence", "review-round", "audit", "final-ok"} /\ UI)
+        => ~h.a11yDirty
+
+\* 点検に当たらない依頼は、点検の工程を通らない
+AccessibilityNotWasted == ~UI => pc \notin {"accessibility-check", "accessibility-ask"}
+
+\* 直す・判定し直すと人が決めた所見があるなら、直した後（判定し直した後）の点検を通ってから
+\* 先へ進む。accessibility-ask から点検を飛ばして先へ進まない
+\* あわせて、人の決定が要る所見があるなら（受け入れと保留を含む）、accessibility-ask を通ってから
+\* 先へ進む（a11yReworked は accessibility-ask でだけ立つ）
+AccessibilityDecided ==
+    pc \in {"ops-artifacts", "ops-ok", "evidence", "review-round", "audit", "final-ok"}
+        => /\ r.ui \notin {"none", "pass"} => h.a11yReworked
+           /\ r.ui \in {"human", "fix", "ds", "req"} => h.a11yRechecked
+
+\* 点検から画面の設計・目標の水準・受入条件を直すと決めたら、次の実装の前に、画面の工程を通って
+\* screen-ok で採り直す（画面の契機が無かった依頼を含む）
+AccessibilityScreenRevisited ==
+    (pc = "implement" /\ r.ui = "req" /\ h.a11yReworked) => (h.a11yScreenSeen /\ h.screenOk)
 
 \* 中断の間に人が承認した成果物が変わったら、人に確かめてから工程に戻る
 ApprovedChangeNeedsHuman == (h.resumed /\ h.apChanged /\ pc \in Steps) => h.humanChecked

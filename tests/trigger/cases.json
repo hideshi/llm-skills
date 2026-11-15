@@ -1259,6 +1259,47 @@
           "note": "ワイヤーに取られない"
         },
         {
+          "id": "U14",
+          "prompt": "（申し込みの画面を作り終え、手元の環境で動いている）アクセシビリティを確認して",
+          "accept": ["dev-accessibility-check"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "実装した画面の点検。デザインシステムの単位や受入の証拠に取られない"
+        },
+        {
+          "id": "U15",
+          "prompt": "（予約の画面を直した。検証の環境で動いている）この画面、キーボードだけで操作できるか点検して",
+          "accept": ["dev-accessibility-check"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"]
+        },
+        {
+          "id": "U16",
+          "prompt": "（手元で画面ごとに axe-core を流した結果が届いている）axe の結果を仕分けて",
+          "accept": ["dev-accessibility-check"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "入口の安全の走査の道具（O7）との境目"
+        },
+        {
+          "id": "U17",
+          "prompt": "（部品の一覧と、目標の水準が書かれた画面の共通仕様がある）部品にアクセシビリティの基準を割り当てて",
+          "accept": ["dev-design-system"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "基準の割り当てはデザインシステムの判断。点検の単位に取られない"
+        },
+        {
+          "id": "U18",
+          "prompt": "（部品のカタログに Storybook を使っている）部品のカタログの a11y の点検を todo にするか error にするか決めて",
+          "accept": ["dev-design-system"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "部品のカタログの点検の設定はデザインシステムの道具の資料。2026-11-15 の初版「Storybook の a11y の結果を見て」は、結果の読み取りで点検の単位と区別できず 0/3 だったので、設定の判断を問う形に替えた"
+        },
+        {
+          "id": "U19",
+          "prompt": "（要件と受入条件の文書がある）画面ごとのアクセシビリティの要件を決めて",
+          "accept": ["dev-screen-design"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "要件を決めるのは画面の設計。点検の単位に取られない"
+        },
+        {
           "id": "G",
           "prompt": "この機能を実装して",
           "forbidPrefixes": [

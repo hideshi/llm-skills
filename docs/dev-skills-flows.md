@@ -101,6 +101,11 @@ flowchart TD
     JBaselineUpdate{"期待値が変わった<br/>検証点があるか"}
     BaselineUpdate["baseline-update<br/>回帰の基準を更新する<br/>dev-regression-baseline"]
     SizingAfterImplement["sizing-after-implement<br/>規模を判定し直す<br/>dev-change-sizing（実際の差分で）"]
+    JA11y{"点検の作業に当たるか<br/>（実装・是正を通るたびに点検し直す）"}
+    A11yCheck["accessibility-check<br/>アクセシビリティを点検する<br/>dev-accessibility-check"]
+    JA11yResult{"人の決定がまだ無い所見<br/>（問題・判定の案・未確認）があるか"}
+    A11yAsk(["accessibility-ask<br/>点検の結果を人が決める（人）"])
+    JA11yAsk{"人の決定"}
     JOps{"運用の作業・文書に<br/>当たるか"}
     OpsArtifacts["ops-artifacts<br/>運用の成果物と利用者向けの文書を作る<br/>dev-production-procedure<br/>dev-credential-catalog<br/>dev-personal-info-ledger<br/>dev-user-manual"]
     JOpsResult{"手元で流した結果<br/>確認事項・業務の決定"}
@@ -177,11 +182,23 @@ flowchart TD
     JBaselineUpdate -->|"ある"| BaselineUpdate
     JBaselineUpdate -->|"ない"| SizingAfterImplement
     BaselineUpdate -->|"回帰の基準（区分と根拠つき）"| SizingAfterImplement
-    SizingAfterImplement -->|"規模の判定"| JOps
+    SizingAfterImplement -->|"規模の判定"| JA11y
     SizingAfterImplement -.->|"①完了条件の承認し直しが要る。または是正で設計が要る（B を切り替える）"| Req
     SizingAfterImplement -.->|"②機能の変更で、要る観点に設計の判断が無い"| Design
     SizingAfterImplement -.->|"③機能の変更で、作業に分ける条件に当たり、作業の一覧が無い"| Tasks
     SizingAfterImplement -.->|"③是正で、作業に分ける条件に当たり、作業の一覧が無い"| Fix
+    JA11y -->|"当たる"| A11yCheck
+    JA11y -->|"当たらない"| JOps
+    A11yCheck -->|"点検の記録・問題台帳"| JA11yResult
+    JA11yResult -->|"ある"| A11yAsk
+    JA11yResult -->|"無い"| JOps
+    A11yAsk --> JA11yAsk
+    JA11yAsk -.->|"人の手順の結果・採った判定の案を反映して判定し直す"| A11yCheck
+    JA11yAsk -.->|"直す層が画面の設計・目標の水準・受入条件、または是正でデザインシステムの判断を変える（是正なら B を切り替える）"| Req
+    JA11yAsk -.->|"機能の変更で、直す層がデザインシステムの判断"| Design
+    JA11yAsk -.->|"直す（是正）"| Fix
+    JA11yAsk -.->|"直す（機能の変更）"| Implement
+    JA11yAsk -->|"直す所見が無く、全部に人の決定がある"| JOps
     JOps -->|"当たる"| OpsArtifacts
     JOps -->|"当たらない"| JEvidence
     OpsArtifacts -->|"本番の手順・目録・台帳"| JOpsResult
@@ -231,6 +248,7 @@ flowchart TD
 - E2E の範囲を縮めること（既存の E2E の廃止を含む）は、人の承認を待つ。
 - 受入の証拠は確定してから `review-round` と `audit` に回す。確定の後に関係する所を変えたら、`evidence` をやり直す。
 - 同じ範囲に是正・人の判断・調べが残っていれば、`audit` へ進めない。
+- `accessibility-check` は、規模の判定が点検の作業に当てたときに通る（画面の設計を通らない是正や、属性だけの直しも）。`fix`・`implement` を通るたびに点検の済みは消え、点検し直しは前の点検の後に変えた画面×状態に絞る。所見は `accessibility-ask` で人が決め、前からある所見の既定は「別の計画で扱う」。点検は `ops-artifacts` と `evidence` より前に行う。
 - `implement`（と、`tasks` で分けた是正の `fix`）の差分の点検は、実装した側の点検で、`review-round` のレビューの代わりにしない。依頼文に写すのは、点検した範囲と見なかった観点だけ。設計の判断と違う実装は判断に合わせ、判断を見直すと人が決めたら `design` に戻る。
 
 ### 入口（一言の依頼から入る工程）
@@ -288,6 +306,11 @@ flowchart TD
     Tasks["tasks<br/>作業に分ける<br/>dev-task-breakdown"]
     Implement["implement<br/>実装する<br/>dev-test-first（既定）<br/>dev-diff-check（作業の終わり）"]
     SizingAfterImplement["sizing-after-implement<br/>規模を判定し直す<br/>dev-change-sizing（実際の差分で）"]
+    JA11y{"点検の作業に当たるか<br/>（実装・是正を通るたびに点検し直す）"}
+    A11yCheck["accessibility-check<br/>アクセシビリティを点検する<br/>dev-accessibility-check"]
+    JA11yResult{"人の決定がまだ無い所見<br/>（問題・判定の案・未確認）があるか"}
+    A11yAsk(["accessibility-ask<br/>点検の結果を人が決める（人）"])
+    JA11yAsk{"人の決定"}
     JOps{"運用の作業・文書に<br/>当たるか"}
     OpsArtifacts["ops-artifacts<br/>運用の成果物と利用者向けの文書を作る<br/>dev-production-procedure<br/>dev-credential-catalog<br/>dev-personal-info-ledger<br/>dev-user-manual"]
     JOpsResult{"手元で流した結果<br/>確認事項・業務の決定"}
@@ -347,10 +370,21 @@ flowchart TD
     Implement -.->|"軽い道の実装中に作業が増えた（観点が要る）・点検で設計の判断を見直すと決まった"| Design
     Implement -.->|"軽い道の実装中に作業が増えた（観点は要らない）"| Tasks
     Implement -->|"変更の事実・作業の一覧"| SizingAfterImplement
-    SizingAfterImplement -->|"規模の判定"| JOps
+    SizingAfterImplement -->|"規模の判定"| JA11y
     SizingAfterImplement -.->|"①完了条件の承認し直しが要る"| Req
     SizingAfterImplement -.->|"②要る観点に設計の判断が無い（実際の差分で）"| Design
     SizingAfterImplement -.->|"③通常の道に変わり、作業の一覧が無い"| Tasks
+    JA11y -->|"当たる"| A11yCheck
+    JA11y -->|"当たらない"| JOps
+    A11yCheck -->|"点検の記録・問題台帳"| JA11yResult
+    JA11yResult -->|"ある"| A11yAsk
+    JA11yResult -->|"無い"| JOps
+    A11yAsk --> JA11yAsk
+    JA11yAsk -.->|"人の手順の結果・採った判定の案を反映して判定し直す"| A11yCheck
+    JA11yAsk -.->|"直す層が画面の設計・目標の水準・受入条件"| Req
+    JA11yAsk -.->|"直す層がデザインシステムの判断"| Design
+    JA11yAsk -.->|"直す層が実装"| Implement
+    JA11yAsk -->|"直す所見が無く、全部に人の決定がある"| JOps
     JOps -->|"当たる"| OpsArtifacts
     JOps -->|"当たらない"| JEvidence
     OpsArtifacts -->|"本番の手順・目録・台帳"| JOpsResult
@@ -385,6 +419,7 @@ flowchart TD
 - 道が軽い道から通常の道に変わったら（`sizing-after-design`、作業に分けた後、軽い道の実装中のどれでも）、実装を止めて `design` と `tasks` を通す。
 - `sizing-after-implement` の判定は、承認し直し（①）→ 要る観点の設計（②）→ 作業の一覧（③）→ 通常の続行 の順に見る（図の矢印の番号）。
 - 受入の証拠は確定してから `review-round` と `audit` に回す。E2E の範囲を縮めることは、人の承認を待つ。
+- `accessibility-check` は、規模の判定が点検の作業に当てたときに通る（軽い道でも）。`implement` を通るたびに点検の済みは消え、点検し直しは前の点検の後に変えた画面×状態に絞る。所見は `accessibility-ask` で人が決め、受け入れと保留は方針外の課題の記録に出す。点検は `ops-artifacts` と `evidence` より前に行う。
 - 型の一覧の「道に応じた検査」が通らない項目が残っていれば、`audit` で「進めてよい」にしない。
 - `implement` の差分の点検は、実装した側の点検で、`review-round` のレビューの代わりにしない。依頼文に写すのは、点検した範囲と見なかった観点だけ。設計の判断と違う実装は判断に合わせ、判断を見直すと人が決めたら `design` に戻る。
 
@@ -724,6 +759,7 @@ flowchart TD
 | `dev-diff-check` | 変更の事実、完了条件の一覧 | 作業の一覧、設計の判断、業務規則の一覧、ドメインモデル、テストケース表、是正の対応表、回帰の基準、原典の参照 | 検証の記録、方針外の課題の記録 |
 | `dev-test-first` | 完了条件の一覧か不具合の報告 | テストケース表、回帰の基準、作業の一覧、設計の判断 | 変更の事実、検証の記録、方針外の課題の記録、完了の主張、作業の一覧（受け取ったとき） |
 | `dev-evidence-check` | 検証の記録と、テストケース表か完了条件の一覧 | 変更の事実 | 受入の証拠、検証の記録 |
+| `dev-accessibility-check` | 改修の範囲か変更の事実 | 画面の設計（あれば必須）、設計の判断、原典の参照（目標の水準、読み上げの確かめを求めるか、環境の許し）、アクセシビリティの点検の記録（前回） | アクセシビリティの点検の記録、問題台帳、検証の記録 |
 
 型でつながる様子（どの単位の出力が、どの単位の入力になるか）。点線の矢印は、更新や再依頼のときに戻る流れ。
 
@@ -749,6 +785,7 @@ flowchart TD
     tf["dev-test-first<br/>テストを先に書いて実装する"]
     dc["dev-diff-check<br/>差分を点検する"]
     ev["dev-evidence-check<br/>受入の証拠を確かめる"]
+    a11y["dev-accessibility-check<br/>アクセシビリティを点検する"]
     brief["dev-review-brief<br/>レビュー依頼文を書く"]
     conduct["dev-review-conduct<br/>独立してレビューする"]
     audit["dev-completion-audit<br/>完了前に監査する"]
@@ -810,6 +847,9 @@ flowchart TD
     tf -->|"検証の記録"| ev
     sizing -->|"規模の判定（終わる時）"| audit
     ev -->|"受入の証拠"| audit
+    tf -->|"変更の事実"| a11y
+    screen -->|"画面の設計"| a11y
+    a11y -->|"アクセシビリティの点検の記録・問題台帳"| audit
     brief -->|"レビュー依頼文"| conduct
     conduct -->|"レビュー結果・方針外の課題の記録"| audit
     fix -->|"完了の主張・完了条件の一覧"| audit

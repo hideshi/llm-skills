@@ -5,7 +5,9 @@
 これを次の二つと突き合わせる。
 
 1. 流れ図（docs/dev-skills-flows.md）の mermaid の矢印
-2. 形式モデル（tests/formal/profile-<名前>/*.tla）を TLC で流したときに、実際に起きた工程の移り変わり
+2. 形式モデル（tests/formal/profile-<名前>/*.tla）を TLC で流したときに、実際に起きた工程の移り変わり。
+   同じフォルダに設定（.cfg）が複数あれば（依頼を設定ごとに分けたモデル）、全部を流して移り変わりの和を
+   比べる。設定の間で、定数の行のほか（不変条件と性質）が違えば失敗にする
 
 どちらも、工程でない点（判定のひし形、人の決定、入口、終わり）を通る道はたたんで、
 工程から工程への矢印だけにして比べる。
@@ -23,8 +25,12 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from collections import defaultdict
 from pathlib import Path
+
+# モデルのフォルダごとの、設定ごとの状態の数と時間（表示に使う）
+MODEL_STATS = {}
 
 # 工程の識別子の形。表ではバッククォートで囲み、流れ図ではラベルの1行目に裸で書く
 STEP_ID = re.compile(r'[a-z][a-z0-9]*(?:-[a-z0-9]+)*')
@@ -136,7 +142,6 @@ def model_flow(model_dir, jar):
     if not tla:
         return None, None, "モデルが無い"
     tla = tla[0].resolve()
-    cfg = tla.with_suffix(".cfg")
     src = tla.read_text(encoding="utf-8")
     m = re.search(r"^Steps\s*==\s*\{(.*?)\}", src, re.M | re.S)
     steps = set(re.findall(r'"([^"]+)"', m.group(1))) if m else set()
@@ -148,38 +153,67 @@ def model_flow(model_dir, jar):
         return steps, excluded, None
     if "EdgeProbe" not in src:
         return steps, excluded, "モデルに EdgeProbe が無い（tests/formal/README.md を見る）"
-    with tempfile.TemporaryDirectory() as tmp:
-        # 工程の移り変わりは、モデルの EdgeProbe が初めて見た組だけを書き出す。
-        # 状態の図をまるごと書き出すと、依頼の違いが増えたときに大きくなりすぎる
-        # TLC は設定を仕様と同じ場所で探すので、両方を一時の場所に写す（モデルは1ファイル）
-        probe_tla = Path(tmp) / tla.name
-        probe_tla.write_text(src, encoding="utf-8")
-        probe_cfg = probe_tla.with_suffix(".cfg")
-        probe_cfg.write_text(cfg.read_text(encoding="utf-8")
-                             + "\nACTION_CONSTRAINT EdgeProbe\n", encoding="utf-8")
-        # 手元の機械を使い切らないよう、メモリと並びの数と時間に上限を付ける
-        heap = os.environ.get("TLC_HEAP", "1g")
-        workers = os.environ.get("TLC_WORKERS", "2")
-        cmd = ["java", f"-Xmx{heap}", "-XX:+UseParallelGC", "-cp", jar, "tlc2.TLC",
-               "-workers", workers, "-metadir", str(Path(tmp) / "states"),
-               "-config", str(probe_cfg), str(probe_tla)]
-        try:
-            res = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True,
-                                 timeout=int(os.environ.get("TLC_TIMEOUT", "1200")))
-        except subprocess.TimeoutExpired:
-            return steps, excluded, "TLC が時間の上限までに終わらなかった（TLC_TIMEOUT）"
-        if res.returncode != 0 or "Model checking completed" not in res.stdout:
-            tail = "\n".join(res.stdout.splitlines()[-15:])
-            return steps, excluded, f"TLC が誤りで終わった（終了コード {res.returncode}）:\n{tail}"
+    # 設定は同じフォルダの .cfg を全部流す（状態の数を抑えるため、依頼を設定ごとに分けたモデルがある）。
+    # 設定の間で、定数の行のほかは同じ（検査する不変条件と性質が同じ）であることを求める
+    cfgs = sorted(model_dir.glob("*.cfg"))
+    if not cfgs:
+        return steps, excluded, "設定（.cfg）が無い"
+    lines = {c.name: [ln.strip() for ln in c.read_text(encoding="utf-8").splitlines() if ln.strip()]
+             for c in cfgs}
+    path_re = re.compile(r'^CONSTANT\s+Path\s*=\s*"([^"]+)"$')
+    checks = {n: sorted(ln for ln in ls if not path_re.match(ln)) for n, ls in lines.items()}
+    if len({tuple(v) for v in checks.values()}) > 1:
+        return steps, excluded, (f"設定の間で、Path の行のほか（ほかの定数、不変条件、性質）が違う: "
+                                 f"{sorted(checks)}")
+    # 依頼を設定ごとに分けたモデルは、モデルの ASSUME Path \in {...} の値を、設定が重ならず
+    # 漏れなく指すこと（設定の取り違えで、依頼の一部が検査から黙って落ちないように）
+    assume = re.search(r"^ASSUME\s+Path\s+\\in\s+\{([^}]*)\}", src, re.M)
+    paths = [m.group(1) for ls in lines.values() for ln in ls for m in [path_re.match(ln)] if m]
+    if assume or paths:
+        want = sorted(re.findall(r'"([^"]+)"', assume.group(1))) if assume else []
+        if not assume or len(paths) != len(cfgs) or sorted(paths) != want:
+            return steps, excluded, (f"設定の Path の値 {sorted(paths)} が、モデルの ASSUME Path の値 {want} と"
+                                     f"重ならず漏れなく一致しない（設定は {len(cfgs)} 個）")
     pc_adj = defaultdict(set)
     edge_re = re.compile(r'^<<"EDGE", "([^"]+)", "([^"]+)">>\s*$')
-    for line in res.stdout.splitlines():
-        e = edge_re.match(line.strip())
-        # 同じ工程にとどまる組は、Next の中で状態を変えるもの（監査の「条件付き」など）だけが
-        # 書き出される。終わりの足踏み（Done → Done）は工程でないので collapse で落ちる
-        if e:
-            pc_adj[e.group(1)].add(e.group(2))
+    stats = []
+    for cfg in cfgs:
+        with tempfile.TemporaryDirectory() as tmp:
+            # 工程の移り変わりは、モデルの EdgeProbe が初めて見た組だけを書き出す。
+            # 状態の図をまるごと書き出すと、依頼の違いが増えたときに大きくなりすぎる
+            # TLC は設定を仕様と同じ場所で探すので、両方を一時の場所に写す（モデルは1ファイル）
+            probe_tla = Path(tmp) / tla.name
+            probe_tla.write_text(src, encoding="utf-8")
+            probe_cfg = probe_tla.with_suffix(".cfg")
+            probe_cfg.write_text(cfg.read_text(encoding="utf-8")
+                                 + "\nACTION_CONSTRAINT EdgeProbe\n", encoding="utf-8")
+            # 手元の機械を使い切らないよう、メモリと並びの数と時間に上限を付ける（設定ごと）
+            heap = os.environ.get("TLC_HEAP", "1g")
+            workers = os.environ.get("TLC_WORKERS", "2")
+            cmd = ["java", f"-Xmx{heap}", "-XX:+UseParallelGC", "-cp", jar, "tlc2.TLC",
+                   "-workers", workers, "-metadir", str(Path(tmp) / "states"),
+                   "-config", str(probe_cfg), str(probe_tla)]
+            start = time.monotonic()
+            try:
+                res = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True,
+                                     timeout=int(os.environ.get("TLC_TIMEOUT", "1200")))
+            except subprocess.TimeoutExpired:
+                return steps, excluded, f"TLC が時間の上限までに終わらなかった（{cfg.name}、TLC_TIMEOUT）"
+            if res.returncode != 0 or "Model checking completed" not in res.stdout:
+                tail = "\n".join(res.stdout.splitlines()[-15:])
+                return steps, excluded, f"TLC が誤りで終わった（{cfg.name}、終了コード {res.returncode}）:\n{tail}"
+        # 途中経過の行（桁区切りつき）ではなく、終わりの行の数を取る
+        found = re.findall(r"^([0-9,]+) states generated, ([0-9,]+) distinct states found", res.stdout, re.M)
+        count = f"{int(found[-1][1].replace(',', '')):,}" if found else "?"
+        stats.append(f"{cfg.name}: {count} 状態、{time.monotonic() - start:.0f}秒")
+        for line in res.stdout.splitlines():
+            e = edge_re.match(line.strip())
+            # 同じ工程にとどまる組は、Next の中で状態を変えるもの（監査の「条件付き」など）だけが
+            # 書き出される。終わりの足踏み（Done → Done）は工程でないので collapse で落ちる
+            if e:
+                pc_adj[e.group(1)].add(e.group(2))
     edges = collapse(pc_adj, lambda n: n in steps)
+    MODEL_STATS[model_dir.name] = stats
     return steps, excluded, edges
 
 
@@ -477,6 +511,8 @@ def main():
         elif medges is None:
             notes.append(f"{name}: TLC の jar が渡されていないので、モデルの遷移との突き合わせは飛ばした")
         else:
+            for s in MODEL_STATS.get(model_dir.name, []):
+                notes.append(f"{name}: モデルを流した（{s}）")
             pe = {(a, b) for a, b in edges if a not in excluded and b not in excluded}
             if pe - medges:
                 errors.append(f"{name}: モデルで起きない遷移: {fmt(pe - medges)}")
