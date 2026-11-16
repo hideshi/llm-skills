@@ -202,5 +202,6 @@ description: どんな目的で使うか。どの依頼の言い方で起動す�
 | `dev-profile-dependency-upkeep` | 1 → `intake`、2 → `advisory-check`、3 → `triage-ask`、4 → `baseline`、5 → `bump`、6 → `diff-check`、7 → `baseline-update`、8 → `sizing-after-implement`、9 → `procedure`、9b → `procedure-ok`、10 → `review-round`、11 → `audit`、12 → `final-ok` |
 | `dev-profile-exposure-sweep` | 1 → `intake`、2 → `entry-check`、3 → `triage-ask`、4 → `final-ok` |
 | `dev-profile-inherited-system` | 1 → `intake`、2 → `map`、3 → `map-ask`、4 → `catalog`、5 → `ledger`、5b → `inventory-ask`、6 → `inventory-ok` |
+| `dev-profile-prototyping` | — → `intake`、— → `workspace`、— → `build`、— → `wireframe`、— → `show-ask`、— → `direction-ask`、— → `cleanup`、— → `final-ok` |
 
 消した識別子（使い回さない）: なし。

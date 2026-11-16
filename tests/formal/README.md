@@ -10,6 +10,7 @@
 | `dev-profile-inherited-system` | [profile-inherited-system](profile-inherited-system/) |
 | `dev-profile-interrupt-resume` | [profile-interrupt-resume](profile-interrupt-resume/) |
 | `dev-profile-new-feature` | [profile-new-feature](profile-new-feature/) |
+| `dev-profile-prototyping` | [profile-prototyping](profile-prototyping/) |
 | `dev-profile-review-cycle` | [profile-review-cycle](profile-review-cycle/) |
 | `dev-profile-version-control` | [profile-version-control](profile-version-control/) |
 

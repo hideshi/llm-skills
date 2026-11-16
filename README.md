@@ -10,7 +10,7 @@ LLM の選定と裏取り、Jev の設計、時代考証、エージェント向
 | [2. Jev 設計](#2-jev-system-one-model-設計) | 要件定義書やドメインモデルから決定特化型モデル「Jev」の適用候補を抽出し、TCO試算、型付きのスキーマとフォールバック設計、評価セットの freeze、閾値較正（shadow 記録まで）、監視設計を支援する | `jev-candidate-detector` |
 | [3. 歴史・文化背景の裏取り](#3-歴史文化背景の裏取り) | 人物や制度の判断を史料・研究と照合し、出来事の記録、当時や後世の評価、創作上の仮定を分ける | `historical-context-grounding` |
 | [4. エージェント向けの契約（移転の案内）](#4-エージェント向けの契約移転の案内) | 既存のWebアプリにMCPサーバーを組み込み、HTTPでエージェントに公開する際の契約を、言語・SDKに依存せず設計する（開発作業の群の単位に移した） | `dev-agent-contract` |
-| [5. 開発作業](#5-開発作業) | コードや文書の変更のレビューの一巡、新規開発、既存システムの改修・不具合の是正を、設計・試験・作業の分割まで含めて進める。単位を組み合わせるプロファイルで工程を選ぶ | `dev-profile-review-cycle`、`dev-profile-existing-system`、`dev-profile-new-feature`、`dev-profile-dependency-upkeep`、`dev-profile-exposure-sweep`、`dev-profile-inherited-system`、`dev-profile-version-control`、`dev-profile-interrupt-resume` |
+| [5. 開発作業](#5-開発作業) | コードや文書の変更のレビューの一巡、新規開発、既存システムの改修・不具合の是正を、設計・試験・作業の分割まで含めて進める。単位を組み合わせるプロファイルで工程を選ぶ | `dev-profile-review-cycle`、`dev-profile-existing-system`、`dev-profile-new-feature`、`dev-profile-dependency-upkeep`、`dev-profile-exposure-sweep`、`dev-profile-inherited-system`、`dev-profile-version-control`、`dev-profile-interrupt-resume`、`dev-profile-prototyping` |
 | [6. Cloudflare の基盤選定](#6-cloudflare-の基盤選定) | 要件を Cloudflare 前提の制約に整理し、製品の仕様・制限・価格を毎回公式資料で裏取りして、構成案を出す | `cloudflare-requirements-framing`（一問一答は `cloudflare-product-survey`） |
 | [7. 会話の一区切りの振り返り](#7-会話の一区切りの振り返り) | コーディングの会話の区切りで、摩擦を専門用語と情報処理技術者試験（基本情報から高度試験まで）の概念につなげ、利用者の個人用スキルを育てるかを判定する | `post-task-retrospective` |
 | [8. 一次情報の裏取り](#8-一次情報の裏取り) | 競技のルール、規格、製品・素材のデータシートなど、設計を縛る外部の事実を原典の本文で確かめ、出典・版・引用・状態と縛る判断を項目ごとに記録する。分野を問わない汎用の手順で、専門の手順がある分野はそちらへ渡す | `primary-source-grounding` |
@@ -126,6 +126,7 @@ MCPクライアントの実装、既存のMCPサーバーを使うだけの作�
 | 単位 | **`dev-personal-info-ledger`** | 取る・送る・保存する個人の情報を、根拠の所在つきで台帳にし、公開する文の草案を台帳の事実だけで付け、運営者に問うことをまとめる。法的な判断はしない |
 | 単位 | **`dev-user-manual`** | 利用者向けの操作マニュアルを、仕事の台帳で載せる仕事を選んでから章ごとに書き、隔離した環境の実際の画面で手順を辿って確かめる。仕様と画面の食い違いは問題台帳で返す |
 | 単位 | **`dev-production-procedure`** | 本番で人が流す手順を、始めてよい条件、担当×ホスト×利用者、段ごとの印と確かめ方と止める条件、戻しの組と途中の失敗からの戻し方まで、手元で同じ中身を流して確かめてから作る。担当は本番に接続しない |
+| プロファイル | **`dev-profile-prototyping`** | 確かめたい問いに、捨てる前提の試作で答える流れを、受付、場所を分ける、試作（動くコード・ワイヤー）、人に見せて確かめる、進め方の決定、片付け、最終確認の工程に振り分ける。試作は本線に統合しない |
 | 共有 | `dev-shared` | 単位とプロファイルが使う[成果物の型の一覧](skills/dev-shared/references/artifact-types.md) |
 
 - プロファイルごとの工程の順序、受け渡す型、次へ進む条件は[流れ図](docs/dev-skills-flows.md)にまとめている。

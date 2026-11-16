@@ -1546,6 +1546,55 @@
             "dev-message-design"
           ],
           "note": "機械が受ける知らせは文面の単位に取られない"
+        },
+        {
+          "id": "Y1",
+          "prompt": "この方法でできるか、スパイクで試して。捨てる前提で",
+          "accept": [
+            "dev-profile-prototyping"
+          ],
+          "forbidPrefixes": [
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "捨てる前提のスパイクは試作の組み合わせに振られ、新しい機能・既存の改修に振られない"
+        },
+        {
+          "id": "Y2",
+          "prompt": "（画面の設計はまだ無い）モックで画面の案を確かめたい",
+          "accept": [
+            "dev-profile-prototyping"
+          ],
+          "forbidPrefixes": [
+            "dev-wireframe",
+            "dev-screen-design"
+          ],
+          "note": "画面の設計が無いモックはワイヤーの単位の対象外で、動くコードで試作する工程に振られる"
+        },
+        {
+          "id": "Y3",
+          "prompt": "（画面の設計がある）この画面の設計を、ワイヤーで人に見せて確かめたい",
+          "accept": [
+            "dev-wireframe"
+          ],
+          "profiles": [
+            "dev-profile-prototyping",
+            "dev-profile-new-feature",
+            "dev-profile-existing-system"
+          ],
+          "note": "画面の設計がある試作なら、ワイヤーの単位の直接起動が選ばれてよい（U2 に試作の組み合わせの文脈を足した形）"
+        },
+        {
+          "id": "Y4",
+          "prompt": "（試作の場所を使っていた）試作は終わりにして片付けて。破棄は決定済み",
+          "accept": [
+            "dev-isolated-workspace"
+          ],
+          "profiles": [
+            "dev-profile-prototyping",
+            "dev-profile-version-control"
+          ],
+          "note": "片付けだけの依頼なら、単位の直接起動が選ばれてよい。版管理の組み合わせの片付けに振られても、同じ工程の識別子なので合格"
         }
       ]
     },

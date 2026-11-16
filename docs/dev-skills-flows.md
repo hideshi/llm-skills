@@ -706,7 +706,49 @@ flowchart TD
 | 「引き継いだシステムの個人情報の台帳を作って」 | `intake` → `map` → `catalog` → `ledger`（地図が既にあれば `intake` → `catalog` → `ledger`） |
 | 「前任者の回答が届いた」 | `map-ask` か `inventory-ask` |
 
-## 9. 単位の入力と出力
+## 9. 試作（プロトタイピング）（`dev-profile-prototyping`）
+
+動くコードかワイヤーで試作して、確かめたい問いに人が答え、破棄して片付ける。片付けでは、破棄の承認（進め方の決定で人が確かめたもの）を確かめてから片付ける。
+
+```mermaid
+flowchart TD
+  Intake["intake<br>受付"]
+  Workspace["workspace<br>試作の場所を分ける<br>dev-isolated-workspace"]
+  Build["build<br>動くコードで試作する"]
+  Wireframe["wireframe<br>ワイヤーで試作する<br>dev-wireframe"]
+  ShowAsk["show-ask<br>人に見せて確かめる"]
+  DirectionAsk["direction-ask<br>進め方を人が決める"]
+  Cleanup["cleanup<br>片付ける<br>dev-isolated-workspace"]
+  FinalOk["final-ok<br>最終確認"]
+  Intake --> Workspace
+  Workspace -->|動くもので確かめる問いがある| Build
+  Workspace -->|動くもので確かめる問いが無く<br>画面の設計がある| Wireframe
+  Build -->|切り替える| Wireframe
+  Build --> ShowAsk
+  Wireframe -->|切り替える| Build
+  Wireframe --> ShowAsk
+  ShowAsk -->|試作を直す| Build
+  ShowAsk -->|試作を直す| Wireframe
+  ShowAsk --> DirectionAsk
+  DirectionAsk -->|もう一周する| Build
+  DirectionAsk -->|もう一周する| Wireframe
+  DirectionAsk --> Cleanup
+  Cleanup --> FinalOk
+```
+
+`wireframe` に入れるのは、もとにする画面の設計があるときだけ。画面の案（モック）から確かめるときは `build` で作る。
+
+### 入口（一言の依頼から入る工程）
+
+| 依頼の言い方・状況 | 入る工程 |
+|---|---|
+| 「〜できるか試して」「スパイクで調べて」「プロトタイプを作って」 | `intake` → `workspace` → `build` |
+| 「モックで画面の案を確かめたい」（画面の設計が無い） | `intake` → `workspace` → `build` |
+| 「この画面の設計をワイヤーで確かめたい」（画面の設計がある） | `intake` → `workspace` → `wireframe` |
+| 「試作を人に見せて意見を集めて」 | `show-ask` |
+| 「試作は終わりにして片付けて」 | `direction-ask`（人の決定が済んでいれば `cleanup`） |
+
+## 10. 単位の入力と出力
 
 プロファイルを使わずに単位だけを使うときの早見表。型の中身は [型の一覧](../skills/dev-shared/references/artifact-types.md) を見る。
 

@@ -203,6 +203,15 @@ C7（「保守の引継ぎ資料を作って」、渡す側）は、O8〜O10 と
 
 W（「セキュリティを見て」、変更の安全性の点検）は、O6・O7 を足した後も「dev- は起動しない」のままにする。変更の差分の点検と今の状態の点検を、依頼の言い方で分けるため。
 
+## 試作（プロトタイピング）（`dev-profile-prototyping` の工程。単位が直接選ばれてもよい）
+
+| ID | 依頼の例 | 状況 | 期待するスキル | 期待する工程 |
+|---|---|---|---|---|
+| Y1 | 「この方法でできるか、スパイクで試して。捨てる前提で」 | 動くもので確かめる問い | `dev-profile-prototyping`（`dev-profile-new-feature`・`dev-profile-existing-system` に取られない） | `intake` → `workspace` → `build` |
+| Y2 | 「モックで画面の案を確かめたい」 | 画面の設計はまだ無い | `dev-profile-prototyping`（`dev-wireframe`・`dev-screen-design` に取られない） | `intake` → `workspace` → `build` |
+| Y3 | 「この画面の設計を、ワイヤーで人に見せて確かめたい」 | 画面の設計がある | `dev-wireframe`（プロファイル経由でも可） | `wireframe`（`dev-profile-prototyping` 経由なら `intake` → `workspace` → `wireframe`） |
+| Y4 | 「試作は終わりにして片付けて。破棄は決定済み」 | 試作の場所を使っていた | `dev-isolated-workspace`（プロファイル経由でも可） | `cleanup`（`dev-profile-version-control` の工程 `cleanup` でも可） |
+
 ## 起動してはいけない依頼
 
 | ID | 依頼の例 | 状況 | 期待するスキル |
