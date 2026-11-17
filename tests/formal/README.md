@@ -14,6 +14,8 @@
 | `dev-profile-review-cycle` | [profile-review-cycle](profile-review-cycle/) |
 | `dev-profile-version-control` | [profile-version-control](profile-version-control/) |
 
+プロファイルのほかに、型の一覧の「識別子と結びつき」の決まり（抜け漏れの検査 1〜8）を Alloy で表した試行のモデルがある: [type-links](type-links/)。決まりそのものの矛盾と穴を探すもので、下の突き合わせの検査の対象ではない。
+
 ## 写しのずれを防ぐ
 
 工程と遷移の正本は、各プロファイルの SKILL.md の工程の表と「### 遷移」の表。流れ図（`docs/dev-skills-flows.md`）とこのモデルは写しで、次の検査で突き合わせる。
