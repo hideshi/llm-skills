@@ -1300,6 +1300,13 @@
           "note": "要件を決めるのは画面の設計。点検の単位に取られない"
         },
         {
+          "id": "U20",
+          "prompt": "（申し込みの画面を作り終え、部品のカタログの Storybook で a11y の点検を流した結果がある）Storybook の a11y の結果を見て",
+          "accept": ["dev-accessibility-check"],
+          "profiles": ["dev-profile-new-feature", "dev-profile-existing-system"],
+          "note": "2026-11-17 の決定で、部品のカタログの点検の結果を読むのは点検の単位（設定はデザインシステムの道具の資料）。デザインシステムに取られない"
+        },
+        {
           "id": "G",
           "prompt": "この機能を実装して",
           "forbidPrefixes": [
