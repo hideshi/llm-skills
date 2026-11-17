@@ -1417,6 +1417,40 @@
           "note": "LLM の選定。外部の仕様の調査に取られない"
         },
         {
+          "id": "XG9",
+          "prompt": "このリポジトリの答え責任カードを作って",
+          "accept": [
+            "answerability-card"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "答え責任カード。引き継いだシステムの地図に取られない"
+        },
+        {
+          "id": "XG10",
+          "prompt": "（AI と一緒に作ってきたリポジトリ）このリポジトリについて、自分が説明できない所を洗い出して",
+          "accept": [
+            "answerability-card"
+          ],
+          "forbidPrefixes": [
+            "dev-"
+          ],
+          "note": "持ち主の理解の確かめ。今の動きの調査やシステムの地図に取られない"
+        },
+        {
+          "id": "XG11",
+          "prompt": "（前任者から保守を引き継いだ、文書の少ないシステム）どこに何があるか整理したい",
+          "accept": [
+            "dev-profile-inherited-system",
+            "dev-system-map"
+          ],
+          "forbidPrefixes": [
+            "answerability-card"
+          ],
+          "note": "引き継いだシステムの地図。答え責任カードに取られない"
+        },
+        {
           "id": "TX1",
           "prompt": "（注文の確定の要件と受入条件の文書がある）注文確定の通知メールの文面を決めて",
           "accept": [

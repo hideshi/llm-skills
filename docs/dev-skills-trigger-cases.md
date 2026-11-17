@@ -234,6 +234,9 @@ W（「セキュリティを見て」、変更の安全性の点検）は、O6�
 | XG6 | 「連携で使う業界の EDI の形式の仕様を調べて」 | 配送業者の API とつなぐ予定 | `dev-external-domain-survey`（`primary-source-grounding` は使わない） |
 | XG7 | 「この部品を設計して 3D プリントしたい」 | 部品の設計 | `cad-profile-part-design`、`cad-parametric-modeling`、`cad-fdm-dfam` のどれか（dev- は起動しない） |
 | XG8 | 「ローカルで動かす LLM の候補を比べて」 | LLM の選定 | LLM 選定の群の入口か調査（dev- は起動しない） |
+| XG9 | 「このリポジトリの答え責任カードを作って」 | 持ち主の答え責任の確かめ | `answerability-card`（dev- は起動しない） |
+| XG10 | 「このリポジトリについて、自分が説明できない所を洗い出して」 | AI と一緒に作ってきたリポジトリ | `answerability-card`（dev- は起動しない） |
+| XG11 | 「どこに何があるか整理したい」 | 前任者から保守を引き継いだ、文書の少ないシステム | `dev-profile-inherited-system` か `dev-system-map`（`answerability-card` は使わない） |
 
 ## 作った本人の流れ
 
