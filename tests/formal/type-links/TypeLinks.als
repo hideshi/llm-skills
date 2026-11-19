@@ -1,12 +1,15 @@
--- 型の結びつきと、抜け漏れの検査 1〜8 のモデル（試行）。
+-- 型の結びつきと、抜け漏れの検査 1〜8、16〜22 のモデル。
 -- 正本は skills/dev-shared/references/artifact-types.md の「識別子と結びつき」。
--- ここは写しで、通常の道の検査 1〜8 と、それが支える結びつきだけを表す。
+-- ここは写しで、通常の道の検査 1〜8、16〜22 と、それが支える結びつきだけを表す。
 -- 表さないもの: 軽い道、ドメインモデル（検査 9、10）、画面（11〜13）、文面（14、15）、
 --   変更の事実、確認事項、一次情報、ドメインイベント、識別子の書き方、文の中身、
---   廃止したテストケースと作業、「決定待ち」の作業。
+--   廃止したテストケースと作業（検査は廃止していないものだけを見るので、モデルのケースと作業は
+--   どれも廃止していないものとする）、「決定待ち」の作業。
 -- 「今回の範囲」は、モデルの中のものすべてとする。
--- 結びつきの表の多さ（「1つ以上」など）のうち、検査 1〜8 に項目の無いものは事実にせず、述語にして、
---   検査を通れば成り立つかを主張で確かめる。
+-- 結びつきの表の多さ（「1つ以上」など）は事実にせず、述語にして、検査を通れば成り立つかを主張で確かめる。
+-- 2段目（2026-11-19）: 1段目で見つけた穴の候補を、持ち主の決定に沿って検査 1〜3、8 の直しと
+--   16〜22 で塞いだ。H3 は塞がない（作業がほかの受入条件のケースを結んでもよい。19 で H1・H2 は成り立つ）。
+--   レビュー後の決定（検査 4・17・19 の直し、廃止したケースと作業の扱い）は README の「2段目の決定」。
 
 -- 要件と受入条件 ---------------------------------------------------------
 
@@ -21,7 +24,7 @@ sig RetiredAC in AC {}                    -- 廃止の印
 sig NegAC in AC {}                        -- 否定を含む受入条件
 sig NoTestReasonAC in AC {}               -- テストで確かめない理由が書いてある
 
--- 結びつきの表: 受入条件 → 要件は 1つ以上。検査 1〜8 に項目が無い（検査 1 は逆向き）ので述語。
+-- 結びつきの表: 受入条件 → 要件は 1つ以上。検査 16 が見る（1段目は項目が無かったので、主張 H12 で確かめる述語にした）。
 pred ACHasReq { all a: AC | some a.acReq }
 
 -- 出どころ（問題台帳の問題、回帰の基準の検証点など。種類は区別しない）
@@ -39,7 +42,7 @@ sig ViolTC in TC {}                       -- 規則を破るケース（ほか�
 sig NewTC in TC {}                        -- 今回新しく足すケース
 sig PassedTC in TC {}                     -- 通った記録がある
 
--- 結びつきの表: テストケース → 受入条件は 1つ以上（無ければ出どころ）。検査 1〜8 に項目が無いので述語。
+-- 結びつきの表: テストケース → 受入条件は 1つ以上（無ければ出どころ）。検査 17 が見る（1段目は項目が無かったので、主張 H9 で確かめる述語にした）。
 pred TCHasSource { all t: TC | some t.tcAcs or some t.tcOrigin }
 
 -- 作業 --------------------------------------------------------------------
@@ -76,23 +79,26 @@ fun validRules: set Rule {
 fun satTCs[r: Rule]: set TC { tcRules.r - ViolTC }
 fun violTCs[r: Rule]: set TC { tcRules.r & ViolTC }
 
--- 抜け漏れの検査 1〜8（文のとおりに写す） -----------------------------------
+-- 抜け漏れの検査 1〜8、16〜22（文のとおりに写す） ---------------------------
 
--- 1. すべての要件に、受入条件が1つ以上ある。
-pred C1 { all q: Requirement | some acReq.q }
+fun liveAC: set AC { AC - RetiredAC }
+fun liveReq: set Requirement { Requirement - RetiredReq }
 
--- 2. すべての受入条件に、テストケースが1つ以上ある。無ければ、テストで確かめない理由が書いてある。
---    否定を含む受入条件には、否定のケースがある。（理由の有無によらず否定のケースを求める読み）
+-- 1. 廃止していない要件のすべてに、廃止していない受入条件が1つ以上ある。
+pred C1 { all q: liveReq | some (acReq.q & liveAC) }
+
+-- 2. 廃止していない受入条件のすべてに、テストケースが1つ以上ある。無ければ、テストで確かめない理由が
+--    書いてある。否定を含む受入条件には、否定のケースがある（テストで確かめない理由があるものは除く）。
 pred C2 {
-  all a: AC | some tcAcs.a or a in NoTestReasonAC
-  all a: NegAC | some (tcAcs.a & NegTC)
+  all a: liveAC | some tcAcs.a or a in NoTestReasonAC
+  all a: (NegAC & liveAC) - NoTestReasonAC | some (tcAcs.a & NegTC)
 }
 
--- 3. すべての受入条件が、どれかの作業に結ばれている。
-pred C3 { all a: AC | some taskAcs.a }
+-- 3. 廃止していない受入条件のすべてが、どれかの作業に結ばれている。
+pred C3 { all a: liveAC | some taskAcs.a }
 
--- 4. すべての作業に、受入条件か出どころがある。
-pred C4 { all k: Task | some k.taskAcs or some k.taskOrigin }
+-- 4. すべての作業に、廃止していない受入条件か出どころがある。
+pred C4 { all k: Task | some (k.taskAcs & liveAC) or some k.taskOrigin }
 
 -- 5. 新しく足すテストケースは、どれかの作業に結ばれている。
 pred C5 { all t: NewTC | some taskTests.t }
@@ -108,11 +114,44 @@ pred C7 {
     and (r.means = ByOther implies r in OtherWithReason)
 }
 
--- 8. 受入条件と設計の判断が指す業務規則は、存在し、廃止されておらず、確かさが仮説・未確定でない
---    （保留は、了承の記録と期限があるときだけ）。「存在し」は表せない（指す先は必ず Rule）。
-pred C8 { (AC.acRules + DD.ddRules) in validRules }
+-- 8. 廃止していない受入条件と、設計の判断が指す業務規則は、存在し、廃止されておらず、確かさが
+--    仮説・未確定でない（保留は、了承の記録と期限があるときだけ）。「存在し」は表せない（指す先は必ず Rule）。
+pred C8 { (liveAC.acRules + DD.ddRules) in validRules }
 
-pred AllChecks { C1 and C2 and C3 and C4 and C5 and C6 and C7 and C8 }
+-- 16. すべての受入条件が、どれかの要件に属する。廃止していない受入条件は、廃止していない要件に属する。
+pred C16 { ACHasReq and all a: liveAC | some (a.acReq & liveReq) }
+
+-- 17. すべてのテストケースに、廃止していない受入条件か出どころがある。
+pred C17 { all t: TC | some (t.tcAcs & liveAC) or some t.tcOrigin }
+
+-- 18. テストケースが確かめる業務規則は、8 と同じく有効である。
+pred C18 { TC.tcRules in validRules }
+
+-- 19. 廃止しておらず、テストで確かめない理由の無い受入条件は、結んだ作業がすべて終わったとするとき、
+--     結ばれたテストケースのどれもが通った記録を持つ（否定を含むものは、否定のケースも含む）。
+--     「結んだ作業がすべて」は、結んだ作業が1つ以上あるときとする（無ければ検査 3 が指摘する）。
+pred C19 {
+  all a: liveAC - NoTestReasonAC |
+    (some taskAcs.a and taskAcs.a in DoneTask) implies tcAcs.a in PassedTC
+}
+
+-- 20. 作業をすべて終えたとするときは、7 で満たすケースと破るケースを求めた業務規則について、
+--     満たすケースと破るケースがそれぞれ1つ以上、通った記録を持つ。
+pred C20 {
+  (some Task and Task = DoneTask) implies all r: validRules |
+    r.means = ByTest implies (some (satTCs[r] & PassedTC) and some (violTCs[r] & PassedTC))
+}
+
+-- 21. 終わったとする作業の、先に終わっている必要がある作業は、終わっている。
+pred C21 { DoneTask.deps in DoneTask }
+
+-- 22. 作業の依存に輪が無い（自分自身への依存を含む）。
+pred C22 { no k: Task | k in k.^deps }
+
+pred AllChecks {
+  C1 and C2 and C3 and C4 and C5 and C6 and C7 and C8
+  C16 and C17 and C18 and C19 and C20 and C21 and C22
+}
 
 -- 決まりが矛盾していないか（全部を満たす、空でない例が作れるか） -----------
 
@@ -128,8 +167,8 @@ run NonEmpty {
 
 -- G1（検査 1〜3）どの要件も、テストか理由を持ち作業に結ばれた受入条件まで辿れる。
 assert ReqTraceable {
-  AllChecks implies all q: Requirement |
-    some a: acReq.q | (some tcAcs.a or a in NoTestReasonAC) and some taskAcs.a
+  AllChecks implies all q: liveReq |
+    some a: acReq.q & liveAC | (some tcAcs.a or a in NoTestReasonAC) and some taskAcs.a
 }
 check ReqTraceable for 5
 
@@ -137,10 +176,10 @@ check ReqTraceable for 5
 assert TaskTraceable { AllChecks implies all k: Task | some k.taskAcs + k.taskOrigin }
 check TaskTraceable for 5
 
--- G3（検査 2、5、6）ケースが全部新しく、作業が全部終われば、テストで確かめる受入条件に通ったケースがある。
+-- G3（1段目は検査 2、5、6。2段目は検査 3、19 が支える）ケースが全部新しく、作業が全部終われば、テストで確かめる受入条件に通ったケースがある。
 assert AllNewDoneMeansACTested {
   (AllChecks and TC = NewTC and Task = DoneTask) implies
-    all a: AC - NoTestReasonAC | some (tcAcs.a & PassedTC)
+    all a: liveAC - NoTestReasonAC | some (tcAcs.a & PassedTC)
 }
 check AllNewDoneMeansACTested for 5
 
@@ -155,24 +194,25 @@ check ValidTestRulesHaveBothCases for 5
 
 -- G5（検査 8）受入条件と設計の判断が指す規則に、廃止したもの、仮説・未確定のもの、了承の無い保留が無い。
 assert PointedRulesUsable {
-  AllChecks implies no (AC.acRules + DD.ddRules) &
+  AllChecks implies no (liveAC.acRules + DD.ddRules) &
     (RetiredRule + cert.(Hypothesis + Undecided) + (cert.Pending - ApprovedPending))
 }
 check PointedRulesUsable for 5
 
--- 保証していないかもしれないこと（穴の候補） --------------------------------
+-- 1段目の穴の候補（2段目の検査で成り立つはず。H3 だけは塞がず、反例が残る） ---
+-- 受入条件は、廃止していないものを見る（持ち主の決定: 廃止したものには求めない）。
 
 -- H1. 作業が全部終われば、テストで確かめる受入条件には、通ったケースがある。
 assert AllDoneMeansACTested {
   (AllChecks and Task = DoneTask) implies
-    all a: AC - NoTestReasonAC | some (tcAcs.a & PassedTC)
+    all a: liveAC - NoTestReasonAC | some (tcAcs.a & PassedTC)
 }
 check AllDoneMeansACTested for 5
 
 -- H2. ケースが全部新しくても、受入条件に結んだ作業が全部終われば、その受入条件に通ったケースがある。
 assert ACTasksDoneMeansTested {
   (AllChecks and TC = NewTC) implies
-    all a: AC - NoTestReasonAC | (taskAcs.a in DoneTask) implies some (tcAcs.a & PassedTC)
+    all a: liveAC - NoTestReasonAC | (taskAcs.a in DoneTask) implies some (tcAcs.a & PassedTC)
 }
 check ACTasksDoneMeansTested for 5
 
@@ -184,13 +224,13 @@ check TaskTestsMatchACs for 5
 
 -- H4. 作業が全部終われば、否定を含む受入条件の否定のケースが通っている。
 assert NegACNegTestPassed {
-  (AllChecks and Task = DoneTask) implies all a: NegAC | some (tcAcs.a & NegTC & PassedTC)
+  (AllChecks and Task = DoneTask) implies all a: (NegAC & liveAC) - NoTestReasonAC | some (tcAcs.a & NegTC & PassedTC)
 }
 check NegACNegTestPassed for 5
 
 -- H5. 作業が全部終われば、有効でテストで確かめる規則の、満たすケースと破るケースが通っている。
 assert RuleCasesPassedWhenDone {
-  (AllChecks and Task = DoneTask) implies all r: validRules |
+  (AllChecks and some Task and Task = DoneTask) implies all r: validRules |
     r.means = ByTest implies (some (satTCs[r] & PassedTC) and some (violTCs[r] & PassedTC))
 }
 check RuleCasesPassedWhenDone for 5
@@ -247,5 +287,31 @@ run RetiredACPointsRetiredRule {
 
 -- S5. 理由のある否定を含む受入条件を、否定のケースなしで残せる（検査 2 の第3文の読みの確かめ）。
 run NegACWithReasonNoNegTC {
-  AllChecks and some a: NegAC & NoTestReasonAC | no (tcAcs.a & NegTC)
+  AllChecks and some a: (NegAC & NoTestReasonAC) - RetiredAC | no (tcAcs.a & NegTC)
+} for 5
+
+-- 2段目のレビュー（P-458）を受けて足した確かめ ---------------------------------
+
+-- H13. 作業が全部終われば、廃止していない、理由の無い受入条件のテストケースは、作業に結ばれていない
+--      前からあるものも含めて、どれも通っている（検査 19 の「どれも」）。
+assert AllACTestsPassedWhenDone {
+  (AllChecks and Task = DoneTask) implies all a: liveAC - NoTestReasonAC | tcAcs.a in PassedTC
+}
+check AllACTestsPassedWhenDone for 5
+
+-- S6. 受入条件を2つの作業に結び、片方だけ終わった時点では、テストがまだ通っていなくてよい
+--     （共通の土台の作業を先に終えられる）。
+run SharedACOneTaskDone {
+  AllChecks and some a: liveAC - NoTestReasonAC |
+    some (taskAcs.a & DoneTask) and some (taskAcs.a - DoneTask) and some (tcAcs.a - PassedTC)
+} for 5
+
+-- S7. 出どころが無く、廃止した受入条件だけに結ばれた作業を残せる（期待: 例なし。検査 4）。
+run TaskOnlyRetiredAC {
+  AllChecks and some k: Task | some k.taskAcs and k.taskAcs in RetiredAC and no k.taskOrigin
+} for 5
+
+-- S8. 出どころが無く、廃止した受入条件だけに結ばれたテストケースを残せる（期待: 例なし。検査 17）。
+run TCOnlyRetiredAC {
+  AllChecks and some t: TC | some t.tcAcs and t.tcAcs in RetiredAC and no t.tcOrigin
 } for 5

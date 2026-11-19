@@ -14,7 +14,7 @@
 | `dev-profile-review-cycle` | [profile-review-cycle](profile-review-cycle/) |
 | `dev-profile-version-control` | [profile-version-control](profile-version-control/) |
 
-プロファイルのほかに、型の一覧の「識別子と結びつき」の決まり（抜け漏れの検査 1〜8）を Alloy で表した試行のモデルがある: [type-links](type-links/)。決まりそのものの矛盾と穴を探すもので、下の突き合わせの検査の対象ではない。
+プロファイルのほかに、型の一覧の「識別子と結びつき」の決まり（抜け漏れの検査 1〜8、16〜22）を Alloy で表したモデルがある: [type-links](type-links/)。決まりそのものの矛盾と穴を探すもので、下の突き合わせの検査の対象ではない。
 
 ## 写しのずれを防ぐ
 
